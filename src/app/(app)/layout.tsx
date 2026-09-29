@@ -1,8 +1,14 @@
+import { redirect } from "next/navigation"
+
 import { BottomNav } from "@/components/layout/bottom-nav"
 import { getDictionary } from "@/i18n/get-dictionary"
+import { getCurrentProfile } from "@/lib/data/profile"
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
-  const dict = await getDictionary()
+  const [dict, profile] = await Promise.all([getDictionary(), getCurrentProfile()])
+
+  if (!profile) redirect("/login")
+  if (!profile.onboarded_at) redirect("/onboarding")
 
   return (
     <>
