@@ -77,6 +77,20 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - Tipos en `src/types/database.ts`. Tras cada migración, regenerarlos con `npm run db:types` (proyecto enlazado).
 - Validadores Zod en `src/lib/validators`. Sus errores devuelven claves de `validation.*` del diccionario, no textos.
 
+## Autenticación y onboarding
+
+- Acceso sin contraseña con un código de 6 dígitos por email (`signInWithOtp` + `verifyOtp`). Funciona dentro de la PWA instalada, a diferencia de los enlaces mágicos. El enlace del email también sirve (`/auth/confirm`).
+- `src/proxy.ts` refresca la sesión y protege las rutas: sin sesión todo lleva a `/login`, salvo `/login` y `/auth/confirm`.
+- `src/app/(app)/layout.tsx` redirige a `/onboarding` si `profiles.onboarded_at` es nulo.
+- Para leer la sesión y el perfil se usan `getCurrentUser` y `getCurrentProfile` (`src/lib/data/profile.ts`), cacheados por petición.
+- Onboarding en 2 pasos: nombre opcional y categorías. El paso "Instalar" va con la fase de la PWA.
+- Se guarda de forma atómica con la función SQL `complete_onboarding`.
+- Categorías sugeridas: 12, una por color (`src/lib/default-categories.ts`), todas marcadas por defecto.
+- El logo (`src/components/brand/logo.tsx`) es **provisional** hasta que Claude Design entregue el definitivo.
+- Decisiones de producto:
+  - Solo gastos, sin ingresos ni gastos recurrentes por ahora.
+  - Un gasto tiene importe, categoría, concepto, nota y fecha. No se piden "¿con quién?" ni "¿cómo te sientes?", para mantener el registro por debajo de 5 segundos.
+
 ## Plan por fases
 
 0. Base: Next.js + TS estricto, Tailwind, shadcn/ui, ESLint/Prettier, i18n (es-ES), repo en GitHub y Vercel.

@@ -61,8 +61,10 @@
   },
   "settings": {
     "title": "Ajustes",
-    "emptyTitle": "Muy pronto",
-    "emptyDescription": "Aquí podrás gestionar tus categorías, presupuestos y cuenta."
+    "account": "Cuenta",
+    "signedInAs": "Has entrado como",
+    "signOut": "Cerrar sesión",
+    "comingSoon": "Categorías, presupuestos y más ajustes, muy pronto."
   },
   "addExpense": {
     "title": "Nuevo gasto",
@@ -92,6 +94,63 @@
     "emojiInvalid": "Elige un solo emoji",
     "colorInvalid": "Elige un color de la lista",
     "dateInvalid": "La fecha no es válida",
-    "textTooLong": "El texto es demasiado largo"
+    "textTooLong": "El texto es demasiado largo",
+    "emailInvalid": "Revisa el email, no parece válido",
+    "codeInvalid": "El código tiene 6 dígitos",
+    "categoriesRequired": "Elige al menos una categoría"
+  },
+  "auth": {
+    "title": "Entra en Zumito",
+    "subtitle": "Te enviaremos un código a tu email. Sin contraseñas.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "tu@email.com",
+    "sendCode": "Enviarme el código",
+    "sending": "Enviando…",
+    "codeTitle": "Revisa tu email",
+    "codeSubtitle": "Te hemos enviado un código a {email}. También puedes entrar con el enlace del email.",
+    "codeLabel": "Código",
+    "verify": "Entrar",
+    "verifying": "Comprobando…",
+    "changeEmail": "Usar otro email",
+    "resend": "Reenviar código",
+    "resent": "Te hemos enviado un código nuevo",
+    "errors": {
+      "invalidEmail": "Revisa el email, no parece válido",
+      "invalidCode": "El código no es correcto o ha caducado",
+      "tooManyRequests": "Has pedido muchos códigos. Espera un minuto y vuelve a intentarlo.",
+      "sendFailed": "No hemos podido enviarte el código. Inténtalo de nuevo.",
+      "linkFailed": "El enlace no es válido o ha caducado. Pide un código nuevo."
+    }
+  },
+  "onboarding": {
+    "stepLabel": "Paso {current} de {total}",
+    "welcomeTitle": "Te damos la bienvenida a Zumito",
+    "welcomeText": "Apunta cada gasto en segundos y descubre en qué se va tu dinero.",
+    "nameLabel": "¿Cómo quieres que te llamemos?",
+    "namePlaceholder": "Tu nombre (opcional)",
+    "continue": "Continuar",
+    "back": "Atrás",
+    "categoriesTitle": "Elige tus categorías",
+    "categoriesText": "Hemos marcado las más habituales. Podrás cambiarlas cuando quieras.",
+    "finish": "Empezar",
+    "saving": "Guardando…",
+    "errors": {
+      "noCategories": "Elige al menos una categoría",
+      "saveFailed": "No hemos podido guardar. Inténtalo de nuevo."
+    },
+    "categories": {
+      "food": "Comida",
+      "groceries": "Súper",
+      "coffee": "Cafés",
+      "leisure": "Ocio",
+      "transport": "Transporte",
+      "home": "Hogar",
+      "health": "Salud",
+      "clothes": "Ropa",
+      "gifts": "Regalos",
+      "travel": "Viajes",
+      "subscriptions": "Suscripciones",
+      "pets": "Mascotas"
+    }
   }
 }

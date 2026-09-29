@@ -7,10 +7,13 @@ import { AppHeader } from "@/components/layout/app-header"
 import { ProfileButton } from "@/components/layout/profile-button"
 import { formatCurrency, formatMonth } from "@/i18n/format"
 import { getDictionary } from "@/i18n/get-dictionary"
+import { interpolate } from "@/i18n/interpolate"
+import { getCurrentProfile } from "@/lib/data/profile"
 
 export default async function HomePage() {
   await connection()
-  const dict = await getDictionary()
+  const [dict, profile] = await Promise.all([getDictionary(), getCurrentProfile()])
+  const name = profile?.display_name
 
   // Sin datos todavía: los componentes se conectarán a Supabase en fases posteriores.
   const empty: PeriodSummary = { amount: formatCurrency(0), delta: null }
@@ -18,7 +21,7 @@ export default async function HomePage() {
   return (
     <>
       <AppHeader
-        eyebrow={dict.common.greeting}
+        eyebrow={name ? interpolate(dict.common.greetingWithName, { name }) : dict.common.greeting}
         title={formatMonth(new Date())}
         action={<ProfileButton label={dict.common.profile} />}
       />
