@@ -7,6 +7,8 @@ import {
   formatDayLabel,
   formatMoment,
   formatMonth,
+  formatMonthName,
+  formatPercent,
 } from "./format"
 
 const labels = { today: "Hoy", yesterday: "Ayer" }
@@ -53,5 +55,12 @@ describe("formato", () => {
     expect(formatDayLabel("2026-09-30", labels, { now })).toBe("Ayer")
     expect(formatDayLabel("2026-09-28", labels, { now })).toBe("Lunes, 28 de septiembre")
     expect(formatDayLabel("2025-12-31", labels, { now })).toBe("Miércoles, 31 de diciembre de 2025")
+  })
+
+  it("nombres de mes y porcentajes", () => {
+    expect(formatMonthName("2026-09")).toBe("septiembre de 2026")
+    expect(formatMonthName("2026-09", { withYear: false })).toBe("septiembre")
+    expect(formatMonthName("2026-09", { style: "short" })).toBe("sept")
+    expect(clean(formatPercent(12))).toBe("12 %")
   })
 })

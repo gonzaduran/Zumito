@@ -123,3 +123,27 @@ export function formatTime(
     timeZone,
   }).format(date)
 }
+
+/** Porcentaje sin decimales a partir de un valor 0-100: 12 → "12 %". */
+export function formatPercent(value: number, locale: Locale = defaultLocale): string {
+  return new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 }).format(
+    value / 100,
+  )
+}
+
+/** "septiembre de 2026", "septiembre" (sin año) o "sept" (corto). */
+export function formatMonthName(
+  month: string,
+  {
+    locale = defaultLocale,
+    style = "long",
+    withYear = style === "long",
+  }: { locale?: Locale; style?: "long" | "short"; withYear?: boolean } = {},
+): string {
+  const date = new Date(`${month}-15T12:00:00Z`)
+  return new Intl.DateTimeFormat(locale, {
+    month: style,
+    year: withYear ? "numeric" : undefined,
+    timeZone: "UTC",
+  }).format(date)
+}

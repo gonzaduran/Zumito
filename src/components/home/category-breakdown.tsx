@@ -1,21 +1,11 @@
-import { categoryColorVar, type ChartColor } from "@/lib/category-colors"
+import { categoryColorVar } from "@/lib/category-colors"
+import type { CategorySpending } from "@/lib/stats-view"
 
 import { SectionHeader } from "./section-header"
 
-export type CategorySpending = {
-  id: string
-  emoji: string
-  name: string
-  /** Importe ya formateado. */
-  amount: string
-  /** Proporción de la barra (0-1). */
-  share: number
-  color: ChartColor
-}
-
 type CategoryBreakdownProps = {
   title: string
-  seeAll: { href: string; label: string }
+  seeAll?: { href: string; label: string }
   items: CategorySpending[]
 }
 
@@ -38,7 +28,12 @@ export function CategoryBreakdown({ title, seeAll, items }: CategoryBreakdownPro
             <div className="min-w-0 flex-1">
               <div className="mb-1.5 flex justify-between gap-3 text-[13px] font-bold">
                 <span className="truncate">{item.name}</span>
-                <span className="num">{item.amount}</span>
+                <span className="flex shrink-0 gap-2">
+                  {item.percent ? (
+                    <span className="num font-semibold text-muted-foreground">{item.percent}</span>
+                  ) : null}
+                  <span className="num">{item.amount}</span>
+                </span>
               </div>
               <div aria-hidden="true" className="h-1 overflow-hidden rounded-full bg-border">
                 <div

@@ -102,6 +102,17 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - `src/lib/expense-view.ts` convierte los resultados en filas y grupos por día (función pura, probada).
 - Los paneles hacen scroll y el teclado se compacta en pantallas bajas (iPhone SE).
 
+## Estadísticas
+
+- `/estadisticas?m=aaaa-mm`: total del mes, comparación y reparto por categoría (6 mayores + "Otros"), y evolución de los últimos 6 meses.
+- La comparación es justa: el mes en curso se compara con los mismos días del anterior (`comparisonRange` en `src/lib/periods.ts`).
+- Datos de las funciones SQL `spending_by_category(from, to)` y `spending_by_month(n)`, en la zona del usuario. Las categorías archivadas siguen contando.
+- **El color de categoría no identifica nada en los gráficos.** Los 12 colores tienen el mismo brillo y el validador de la guía de visualización lo confirma: con daltonismo (e incluso sin él) hay pares indistinguibles. Por eso:
+  - no se usan donuts ni leyendas por color;
+  - el reparto va en barras horizontales con emoji, nombre, % e importe escritos;
+  - la evolución mensual es una sola serie: el mes elegido en `--primary` y el resto en `--muted-foreground`, con tabla `sr-only`.
+- Los textos de datos usan colores de texto, nunca el color de la serie. Subir el gasto se muestra en `--destructive` y bajarlo en `--positive`, siempre con flecha.
+
 ## Pruebas
 
 - `npm test`: pruebas unitarias con Vitest (`src/**/*.test.ts`).

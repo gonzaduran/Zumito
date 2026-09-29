@@ -12,7 +12,7 @@ export type PeriodSummary = {
   /** Importe ya formateado, p. ej. "482,30 €". */
   amount: string
   /** Comparación con el periodo anterior, ya redactada. `null` si no aplica. */
-  delta: { direction: "up" | "down"; label: string } | null
+  delta: { direction: "up" | "down" | "same"; label: string } | null
 }
 
 type SpendingHeroCardProps = {
@@ -63,9 +63,9 @@ export function SpendingHeroCard({
                   <p className="mt-1 flex items-center gap-1 text-xs font-bold text-white/90">
                     {delta.direction === "up" ? (
                       <ArrowUp aria-hidden="true" className="size-3.5" strokeWidth={2.6} />
-                    ) : (
+                    ) : delta.direction === "down" ? (
                       <ArrowDown aria-hidden="true" className="size-3.5" strokeWidth={2.6} />
-                    )}
+                    ) : null}
                     {delta.label}
                   </p>
                 ) : null}

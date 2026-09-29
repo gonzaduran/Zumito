@@ -51,3 +51,19 @@ export async function searchExpenses({ query, categoryId, limit }: HistoryFilter
   if (error) throw error
   return { rows: data.slice(0, limit), hasMore: data.length > limit }
 }
+
+/** Gasto por categoría entre dos días locales (from incluido, to excluido). */
+export const getSpendingByCategory = cache(async (from: string, to: string) => {
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc("spending_by_category", { p_from: from, p_to: to })
+  if (error) throw error
+  return data
+})
+
+/** Total de cada uno de los últimos meses, incluido el actual. */
+export const getSpendingByMonth = cache(async (months: number = 6) => {
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc("spending_by_month", { p_months: months })
+  if (error) throw error
+  return data
+})

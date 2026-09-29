@@ -34,13 +34,7 @@
       "total": "Gastado en total"
     },
     "delta": {
-      "more": "{percent} más que {previous}",
-      "less": "{percent} menos que {previous}",
-      "previous": {
-        "today": "ayer",
-        "week": "la semana pasada",
-        "month": "el mes pasado"
-      }
+      "previous": "a estas alturas del mes pasado"
     },
     "budgetUsed": "{percent} del presupuesto usado",
     "categoriesTitle": "Categorías",
@@ -66,9 +60,22 @@
   },
   "stats": {
     "title": "Estadísticas",
-    "emptyTitle": "Todavía no hay datos",
-    "emptyDescription": "Cuando apuntes algunos gastos verás en qué se va tu dinero.",
-    "others": "Otros"
+    "monthNav": "Cambiar de mes",
+    "previousMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
+    "spentIn": "Gastado en {month}",
+    "deltaMore": "{percent} más que {period}",
+    "deltaLess": "{percent} menos que {period}",
+    "deltaSame": "Lo mismo que {period}",
+    "periodFull": "en {month}",
+    "periodSoFar": "a estas alturas de {month}",
+    "byCategory": "Por categoría",
+    "others": "Otros",
+    "trendTitle": "Últimos 6 meses",
+    "monthColumn": "Mes",
+    "amountColumn": "Importe",
+    "emptyTitle": "Sin gastos en {month}",
+    "emptyDescription": "Cuando apuntes gastos verás aquí en qué se va tu dinero."
   },
   "settings": {
     "title": "Ajustes",
