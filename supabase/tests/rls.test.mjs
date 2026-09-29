@@ -465,6 +465,71 @@ await expectError(
   /permission denied/,
 )
 
+console.log("\nHistorial (search_expenses)")
+await as("authenticated", D, () =>
+  db.exec(`
+    insert into public.categories (id, name, emoji, color)
+    values ('dddddddd-0000-0000-0000-000000000002', 'Ocio', '🍻', 'rose');
+    insert into public.expenses (category_id, amount_cents, description, note, spent_at) values
+      ('dddddddd-0000-0000-0000-000000000002', 1500, 'Cine 100%', null, now() - interval '1 minute'),
+      ('dddddddd-0000-0000-0000-000000000002', 2500, 'Cena', 'con_Marta', now() - interval '2 minutes');
+  `),
+)
+const search = async (args) =>
+  (await as("authenticated", D, () => db.query(`select * from public.search_expenses(${args})`)))
+    .rows
+let rowsFound = await search("")
+assert(
+  rowsFound.length === 5,
+  "sin filtros devuelve todos los gastos del usuario",
+  rowsFound.length,
+)
+assert(
+  rowsFound.every((r, i, all) => i === 0 || all[i - 1].spent_at >= r.spent_at),
+  "ordenados del más reciente al más antiguo",
+  JSON.stringify(rowsFound.map((r) => r.spent_at)),
+)
+rowsFound = await search("p_category_id => 'dddddddd-0000-0000-0000-000000000002'")
+assert(rowsFound.length === 2, "filtra por categoría", rowsFound.length)
+rowsFound = await search("p_query => 'CENA'")
+assert(
+  rowsFound.length === 1 && rowsFound[0].description === "Cena",
+  "busca sin distinguir mayúsculas",
+  JSON.stringify(rowsFound),
+)
+rowsFound = await search("p_query => 'marta'")
+assert(rowsFound.length === 1, "busca también en la nota", rowsFound.length)
+rowsFound = await search("p_query => 'comida'")
+assert(rowsFound.length === 3, "busca también por nombre de categoría", rowsFound.length)
+rowsFound = await search("p_query => '100%'")
+assert(rowsFound.length === 1, "el % se busca literalmente", rowsFound.length)
+rowsFound = await search("p_query => '_'")
+assert(rowsFound.length === 1, "el _ se busca literalmente", rowsFound.length)
+rowsFound = await search("p_limit => 1")
+const today = rowsFound[0]
+const allToday = (await search("")).filter((r) => String(r.day) === String(today.day))
+assert(
+  rowsFound.length === 1 &&
+    Number(today.day_total_cents) === allToday.reduce((a, r) => a + Number(r.amount_cents), 0),
+  "el total del día cuenta todos los gastos del día aunque se pidan menos",
+  JSON.stringify({ today, allToday: allToday.length }),
+)
+const other = (
+  await as("authenticated", B, () => db.query("select * from public.search_expenses()"))
+).rows
+assert(
+  other.every((r) => r.category_name !== "Ocio"),
+  "B no ve el historial de D",
+  other.length,
+)
+await expectError(
+  "anon no puede buscar",
+  "anon",
+  null,
+  "select * from public.search_expenses()",
+  /permission denied/,
+)
+
 console.log("\nBorrado de cuenta")
 await db.exec(`delete from auth.users where id = '${A}'`)
 const left = await db.query(`select

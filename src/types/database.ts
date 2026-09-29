@@ -164,6 +164,22 @@ export type Database = {
         Args: { p_display_name: string | null; p_categories: Json }
         Returns: undefined
       }
+      search_expenses: {
+        Args: { p_query?: string | null; p_category_id?: string | null; p_limit?: number }
+        Returns: {
+          id: string
+          amount_cents: number
+          description: string | null
+          note: string | null
+          spent_at: string
+          category_id: string
+          category_name: string
+          category_emoji: string
+          category_color: string
+          day: string
+          day_total_cents: number
+        }[]
+      }
       expense_summary: {
         Args: Record<PropertyKey, never>
         Returns: {
