@@ -25,3 +25,7 @@ export type ChartColor = CategoryColor | "other"
 export function categoryColorVar(color: ChartColor): string {
   return `var(--cat-${color})`
 }
+
+export function isCategoryColor(value: string): value is CategoryColor {
+  return (categoryColors as readonly string[]).includes(value)
+}
