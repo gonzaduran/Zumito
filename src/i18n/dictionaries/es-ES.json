@@ -1,0 +1,10 @@
+{
+  "app": {
+    "name": "Zumito",
+    "description": "Controla tus gastos en segundos."
+  },
+  "home": {
+    "todayTotal": "Gastado hoy",
+    "emptyToday": "Aún no hay gastos hoy"
+  }
+}
