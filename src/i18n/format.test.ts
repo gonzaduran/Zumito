@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest"
 
-import { calendarDay, formatCents, formatDate, formatMoment, formatMonth } from "./format"
+import {
+  calendarDay,
+  formatCents,
+  formatDate,
+  formatDayLabel,
+  formatMoment,
+  formatMonth,
+} from "./format"
 
 const labels = { today: "Hoy", yesterday: "Ayer" }
 const clean = (text: string) => text.replace(/ /g, " ")
@@ -38,5 +45,13 @@ describe("formato", () => {
     const now = new Date("2026-10-25T23:30:00Z") // lunes 26/10 00:30 en Madrid
     expect(calendarDay(now)).toBe("2026-10-26")
     expect(formatMoment(new Date("2026-10-25T00:30:00Z"), labels, { now })).toBe("Ayer · 02:30")
+  })
+
+  it("etiqueta de día del historial", () => {
+    const now = new Date("2026-10-01T10:00:00Z")
+    expect(formatDayLabel("2026-10-01", labels, { now })).toBe("Hoy")
+    expect(formatDayLabel("2026-09-30", labels, { now })).toBe("Ayer")
+    expect(formatDayLabel("2026-09-28", labels, { now })).toBe("Lunes, 28 de septiembre")
+    expect(formatDayLabel("2025-12-31", labels, { now })).toBe("Miércoles, 31 de diciembre de 2025")
   })
 })

@@ -52,8 +52,17 @@
   },
   "history": {
     "title": "Historial",
+    "searchLabel": "Buscar gastos",
+    "searchPlaceholder": "Buscar por concepto, nota o categoría",
+    "filtersLabel": "Filtrar por categoría",
+    "allCategories": "Todas",
+    "dayTotal": "Total del día",
+    "loadMore": "Ver más",
     "emptyTitle": "Aún no hay movimientos",
-    "emptyDescription": "Aquí verás todos tus gastos, agrupados por día."
+    "emptyDescription": "Aquí verás todos tus gastos, agrupados por día.",
+    "noResultsTitle": "No hay resultados",
+    "noResultsDescription": "No encontramos gastos con esos filtros. Prueba a cambiarlos.",
+    "clearFilters": "Quitar filtros"
   },
   "stats": {
     "title": "Estadísticas",
@@ -174,5 +183,17 @@
       "subscriptions": "Suscripciones",
       "pets": "Mascotas"
     }
+  },
+  "editExpense": {
+    "title": "Editar gasto",
+    "open": "Editar: {title}, {amount}",
+    "save": "Guardar cambios",
+    "delete": "Eliminar gasto",
+    "saved": "Cambios guardados",
+    "deleted": "Gasto eliminado",
+    "undo": "Deshacer",
+    "saveFailed": "No se han podido guardar los cambios",
+    "deleteFailed": "No se ha podido eliminar el gasto",
+    "retry": "Reintentar"
   }
 }

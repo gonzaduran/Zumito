@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   applyAmountKey,
   formatAmountInput,
+  fromCents,
   keyFromKeyboard,
   toCents,
   type AmountKey,
@@ -57,5 +58,15 @@ describe("teclado de importe", () => {
     expect(keyFromKeyboard(",")).toBe(",")
     expect(keyFromKeyboard("Backspace")).toBe("backspace")
     expect(keyFromKeyboard("a")).toBeNull()
+  })
+
+  it("convierte céntimos al texto del teclado para editar", () => {
+    expect(fromCents(1250)).toBe("12,5")
+    expect(fromCents(1205)).toBe("12,05")
+    expect(fromCents(1200)).toBe("12")
+    expect(fromCents(99)).toBe("0,99")
+    for (const cents of [1, 10, 99, 100, 1250, 123456, 100_000_000]) {
+      expect(toCents(fromCents(cents))).toBe(cents)
+    }
   })
 })

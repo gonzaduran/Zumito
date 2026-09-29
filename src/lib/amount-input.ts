@@ -54,3 +54,12 @@ export function keyFromKeyboard(key: string): AmountKey | null {
   if (key === "Backspace") return "backspace"
   return null
 }
+
+/** Céntimos → texto del teclado, para editar un gasto: 1250 → "12,5", 1200 → "12". */
+export function fromCents(cents: number): string {
+  const integer = Math.floor(cents / 100)
+  const decimals = String(cents % 100)
+    .padStart(MAX_DECIMALS, "0")
+    .replace(/0+$/, "")
+  return decimals ? `${integer}${DECIMAL_SEPARATOR}${decimals}` : String(integer)
+}

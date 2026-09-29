@@ -83,3 +83,43 @@ export function formatMoment(
   }).format(date)
   return `${label} · ${time}`
 }
+
+/** Cabecera de un día del historial: "Hoy", "Ayer", "Lunes, 28 de septiembre" (con año si no es el actual). */
+export function formatDayLabel(
+  day: string,
+  labels: { today: string; yesterday: string },
+  {
+    now = new Date(),
+    locale = defaultLocale,
+    timeZone = defaultTimeZone,
+  }: FormatOptions & {
+    now?: Date
+  } = {},
+): string {
+  const today = calendarDay(now, timeZone)
+  if (day === today) return labels.today
+  if (day === previousDay(today)) return labels.yesterday
+  // Mediodía UTC del día para que ninguna zona horaria lo mueva.
+  const date = new Date(`${day}T12:00:00Z`)
+  const text = new Intl.DateTimeFormat(locale, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: day.slice(0, 4) === today.slice(0, 4) ? undefined : "numeric",
+    timeZone: "UTC",
+  }).format(date)
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
+/** Hora "14:32" en la zona horaria dada. */
+export function formatTime(
+  date: Date,
+  { locale = defaultLocale, timeZone = defaultTimeZone }: FormatOptions = {},
+): string {
+  return new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone,
+  }).format(date)
+}

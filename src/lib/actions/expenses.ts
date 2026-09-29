@@ -31,6 +31,28 @@ export async function createExpense(input: ExpenseInput): Promise<ActionResult> 
   return { ok: true }
 }
 
+export async function updateExpense(input: ExpenseInput & { id: string }): Promise<ActionResult> {
+  const parsed = expenseInputSchema.required({ id: true }).safeParse(input)
+  if (!parsed.success) return { ok: false }
+
+  const { id, categoryId, amountCents, description, note, spentAt } = parsed.data
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("expenses")
+    .update({
+      category_id: categoryId,
+      amount_cents: amountCents,
+      description: description ?? null,
+      note: note ?? null,
+      spent_at: spentAt.toISOString(),
+    })
+    .eq("id", id)
+  if (error) return { ok: false }
+
+  revalidatePath("/", "layout")
+  return { ok: true }
+}
+
 export async function deleteExpense(id: string): Promise<ActionResult> {
   const parsed = z.uuid().safeParse(id)
   if (!parsed.success) return { ok: false }

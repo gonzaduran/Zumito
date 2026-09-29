@@ -25,18 +25,6 @@ export const getExpenseSummary = cache(async (): Promise<ExpenseSummary> => {
   }
 })
 
-/** Últimos gastos, del más reciente al más antiguo. */
-export const getRecentExpenses = cache(async (limit: number = 5) => {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from("expenses")
-    .select("id, amount_cents, description, spent_at, category:categories(name, emoji)")
-    .order("spent_at", { ascending: false })
-    .limit(limit)
-  if (error) throw error
-  return data
-})
-
 /** Categoría del último gasto apuntado: es la que se preselecciona al añadir otro. */
 export const getLastUsedCategoryId = cache(async (): Promise<string | null> => {
   const supabase = await createClient()
@@ -49,3 +37,17 @@ export const getLastUsedCategoryId = cache(async (): Promise<string | null> => {
   if (error) throw error
   return data?.category_id ?? null
 })
+
+export type HistoryFilters = { query?: string; categoryId?: string; limit: number }
+
+/** Historial filtrado. Pide uno más del límite para saber si hay más resultados. */
+export async function searchExpenses({ query, categoryId, limit }: HistoryFilters) {
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc("search_expenses", {
+    p_query: query || null,
+    p_category_id: categoryId || null,
+    p_limit: limit + 1,
+  })
+  if (error) throw error
+  return { rows: data.slice(0, limit), hasMore: data.length > limit }
+}
