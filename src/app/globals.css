@@ -11,10 +11,16 @@
 @custom-variant dark (@media (prefers-color-scheme: dark));
 
 :root {
-  /* Acento de marca (diseño: --accent). Cámbialo aquí y afecta a toda la app. */
+  /*
+   * Acento de marca (diseño: --accent). Cámbialo aquí y afecta a toda la app.
+   * --primary es el relleno (botones, tarjeta destacada) y es igual en ambos modos
+   * para que el texto blanco cumpla AA. --primary-text es el acento para texto,
+   * iconos y enlaces: en oscuro se aclara para contrastar con el fondo.
+   */
   --primary: #5457e5;
   --primary-strong: #4245c7;
   --primary-foreground: #ffffff;
+  --primary-text: #5457e5;
   --primary-wash: rgb(84 87 229 / 0.1);
 
   /* Superficies y texto */
@@ -27,30 +33,44 @@
   --secondary: #f2f2f5;
   --secondary-foreground: var(--foreground);
   --muted: #f2f2f5;
-  --muted-foreground: #6b7280;
+  --muted-foreground: #686f7d;
+  /* Solo decorativo (no cumple AA como texto). */
   --faint: #a0a3ad;
   --accent: #f2f2f5;
   --accent-foreground: var(--foreground);
   --border: #e7e7ec;
   --border-strong: #d6d7de;
   --input: #d6d7de;
-  --ring: var(--primary);
+  --ring: var(--primary-text);
   --overlay: rgb(20 21 26 / 0.45);
   --glass: rgb(255 255 255 / 0.72);
+  /* Hojas flotantes: más opacas porque el velo oscuro de detrás reduce el contraste. */
+  --glass-sheet: rgb(255 255 255 / 0.94);
   --elevation-card: 0 1px 2px rgb(20 21 26 / 0.04), 0 10px 28px -14px rgb(20 21 26 / 0.14);
 
   /* Estados */
-  --positive: #3a8c64;
-  --destructive: #c7434b;
+  --positive: #297d56;
+  --destructive: #c13e46;
 
-  /* Categorías */
-  --cat-teal: #2f9c95;
-  --cat-amber: #b9852a;
-  --cat-rose: #c15b75;
-  --cat-sage: #6b8f71;
-  --cat-plum: #8b5fbf;
-  --cat-terracotta: #c1704f;
-  --cat-slate: #5b6b8c;
+  /*
+   * Categorías: 12 tonos con el mismo brillo y croma en OKLCH
+   * (claro L 0.53, oscuro L 0.714, croma 0.104). Todos >= 4.5:1 sobre las superficies.
+   * El orden y las claves están en src/lib/category-colors.ts.
+   */
+  --cat-rose: #9d5063;
+  --cat-brick: #9f524d;
+  --cat-terracotta: #9d5638;
+  --cat-amber: #8d6313;
+  --cat-olive: #6e711d;
+  --cat-moss: #577732;
+  --cat-sage: #3a7c4a;
+  --cat-teal: #007c76;
+  --cat-ocean: #007797;
+  --cat-denim: #4d6aa8;
+  --cat-plum: #785c9d;
+  --cat-orchid: #915382;
+  /* "Otros" en gráficos: gris neutro con el mismo brillo. */
+  --cat-other: #6e6e6e;
 
   /* Alturas del layout */
   --nav-height: 64px;
@@ -58,8 +78,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --primary: #7274ff;
-    --primary-strong: #9294ff;
+    --primary-text: #7274ff;
     --primary-wash: rgb(114 116 255 / 0.14);
 
     --background: #0b0b0e;
@@ -76,18 +95,25 @@
     --input: #383a44;
     --overlay: rgb(0 0 0 / 0.55);
     --glass: rgb(23 24 29 / 0.72);
+    --glass-sheet: rgb(23 24 29 / 0.72);
     --elevation-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 14px 32px -16px rgb(0 0 0 / 0.55);
 
     --positive: #5fbf8f;
     --destructive: #ff6b72;
 
-    --cat-teal: #4fbdb5;
-    --cat-amber: #d9a24b;
-    --cat-rose: #e0839b;
-    --cat-sage: #8fb495;
-    --cat-plum: #a883d9;
-    --cat-terracotta: #e0916d;
-    --cat-slate: #8393b3;
+    --cat-rose: #da8799;
+    --cat-brick: #dc8882;
+    --cat-terracotta: #da8d6e;
+    --cat-amber: #c79a53;
+    --cat-olive: #a4a959;
+    --cat-moss: #8db069;
+    --cat-sage: #72b57f;
+    --cat-teal: #42b8b0;
+    --cat-ocean: #4fb0d4;
+    --cat-denim: #82a2e4;
+    --cat-plum: #b093d8;
+    --cat-orchid: #cd89ba;
+    --cat-other: #a3a3a3;
   }
 }
 
@@ -101,6 +127,7 @@
   --color-primary: var(--primary);
   --color-primary-strong: var(--primary-strong);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-text: var(--primary-text);
   --color-primary-wash: var(--primary-wash);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -115,16 +142,23 @@
   --color-ring: var(--ring);
   --color-overlay: var(--overlay);
   --color-glass: var(--glass);
+  --color-glass-sheet: var(--glass-sheet);
   --color-positive: var(--positive);
   --color-destructive: var(--destructive);
 
-  --color-cat-teal: var(--cat-teal);
-  --color-cat-amber: var(--cat-amber);
   --color-cat-rose: var(--cat-rose);
-  --color-cat-sage: var(--cat-sage);
-  --color-cat-plum: var(--cat-plum);
+  --color-cat-brick: var(--cat-brick);
   --color-cat-terracotta: var(--cat-terracotta);
-  --color-cat-slate: var(--cat-slate);
+  --color-cat-amber: var(--cat-amber);
+  --color-cat-olive: var(--cat-olive);
+  --color-cat-moss: var(--cat-moss);
+  --color-cat-sage: var(--cat-sage);
+  --color-cat-teal: var(--cat-teal);
+  --color-cat-ocean: var(--cat-ocean);
+  --color-cat-denim: var(--cat-denim);
+  --color-cat-plum: var(--cat-plum);
+  --color-cat-orchid: var(--cat-orchid);
+  --color-cat-other: var(--cat-other);
 
   --font-sans: var(--font-manrope), system-ui, sans-serif;
   --font-heading: var(--font-manrope), system-ui, sans-serif;

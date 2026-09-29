@@ -19,7 +19,7 @@ function Toaster(props: ToasterProps) {
       mobileOffset={{ top: "calc(env(safe-area-inset-top) + 12px)" }}
       icons={{
         success: <CircleCheckIcon className="size-5 text-positive" />,
-        info: <InfoIcon className="size-5 text-primary" />,
+        info: <InfoIcon className="size-5 text-primary-text" />,
         warning: <TriangleAlertIcon className="size-5 text-cat-amber" />,
         error: <OctagonXIcon className="size-5 text-destructive" />,
         loading: <Loader2Icon className="size-5 motion-safe:animate-spin" />,

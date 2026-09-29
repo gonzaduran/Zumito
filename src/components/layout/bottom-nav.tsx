@@ -37,7 +37,7 @@ export function BottomNav({ labels, closeLabel, addExpense }: BottomNavProps) {
           aria-current={active ? "page" : undefined}
           className={cn(
             "flex tap flex-1 flex-col items-center justify-center gap-1 rounded-sm text-muted-foreground transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-            active && "text-primary",
+            active && "text-primary-text",
           )}
         >
           <Icon aria-hidden="true" className="size-[22px]" strokeWidth={active ? 2.4 : 2} />
@@ -50,7 +50,7 @@ export function BottomNav({ labels, closeLabel, addExpense }: BottomNavProps) {
   return (
     <nav
       aria-label={labels.label}
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-glass pb-[env(safe-area-inset-bottom)] backdrop-blur-lg backdrop-saturate-150"
     >
       <ul className="mx-auto flex h-(--nav-height) max-w-lg items-stretch px-2">
         {left.map(renderItem)}
