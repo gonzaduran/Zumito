@@ -3,8 +3,46 @@
     "name": "Zumito",
     "description": "Controla tus gastos en segundos."
   },
+  "nav": {
+    "label": "Navegación principal",
+    "home": "Inicio",
+    "history": "Historial",
+    "add": "Añadir gasto",
+    "stats": "Estadísticas",
+    "settings": "Ajustes"
+  },
+  "common": {
+    "close": "Cerrar",
+    "greeting": "Hola"
+  },
   "home": {
-    "todayTotal": "Gastado hoy",
-    "emptyToday": "Aún no hay gastos hoy"
+    "periodsLabel": "Periodo",
+    "periods": {
+      "today": "Hoy",
+      "week": "Semana",
+      "month": "Mes",
+      "total": "Total"
+    },
+    "emptyTitle": "Aún no hay gastos hoy",
+    "emptyDescription": "Toca + para apuntar tu primer gasto."
+  },
+  "history": {
+    "title": "Historial",
+    "emptyTitle": "Aún no hay movimientos",
+    "emptyDescription": "Aquí verás todos tus gastos, agrupados por día."
+  },
+  "stats": {
+    "title": "Estadísticas",
+    "emptyTitle": "Todavía no hay datos",
+    "emptyDescription": "Cuando apuntes algunos gastos verás en qué se va tu dinero."
+  },
+  "settings": {
+    "title": "Ajustes",
+    "emptyTitle": "Muy pronto",
+    "emptyDescription": "Aquí podrás gestionar tus categorías, presupuestos y cuenta."
+  },
+  "addExpense": {
+    "title": "Nuevo gasto",
+    "comingSoon": "Muy pronto podrás apuntar gastos desde aquí en menos de 5 segundos."
   }
 }
