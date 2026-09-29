@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<title>Zumito — Estados vacíos y carga</title>
+<style>/* Zumito — design tokens shared by every screen */
+
+:root,
+[data-theme="light"] {
+  --color-bg: #FFFBF5;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #FFF4E0;
+  --color-text: #2B1D0E;
+  --color-text-soft: #8A7355;
+  --color-border: rgba(43, 29, 14, 0.09);
+  --shadow-color: rgba(255, 138, 31, 0.22);
+  --overlay: rgba(43, 29, 14, 0.42);
+}
+
+[data-theme="dark"] {
+  --color-bg: #1A1208;
+  --color-surface: #2A1E12;
+  --color-surface-soft: #241A0F;
+  --color-text: #FFF4E0;
+  --color-text-soft: #C7AD87;
+  --color-border: rgba(255, 244, 224, 0.10);
+  --shadow-color: rgba(0, 0, 0, 0.40);
+  --overlay: rgba(0, 0, 0, 0.55);
+}
+
+:root {
+  /* citrus palette — same in both themes */
+  --color-orange: #FF8A1F;
+  --color-lime: #8BC34A;
+  --color-strawberry: #FF5C7A;
+  --color-blueberry: #5B5BD6;
+  --color-lemon: #FFD23F;
+
+  --gradient-citrus: linear-gradient(135deg, #FF8A1F 0%, #FFD23F 100%);
+
+  --font-display: 'Poppins', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+  --font-numeric: 'Inter', system-ui, sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 10px 28px -8px var(--shadow-color);
+  --shadow-card: 0 4px 16px -6px var(--shadow-color);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-body); background: var(--color-bg); color: var(--color-text); -webkit-font-smoothing: antialiased; }
+button { font-family: inherit; cursor: pointer; }
+input, textarea { font-family: inherit; }
+.zu-tap { min-height: 44px; min-width: 44px; }
+</style>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  .zu-seg-btn2 { border: none; background: none; font-family: var(--font-body); font-weight: 700; font-size: 12px; padding: 8px 4px; border-radius: var(--radius-pill); flex: 1; }
+  @keyframes zuPulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+  .zu-skel { background: var(--color-border); border-radius: var(--radius-sm); animation: zuPulse 1.4s ease-in-out infinite; }
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="width: 390px; height: 844px; background: var(--color-bg); display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="padding: 20px 20px 12px 20px;">
+    <div style="font-family: var(--font-display); font-weight: 800; font-size: 20px; margin-bottom: 12px;">Estados vacíos &amp; carga</div>
+    <div style="display: flex; background: var(--color-surface-soft); border-radius: var(--radius-pill); padding: 4px;">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+        <button class="zu-seg-btn2 zu-tap" sc-camel-on-click="{{t.select}}" style="background: {{t.bg}}; color: {{t.color}};">{{t.label}}</button>
+      </sc-for>
+    </div>
+  </div>
+
+  <sc-if value="{{isEmpty}}" hint-placeholder-val="{{true}}">
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px; gap: 12px;">
+      <svg width="140" height="140" sc-camel-view-box="0 0 240 240">
+        <path d="M146,78 Q150,68 153,60" fill="none" stroke="#7A3B00" stroke-width="8" stroke-linecap="round"></path>
+        <path d="M152,66 C132,52 136,22 168,16 C176,42 180,58 152,66 Z" fill="#8BC34A" stroke="#7A3B00" stroke-width="8" stroke-linejoin="round"></path>
+        <circle cx="120" cy="134" r="70" fill="#FF8A1F" stroke="#7A3B00" stroke-width="9"></circle>
+        <ellipse cx="94" cy="106" rx="20" ry="13" fill="#FFFFFF" opacity="0.55"></ellipse>
+        <circle cx="99" cy="128" r="6.5" fill="#7A3B00"></circle>
+        <circle cx="141" cy="128" r="6.5" fill="#7A3B00"></circle>
+        <path d="M99,154 Q120,144 141,154" fill="none" stroke="#7A3B00" stroke-width="7" stroke-linecap="round"></path>
+      </svg>
+      <div style="font-family: var(--font-display); font-weight: 800; font-size: 19px;">Aún no has apuntado nada</div>
+      <div style="font-size: 14px; color: var(--color-text-soft); max-width: 260px;">Dale al botón naranja y exprime tu primer gasto 🍊</div>
+      <a href="AddExpense.dc.html" style="margin-top: 6px; border: none; background: var(--gradient-citrus); color: #2B1D0E; font-family: var(--font-display); font-weight: 800; font-size: 14px; border-radius: var(--radius-pill); padding: 13px 26px; text-decoration: none;">＋ Añadir mi primer gasto</a>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isNoResults}}" hint-placeholder-val="{{false}}">
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px; gap: 12px;">
+      <svg width="120" height="120" sc-camel-view-box="0 0 240 240">
+        <path d="M146,78 Q150,68 153,60" fill="none" stroke="#7A3B00" stroke-width="8" stroke-linecap="round"></path>
+        <path d="M152,66 C132,52 136,22 168,16 C176,42 180,58 152,66 Z" fill="#8BC34A" stroke="#7A3B00" stroke-width="8" stroke-linejoin="round"></path>
+        <circle cx="120" cy="134" r="70" fill="#FFD23F" stroke="#7A3B00" stroke-width="9"></circle>
+        <ellipse cx="94" cy="106" rx="20" ry="13" fill="#FFFFFF" opacity="0.55"></ellipse>
+        <path d="M92,124 Q99,116 106,124" fill="none" stroke="#7A3B00" stroke-width="6" stroke-linecap="round"></path>
+        <path d="M134,124 Q141,116 148,124" fill="none" stroke="#7A3B00" stroke-width="6" stroke-linecap="round"></path>
+        <path d="M104,155 h32" fill="none" stroke="#7A3B00" stroke-width="7" stroke-linecap="round"></path>
+      </svg>
+      <div style="font-family: var(--font-display); font-weight: 800; font-size: 19px;">No hay resultados</div>
+      <div style="font-size: 14px; color: var(--color-text-soft); max-width: 260px;">No encontramos gastos con esos filtros. Prueba a cambiarlos.</div>
+      <a href="Historial.dc.html" style="margin-top: 6px; border: 2px solid var(--color-border); background: var(--color-surface); color: var(--color-text); font-family: var(--font-display); font-weight: 800; font-size: 14px; border-radius: var(--radius-pill); padding: 13px 26px; text-decoration: none;">Quitar filtros</a>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isLoading}}" hint-placeholder-val="{{false}}">
+    <div style="flex-grow: 1; padding: 8px 20px; display: flex; flex-direction: column; gap: 18px;">
+      <div class="zu-skel" style="height: 128px; border-radius: var(--radius-lg);"></div>
+      <div class="zu-skel" style="height: 56px; border-radius: var(--radius-lg);"></div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <sc-for list="{{skelRows}}" as="r" hint-placeholder-count="5">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="zu-skel" style="width: 36px; height: 36px; border-radius: 999px; flex-shrink: 0;"></div>
+            <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 6px;">
+              <div class="zu-skel" style="height: 10px; width: 70%;"></div>
+              <div class="zu-skel" style="height: 8px; width: 40%;"></div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;section&quot;:&quot;Tema&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { view: 'empty' };
+  }
+  renderVals() {
+    const tabList = [
+      ['empty', 'Vacío'], ['noresults', 'Sin resultados'], ['loading', 'Cargando'],
+    ];
+    const tabs = tabList.map(([key, label]) => ({
+      label,
+      select: () => this.setState({ view: key }),
+      bg: this.state.view === key ? 'var(--color-surface)' : 'transparent',
+      color: this.state.view === key ? 'var(--color-text)' : 'var(--color-text-soft)',
+    }));
+    return {
+      theme: this.props.theme ?? 'light',
+      tabs,
+      isEmpty: this.state.view === 'empty',
+      isNoResults: this.state.view === 'noresults',
+      isLoading: this.state.view === 'loading',
+      skelRows: [1, 2, 3, 4, 5],
+    };
+  }
+}
+</script>
+
+
+</body></html>

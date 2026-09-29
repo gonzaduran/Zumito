@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<title>Zumito — Estadísticas</title>
+<style>/* Zumito — design tokens shared by every screen */
+
+:root,
+[data-theme="light"] {
+  --color-bg: #FFFBF5;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #FFF4E0;
+  --color-text: #2B1D0E;
+  --color-text-soft: #8A7355;
+  --color-border: rgba(43, 29, 14, 0.09);
+  --shadow-color: rgba(255, 138, 31, 0.22);
+  --overlay: rgba(43, 29, 14, 0.42);
+}
+
+[data-theme="dark"] {
+  --color-bg: #1A1208;
+  --color-surface: #2A1E12;
+  --color-surface-soft: #241A0F;
+  --color-text: #FFF4E0;
+  --color-text-soft: #C7AD87;
+  --color-border: rgba(255, 244, 224, 0.10);
+  --shadow-color: rgba(0, 0, 0, 0.40);
+  --overlay: rgba(0, 0, 0, 0.55);
+}
+
+:root {
+  /* citrus palette — same in both themes */
+  --color-orange: #FF8A1F;
+  --color-lime: #8BC34A;
+  --color-strawberry: #FF5C7A;
+  --color-blueberry: #5B5BD6;
+  --color-lemon: #FFD23F;
+
+  --gradient-citrus: linear-gradient(135deg, #FF8A1F 0%, #FFD23F 100%);
+
+  --font-display: 'Poppins', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+  --font-numeric: 'Inter', system-ui, sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 10px 28px -8px var(--shadow-color);
+  --shadow-card: 0 4px 16px -6px var(--shadow-color);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-body); background: var(--color-bg); color: var(--color-text); -webkit-font-smoothing: antialiased; }
+button { font-family: inherit; cursor: pointer; }
+input, textarea { font-family: inherit; }
+.zu-tap { min-height: 44px; min-width: 44px; }
+</style>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  .zu-h1 { font-family: var(--font-display); font-weight: 800; }
+  .zu-num { font-family: var(--font-numeric); font-variant-numeric: tabular-nums; }
+  .zu-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 16px; }
+  .zu-card-title { font-family: var(--font-body); font-weight: 800; font-size: 14px; margin-bottom: 12px; }
+  .zu-bar-col { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+  .zu-bar-track2 { width: 100%; max-width: 22px; height: 96px; border-radius: 8px; background: var(--color-border); display: flex; align-items: flex-end; overflow: hidden; }
+  .zu-bar-fill2 { width: 100%; border-radius: 8px; }
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="width: 390px; height: 844px; background: var(--color-bg); display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="padding: 20px 20px 8px 20px;">
+    <div class="zu-h1" style="font-size: 22px;">Estadísticas</div>
+    <div style="font-size: 13px; color: var(--color-text-soft); margin-top: 2px;">Septiembre 2026</div>
+  </div>
+
+  <div style="flex-grow: 1; overflow-y: auto; padding: 8px 20px 16px 20px; display: flex; flex-direction: column; gap: 16px;">
+
+    <div class="zu-card">
+      <div class="zu-card-title">Evolución (últimos 6 meses)</div>
+      <div style="display: flex; gap: 8px; align-items: flex-end;">
+        <sc-for list="{{months}}" as="m" hint-placeholder-count="6">
+          <div class="zu-bar-col">
+            <div class="zu-bar-track2"><div class="zu-bar-fill2" style="height: {{m.h}}; background: {{m.color}};"></div></div>
+            <span style="font-size: 10px; color: var(--color-text-soft); font-weight: 700;">{{m.label}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div class="zu-card">
+      <div class="zu-card-title">Por categoría</div>
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <div style="width: 116px; height: 116px; border-radius: 999px; background: {{donutGradient}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <div style="width: 66px; height: 66px; border-radius: 999px; background: var(--color-surface); display: flex; align-items: center; justify-content: center; flex-direction: column;">
+            <span class="zu-num" style="font-weight: 800; font-size: 13px;">482 €</span>
+            <span style="font-size: 9px; color: var(--color-text-soft);">total</span>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 7px; flex-grow: 1;">
+          <sc-for list="{{donutLegend}}" as="d" hint-placeholder-count="5">
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 12px;">
+              <span style="width: 10px; height: 10px; border-radius: 999px; background: {{d.color}}; flex-shrink: 0;"></span>
+              <span style="flex-grow: 1;">{{d.name}}</span>
+              <span class="zu-num" style="font-weight: 700;">{{d.pct}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 12px;">
+      <div class="zu-card" style="flex: 1;">
+        <div class="zu-card-title">Top lugares</div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <sc-for list="{{topLugares}}" as="l" hint-placeholder-count="3">
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700;">
+                <span>{{l.name}}</span><span class="zu-num">{{l.amount}}</span>
+              </div>
+              <div style="height: 5px; border-radius: 999px; background: var(--color-border); margin-top: 4px; overflow: hidden;">
+                <div style="height: 100%; width: {{l.pct}}; background: var(--color-orange); border-radius: 999px;"></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div class="zu-card" style="flex: 1;">
+        <div class="zu-card-title">Top personas</div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <sc-for list="{{topPersonas}}" as="p" hint-placeholder-count="3">
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700;">
+                <span>{{p.name}}</span><span class="zu-num">{{p.amount}}</span>
+              </div>
+              <div style="height: 5px; border-radius: 999px; background: var(--color-border); margin-top: 4px; overflow: hidden;">
+                <div style="height: 100%; width: {{p.pct}}; background: var(--color-blueberry); border-radius: 999px;"></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div class="zu-card">
+      <div class="zu-card-title">¿Qué día gastas más?</div>
+      <div style="display: flex; gap: 6px; align-items: flex-end;">
+        <sc-for list="{{weekdays}}" as="w" hint-placeholder-count="7">
+          <div class="zu-bar-col">
+            <div class="zu-bar-track2" style="height: 72px;"><div class="zu-bar-fill2" style="height: {{w.h}}; background: {{w.color}};"></div></div>
+            <span style="font-size: 10px; color: var(--color-text-soft); font-weight: 700;">{{w.label}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size: 12px; color: var(--color-text-soft); margin-top: 10px;">Los <b style="color: var(--color-text);">sábados</b> es cuando más se te va la olla 😅</div>
+    </div>
+
+    <div class="zu-card">
+      <div class="zu-card-title">Ánimo y gasto</div>
+      <div style="display: flex; gap: 14px;">
+        <sc-for list="{{moodStats}}" as="m" hint-placeholder-count="3">
+          <div style="flex: 1; text-align: center;">
+            <div style="font-size: 26px;">{{m.emoji}}</div>
+            <div class="zu-num" style="font-weight: 800; font-size: 14px; margin-top: 4px;">{{m.avg}}</div>
+            <div style="font-size: 10px; color: var(--color-text-soft);">media / gasto</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size: 12px; color: var(--color-text-soft); margin-top: 12px;">Cuando estás 😞 gastas de media un 40% más. Vigílalo.</div>
+    </div>
+
+  </div>
+
+  <dc-import name="NavBar" active="stats" theme="{{theme}}" hint-size="390px,88px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;section&quot;:&quot;Tema&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const months = [
+      ['Abr','40%','var(--color-border)'], ['May','55%','var(--color-border)'], ['Jun','70%','var(--color-border)'],
+      ['Jul','48%','var(--color-border)'], ['Ago','62%','var(--color-border)'], ['Sep','100%','var(--color-orange)'],
+    ].map(([label,h,color]) => ({ label, h, color }));
+
+    const donutLegend = [
+      { name: 'Hogar',    pct: '30%', color: 'var(--color-orange)' },
+      { name: 'Comida',   pct: '27%', color: 'var(--color-strawberry)' },
+      { name: 'Súper',    pct: '20%', color: 'var(--color-lime)' },
+      { name: 'Ocio',     pct: '18%', color: 'var(--color-blueberry)' },
+      { name: 'Cafés',    pct: '5%',  color: 'var(--color-lemon)' },
+    ];
+    const donutGradient = 'conic-gradient(#FF8A1F 0% 30%, #FF5C7A 30% 57%, #8BC34A 57% 77%, #5B5BD6 77% 95%, #FFD23F 95% 100%)';
+
+    const topLugares = [
+      { name: 'Mercadona', amount: '168,40 €', pct: '100%' },
+      { name: 'Restaurante La Parra', amount: '112,00 €', pct: '66%' },
+      { name: 'Repsol A-92', amount: '69,00 €', pct: '41%' },
+    ];
+    const topPersonas = [
+      { name: 'Amigos', amount: '154,20 €', pct: '100%' },
+      { name: 'Pareja', amount: '138,90 €', pct: '90%' },
+      { name: 'Solo/a', amount: '96,40 €', pct: '62%' },
+    ];
+
+    const weekdays = [
+      ['L','30%','var(--color-border)'], ['M','20%','var(--color-border)'], ['X','35%','var(--color-border)'],
+      ['J','28%','var(--color-border)'], ['V','55%','var(--color-border)'], ['S','100%','var(--color-orange)'],
+      ['D','48%','var(--color-border)'],
+    ].map(([label,h,color]) => ({ label, h, color }));
+
+    const moodStats = [
+      { emoji: '😀', avg: '14,20 €' },
+      { emoji: '😐', avg: '19,80 €' },
+      { emoji: '😞', avg: '27,60 €' },
+    ];
+
+    return {
+      theme: this.props.theme ?? 'light',
+      months, donutLegend, donutGradient, topLugares, topPersonas, weekdays, moodStats,
+    };
+  }
+}
+</script>
+
+
+</body></html>

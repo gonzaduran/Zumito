@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<title>Zumito — Resumen del mes</title>
+<style>/* Zumito — design tokens shared by every screen */
+
+:root,
+[data-theme="light"] {
+  --color-bg: #FFFBF5;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #FFF4E0;
+  --color-text: #2B1D0E;
+  --color-text-soft: #8A7355;
+  --color-border: rgba(43, 29, 14, 0.09);
+  --shadow-color: rgba(255, 138, 31, 0.22);
+  --overlay: rgba(43, 29, 14, 0.42);
+}
+
+[data-theme="dark"] {
+  --color-bg: #1A1208;
+  --color-surface: #2A1E12;
+  --color-surface-soft: #241A0F;
+  --color-text: #FFF4E0;
+  --color-text-soft: #C7AD87;
+  --color-border: rgba(255, 244, 224, 0.10);
+  --shadow-color: rgba(0, 0, 0, 0.40);
+  --overlay: rgba(0, 0, 0, 0.55);
+}
+
+:root {
+  /* citrus palette — same in both themes */
+  --color-orange: #FF8A1F;
+  --color-lime: #8BC34A;
+  --color-strawberry: #FF5C7A;
+  --color-blueberry: #5B5BD6;
+  --color-lemon: #FFD23F;
+
+  --gradient-citrus: linear-gradient(135deg, #FF8A1F 0%, #FFD23F 100%);
+
+  --font-display: 'Poppins', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+  --font-numeric: 'Inter', system-ui, sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 10px 28px -8px var(--shadow-color);
+  --shadow-card: 0 4px 16px -6px var(--shadow-color);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-body); background: var(--color-bg); color: var(--color-text); -webkit-font-smoothing: antialiased; }
+button { font-family: inherit; cursor: pointer; }
+input, textarea { font-family: inherit; }
+.zu-tap { min-height: 44px; min-width: 44px; }
+</style>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  .zu-progress-track { flex: 1; height: 3px; border-radius: 999px; background: rgba(255,255,255,0.35); overflow: hidden; }
+  .zu-progress-fill { height: 100%; background: #FFFFFF; border-radius: 999px; }
+  .zu-tapzone { position: absolute; top: 0; bottom: 0; width: 50%; border: none; background: none; }
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; border-radius: 0; background: {{bg}}; position: relative; overflow: hidden; display: flex; flex-direction: column;">
+
+  <div style="display: flex; gap: 6px; padding: 16px 16px 0 16px; position: relative; z-index: 2;">
+    <sc-for list="{{segments}}" as="s" hint-placeholder-count="4">
+      <div class="zu-progress-track"><div class="zu-progress-fill" style="width: {{s.fill}};"></div></div>
+    </sc-for>
+  </div>
+
+  <div style="padding: 12px 16px 0 16px; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 2;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="width: 30px; height: 30px; border-radius: 999px; background: rgba(255,255,255,0.35); display: flex; align-items: center; justify-content: center; font-size: 16px;">🍊</span>
+      <span style="color: #2B1D0E; font-family: var(--font-display); font-weight: 800; font-size: 13px;">Tu resumen de septiembre</span>
+    </div>
+    <a href="Main.dc.html" aria-label="Cerrar" style="width: 32px; height: 32px; border-radius: 999px; background: rgba(255,255,255,0.35); display: flex; align-items: center; justify-content: center; text-decoration: none; color: #2B1D0E;">
+      <svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+    </a>
+  </div>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px; position: relative; z-index: 2; gap: 14px;">
+    <div style="font-size: 56px;">{{icon}}</div>
+    <div style="color: #2B1D0E; font-family: var(--font-body); font-weight: 700; font-size: 14px; opacity: 0.75;">{{kicker}}</div>
+    <div style="color: #2B1D0E; font-family: var(--font-display); font-weight: 800; font-size: 30px; line-height: 1.15;">{{title}}</div>
+    <div style="color: #2B1D0E; font-family: var(--font-numeric); font-weight: 800; font-size: 42px;">{{stat}}</div>
+    <div style="color: #2B1D0E; font-family: var(--font-body); font-size: 14px; opacity: 0.85; max-width: 280px;">{{detail}}</div>
+  </div>
+
+  <div style="padding: 0 16px 28px 16px; position: relative; z-index: 2;">
+    <sc-if value="{{isLast}}" hint-placeholder-val="{{false}}">
+      <a href="Main.dc.html" style="display: block; text-align: center; width: 100%; border: none; background: #2B1D0E; color: #FFF4E0; font-family: var(--font-display); font-weight: 800; font-size: 15px; border-radius: var(--radius-pill); padding: 15px; text-decoration: none;">Volver a inicio</a>
+    </sc-if>
+  </div>
+
+  <button class="zu-tapzone zu-tap" style="left: 0;" sc-camel-on-click="{{prev}}" aria-label="Anterior"></button>
+  <button class="zu-tapzone zu-tap" style="right: 0;" sc-camel-on-click="{{next}}" aria-label="Siguiente"></button>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { i: 0 };
+  }
+  prev() { this.setState({ i: Math.max(0, this.state.i - 1) }); }
+  next() { this.setState({ i: Math.min(3, this.state.i + 1) }); }
+
+  renderVals() {
+    const slides = [
+      { bg: 'linear-gradient(160deg, #FF8A1F 0%, #FFD23F 100%)', icon: '🏠', kicker: 'Tu categoría estrella', title: 'Este mes lo diste todo en', stat: 'Hogar', detail: '142,90 € — un 30% de todo lo que gastaste en septiembre.' },
+      { bg: 'linear-gradient(160deg, #8BC34A 0%, #FFD23F 100%)', icon: '🛒', kicker: 'Tu lugar de cabecera', title: 'Casi vives en', stat: 'Mercadona', detail: 'Lo visitaste 8 veces este mes. ¡Ya os tuteáis!' },
+      { bg: 'linear-gradient(160deg, #FF5C7A 0%, #FF8A1F 100%)', icon: '📅', kicker: 'Tu día más caro', title: 'El sábado 12 se fue todo en', stat: '89,40 €', detail: 'Cena, después-cena y un Cabify a las tantas. Sin arrepentimientos.' },
+      { bg: 'linear-gradient(160deg, #5B5BD6 0%, #8BC34A 100%)', icon: '☕', kicker: 'Dato curioso', title: 'Te has tomado', stat: '14 cafés', detail: 'Son 44,80 € en cafeína. Zumito lo entiende, tranquilo.' },
+    ];
+    const i = this.state.i;
+    const cur = slides[i];
+    const segments = slides.map((_, idx) => ({ fill: idx < i ? '100%' : idx === i ? '100%' : '0%' }));
+
+    return {
+      ...cur,
+      segments,
+      isLast: i === slides.length - 1,
+      prev: () => this.prev(),
+      next: () => this.next(),
+    };
+  }
+}
+</script>
+
+
+</body></html>

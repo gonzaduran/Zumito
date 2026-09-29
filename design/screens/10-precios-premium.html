@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<title>Zumito — Premium</title>
+<style>/* Zumito — design tokens shared by every screen */
+
+:root,
+[data-theme="light"] {
+  --color-bg: #FFFBF5;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #FFF4E0;
+  --color-text: #2B1D0E;
+  --color-text-soft: #8A7355;
+  --color-border: rgba(43, 29, 14, 0.09);
+  --shadow-color: rgba(255, 138, 31, 0.22);
+  --overlay: rgba(43, 29, 14, 0.42);
+}
+
+[data-theme="dark"] {
+  --color-bg: #1A1208;
+  --color-surface: #2A1E12;
+  --color-surface-soft: #241A0F;
+  --color-text: #FFF4E0;
+  --color-text-soft: #C7AD87;
+  --color-border: rgba(255, 244, 224, 0.10);
+  --shadow-color: rgba(0, 0, 0, 0.40);
+  --overlay: rgba(0, 0, 0, 0.55);
+}
+
+:root {
+  /* citrus palette — same in both themes */
+  --color-orange: #FF8A1F;
+  --color-lime: #8BC34A;
+  --color-strawberry: #FF5C7A;
+  --color-blueberry: #5B5BD6;
+  --color-lemon: #FFD23F;
+
+  --gradient-citrus: linear-gradient(135deg, #FF8A1F 0%, #FFD23F 100%);
+
+  --font-display: 'Poppins', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+  --font-numeric: 'Inter', system-ui, sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 10px 28px -8px var(--shadow-color);
+  --shadow-card: 0 4px 16px -6px var(--shadow-color);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-body); background: var(--color-bg); color: var(--color-text); -webkit-font-smoothing: antialiased; }
+button { font-family: inherit; cursor: pointer; }
+input, textarea { font-family: inherit; }
+.zu-tap { min-height: 44px; min-width: 44px; }
+</style>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  .zu-h1 { font-family: var(--font-display); font-weight: 800; }
+  .zu-plan { border-radius: var(--radius-lg); padding: 16px; border: 2px solid var(--color-border); background: var(--color-surface); flex: 1; }
+  .zu-plan-on { border-color: var(--color-orange); background: var(--color-surface-soft); }
+  .zu-feat { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--color-border); }
+  .zu-feat:last-child { border-bottom: none; }
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="width: 390px; height: 844px; background: var(--color-bg); display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="padding: 16px 20px 0 20px; display: flex; justify-content: flex-end;">
+    <a href="Ajustes.dc.html" aria-label="Cerrar" style="width: 36px; height: 36px; border-radius: 999px; background: var(--color-surface-soft); display: flex; align-items: center; justify-content: center; text-decoration: none; color: var(--color-text);">
+      <svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+    </a>
+  </div>
+
+  <div style="flex-grow: 1; overflow-y: auto; padding: 4px 24px 16px 24px; display: flex; flex-direction: column; gap: 20px;">
+
+    <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+      <div style="width: 64px; height: 64px; border-radius: var(--radius-lg); background: var(--gradient-citrus); display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: var(--shadow-soft);">🍊</div>
+      <div class="zu-h1" style="font-size: 22px;">Zumito Premium</div>
+      <div style="font-size: 14px; color: var(--color-text-soft); max-width: 280px;">Exprime tus gastos al máximo, sin límites ni anuncios.</div>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+      <button class="zu-plan zu-tap {{monthlyCls}}" sc-camel-on-click="{{pickMonthly}}">
+        <div style="font-weight: 800; font-size: 14px;">Mensual</div>
+        <div class="zu-num" style="font-weight: 800; font-size: 20px; margin-top: 4px;">1,49 €</div>
+        <div style="font-size: 11px; color: var(--color-text-soft);">al mes</div>
+      </button>
+      <button class="zu-plan zu-tap {{yearlyCls}}" sc-camel-on-click="{{pickYearly}}" style="position: relative;">
+        <span style="position: absolute; top: -10px; right: 10px; background: var(--color-lime); color: #16330a; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 999px;">−44%</span>
+        <div style="font-weight: 800; font-size: 14px;">Anual</div>
+        <div class="zu-num" style="font-weight: 800; font-size: 20px; margin-top: 4px;">9,99 €</div>
+        <div style="font-size: 11px; color: var(--color-text-soft);">al año</div>
+      </button>
+    </div>
+
+    <div class="zu-card" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 4px 16px;">
+      <div class="zu-feat"><span style="font-size: 18px;">📊</span><span style="flex-grow:1; font-size: 13px; font-weight: 700;">Estadísticas y cruces avanzados</span><span>✅</span></div>
+      <div class="zu-feat"><span style="font-size: 18px;">🎯</span><span style="flex-grow:1; font-size: 13px; font-weight: 700;">Presupuestos ilimitados por categoría</span><span>✅</span></div>
+      <div class="zu-feat"><span style="font-size: 18px;">📤</span><span style="flex-grow:1; font-size: 13px; font-weight: 700;">Exportar a Excel / CSV</span>
+        <span style="font-size: 15px;">🔒</span>
+      </div>
+      <div class="zu-feat"><span style="font-size: 18px;">🎙️</span><span style="flex-grow:1; font-size: 13px; font-weight: 700;">Atajos de voz ilimitados</span>
+        <span style="font-size: 15px;">🔒</span>
+      </div>
+      <div class="zu-feat"><span style="font-size: 18px;">🎨</span><span style="flex-grow:1; font-size: 13px; font-weight: 700;">Temas de color exclusivos</span>
+        <span style="font-size: 15px;">🔒</span>
+      </div>
+      <div class="zu-feat"><span style="font-size: 18px;">🚫</span><span style="flex-grow:1; font-size: 13px; font-weight: 700;">Sin anuncios, nunca</span><span>✅</span></div>
+    </div>
+
+    <a href="Main.dc.html" style="display: block; text-align: center; width: 100%; border: none; background: var(--gradient-citrus); color: #2B1D0E; font-family: var(--font-display); font-weight: 800; font-size: 16px; border-radius: var(--radius-pill); padding: 16px; text-decoration: none; box-shadow: var(--shadow-soft);">Probar 7 días gratis</a>
+    <div style="text-align: center; font-size: 11px; color: var(--color-text-soft);">Cancela cuando quieras. Sin compromiso, como debe ser.</div>
+
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;section&quot;:&quot;Tema&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { plan: 'yearly' };
+  }
+  renderVals() {
+    const isYearly = this.state.plan === 'yearly';
+    return {
+      theme: this.props.theme ?? 'light',
+      monthlyCls: !isYearly ? 'zu-plan-on' : '',
+      yearlyCls: isYearly ? 'zu-plan-on' : '',
+      pickMonthly: () => this.setState({ plan: 'monthly' }),
+      pickYearly: () => this.setState({ plan: 'yearly' }),
+    };
+  }
+}
+</script>
+
+
+</body></html>

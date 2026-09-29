@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<title>Zumito — Bienvenida</title>
+<style>/* Zumito — design tokens shared by every screen */
+
+:root,
+[data-theme="light"] {
+  --color-bg: #FFFBF5;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #FFF4E0;
+  --color-text: #2B1D0E;
+  --color-text-soft: #8A7355;
+  --color-border: rgba(43, 29, 14, 0.09);
+  --shadow-color: rgba(255, 138, 31, 0.22);
+  --overlay: rgba(43, 29, 14, 0.42);
+}
+
+[data-theme="dark"] {
+  --color-bg: #1A1208;
+  --color-surface: #2A1E12;
+  --color-surface-soft: #241A0F;
+  --color-text: #FFF4E0;
+  --color-text-soft: #C7AD87;
+  --color-border: rgba(255, 244, 224, 0.10);
+  --shadow-color: rgba(0, 0, 0, 0.40);
+  --overlay: rgba(0, 0, 0, 0.55);
+}
+
+:root {
+  /* citrus palette — same in both themes */
+  --color-orange: #FF8A1F;
+  --color-lime: #8BC34A;
+  --color-strawberry: #FF5C7A;
+  --color-blueberry: #5B5BD6;
+  --color-lemon: #FFD23F;
+
+  --gradient-citrus: linear-gradient(135deg, #FF8A1F 0%, #FFD23F 100%);
+
+  --font-display: 'Poppins', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+  --font-numeric: 'Inter', system-ui, sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 10px 28px -8px var(--shadow-color);
+  --shadow-card: 0 4px 16px -6px var(--shadow-color);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-body); background: var(--color-bg); color: var(--color-text); -webkit-font-smoothing: antialiased; }
+button { font-family: inherit; cursor: pointer; }
+input, textarea { font-family: inherit; }
+.zu-tap { min-height: 44px; min-width: 44px; }
+</style>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  .zu-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--color-border); }
+  .zu-dot-active { width: 22px; background: var(--color-orange); }
+  .zu-btn-primary { border: none; background: var(--gradient-citrus); color: #2B1D0E; font-family: var(--font-display); font-weight: 800; font-size: 16px; border-radius: var(--radius-pill); padding: 16px; text-align: center; text-decoration: none; display: block; box-shadow: var(--shadow-soft); }
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="width: 390px; height: 844px; background: var(--color-bg); display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="height: 420px; background: var(--gradient-citrus); border-radius: 0 0 40px 40px; display: flex; align-items: center; justify-content: center; position: relative;">
+    <a href="Main.dc.html" style="position: absolute; top: 20px; right: 20px; font-family: var(--font-body); font-weight: 700; font-size: 13px; color: #402400; text-decoration: none;">Saltar</a>
+
+    <svg width="180" height="180" sc-camel-view-box="0 0 240 240">
+      <path d="M146,78 Q150,68 153,60" fill="none" stroke="#7A3B00" stroke-width="8" stroke-linecap="round"></path>
+      <path d="M152,66 C132,52 136,22 168,16 C176,42 180,58 152,66 Z" fill="#8BC34A" stroke="#7A3B00" stroke-width="8" stroke-linejoin="round"></path>
+      <circle cx="120" cy="134" r="70" fill="#FFD23F" stroke="#7A3B00" stroke-width="9"></circle>
+      <ellipse cx="94" cy="106" rx="20" ry="13" fill="#FFFFFF" opacity="0.6"></ellipse>
+      <circle cx="99" cy="128" r="6.5" fill="#7A3B00"></circle>
+      <circle cx="141" cy="128" r="6.5" fill="#7A3B00"></circle>
+      <path d="M95,148 Q120,172 145,148" fill="none" stroke="#7A3B00" stroke-width="7" stroke-linecap="round"></path>
+    </svg>
+  </div>
+
+  <div style="flex-grow: 1; padding: 32px 28px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px;">
+    <div style="font-family: var(--font-display); font-weight: 800; font-size: 30px; color: var(--color-text);">¡Hola! Soy Zumito 🍊</div>
+    <div style="font-family: var(--font-body); font-size: 15px; color: var(--color-text-soft); line-height: 1.5; max-width: 300px;">Te ayudo a exprimir tus gastos para que veas exactamente de dónde sale el jugo cada mes.</div>
+
+    <div style="flex-grow: 1;"></div>
+
+    <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+      <div class="zu-dot zu-dot-active"></div>
+      <div class="zu-dot"></div>
+      <div class="zu-dot"></div>
+    </div>
+
+    <a href="Onboarding-2-Categorias.dc.html" class="zu-btn-primary zu-tap" style="width: 100%;">Empezar</a>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;section&quot;:&quot;Tema&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return { theme: this.props.theme ?? 'light' };
+  }
+}
+</script>
+
+
+</body></html>

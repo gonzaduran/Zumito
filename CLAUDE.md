@@ -43,6 +43,22 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - Antes de cada fase: explicar el plan en pocas líneas y **esperar OK**.
 - Al terminar cada fase: indicar qué probar a mano y qué comandos ejecutar.
 - Si algo es ambiguo: preguntar en lugar de suponer.
+- El usuario manda cada fase como un prompt. Al terminar, avisar para recibir el siguiente.
+
+## Diseño
+
+- Pantallas de Claude Design en `design/screens/`. Detalles en `design/README.md`.
+- Fuente de verdad: **sistema v2**, dirección A · Minimal (pantalla 13). De la B (pantalla 14) solo se usa el botón central "+".
+- Las pantallas 01–12 usan la paleta cítrica antigua: solo sirven como referencia de estructura y textos, nunca de estilo.
+- Tokens en `src/app/globals.css`. El acento es `--primary`.
+- Clases propias: `num` para cifras (Inter con números tabulares) y `tap` para zonas táctiles de 44px.
+
+## Estructura
+
+- `src/app/(app)`: pantallas con la barra inferior (Inicio, Historial, Estadísticas, Ajustes).
+- `src/components/{ui,forms,charts,layout}`, `src/lib/{supabase,utils,validators}`, `src/hooks`, `src/types`.
+- `src/i18n`: diccionarios tipados y formato de euros y fechas. Ningún texto de interfaz va directamente en los componentes.
+- `supabase/migrations`: migraciones SQL.
 
 ## Plan por fases
 

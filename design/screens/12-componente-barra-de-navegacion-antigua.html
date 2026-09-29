@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<title>Zumito — Barra de navegación</title>
+<style>/* Zumito — design tokens shared by every screen */
+
+:root,
+[data-theme="light"] {
+  --color-bg: #FFFBF5;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #FFF4E0;
+  --color-text: #2B1D0E;
+  --color-text-soft: #8A7355;
+  --color-border: rgba(43, 29, 14, 0.09);
+  --shadow-color: rgba(255, 138, 31, 0.22);
+  --overlay: rgba(43, 29, 14, 0.42);
+}
+
+[data-theme="dark"] {
+  --color-bg: #1A1208;
+  --color-surface: #2A1E12;
+  --color-surface-soft: #241A0F;
+  --color-text: #FFF4E0;
+  --color-text-soft: #C7AD87;
+  --color-border: rgba(255, 244, 224, 0.10);
+  --shadow-color: rgba(0, 0, 0, 0.40);
+  --overlay: rgba(0, 0, 0, 0.55);
+}
+
+:root {
+  /* citrus palette — same in both themes */
+  --color-orange: #FF8A1F;
+  --color-lime: #8BC34A;
+  --color-strawberry: #FF5C7A;
+  --color-blueberry: #5B5BD6;
+  --color-lemon: #FFD23F;
+
+  --gradient-citrus: linear-gradient(135deg, #FF8A1F 0%, #FFD23F 100%);
+
+  --font-display: 'Poppins', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+  --font-numeric: 'Inter', system-ui, sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 10px 28px -8px var(--shadow-color);
+  --shadow-card: 0 4px 16px -6px var(--shadow-color);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-body); background: var(--color-bg); color: var(--color-text); -webkit-font-smoothing: antialiased; }
+button { font-family: inherit; cursor: pointer; }
+input, textarea { font-family: inherit; }
+.zu-tap { min-height: 44px; min-width: 44px; }
+</style>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  .zu-nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: none; border: none; padding: 8px 4px; flex: 1; }
+  .zu-nav-label { font-family: var(--font-body); font-size: 11px; font-weight: 700; }
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="width: 390px; height: 88px; position: relative; background: var(--color-surface); border-top: 1px solid var(--color-border); display: flex; align-items: stretch; padding: 4px 6px 0 6px; box-shadow: 0 -8px 24px -12px var(--shadow-color);">
+
+  <a href="{{hrefHome}}" class="zu-nav-item zu-tap" style="text-decoration: none; color: {{colHome}};">
+    <svg width="24" height="24" sc-camel-view-box="0 0 24 24" fill="none" stroke="{{colHome}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"></path><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"></path></svg>
+    <span class="zu-nav-label">Inicio</span>
+  </a>
+
+  <a href="{{hrefHistorial}}" class="zu-nav-item zu-tap" style="text-decoration: none; color: {{colHistorial}};">
+    <svg width="24" height="24" sc-camel-view-box="0 0 24 24" fill="none" stroke="{{colHistorial}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"></path></svg>
+    <span class="zu-nav-label">Historial</span>
+  </a>
+
+  <div style="flex: 1; display: flex; justify-content: center; position: relative;">
+    <a href="{{hrefAdd}}" aria-label="Añadir gasto" style="position: absolute; top: -26px; width: 58px; height: 58px; border-radius: 999px; background: var(--gradient-citrus); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 22px -6px rgba(255,138,31,0.55); text-decoration: none;">
+      <svg width="28" height="28" sc-camel-view-box="0 0 24 24" fill="none" stroke="#2B1D0E" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+    </a>
+  </div>
+
+  <a href="{{hrefStats}}" class="zu-nav-item zu-tap" style="text-decoration: none; color: {{colStats}};">
+    <svg width="24" height="24" sc-camel-view-box="0 0 24 24" fill="none" stroke="{{colStats}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M12 19V4M20 19v-6"></path></svg>
+    <span class="zu-nav-label">Estadísticas</span>
+  </a>
+
+  <a href="{{hrefAjustes}}" class="zu-nav-item zu-tap" style="text-decoration: none; color: {{colAjustes}};">
+    <svg width="24" height="24" sc-camel-view-box="0 0 24 24" fill="none" stroke="{{colAjustes}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    <span class="zu-nav-label">Ajustes</span>
+  </a>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;historial&quot;,&quot;stats&quot;,&quot;ajustes&quot;],&quot;default&quot;:&quot;home&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;},&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:88}}">
+class Component extends DCLogic {
+  renderVals() {
+    const active = this.props.active ?? 'home';
+    const on = '#FF8A1F';
+    const off = this.props.theme === 'dark' ? '#C7AD87' : '#8A7355';
+    return {
+      theme: this.props.theme ?? 'light',
+      hrefHome: 'Main.dc.html',
+      hrefHistorial: 'Historial.dc.html',
+      hrefAdd: 'AddExpense.dc.html',
+      hrefStats: 'Estadisticas.dc.html',
+      hrefAjustes: 'Ajustes.dc.html',
+      colHome: active === 'home' ? on : off,
+      colHistorial: active === 'historial' ? on : off,
+      colStats: active === 'stats' ? on : off,
+      colAjustes: active === 'ajustes' ? on : off,
+    };
+  }
+}
+</script>
+
+
+</body></html>

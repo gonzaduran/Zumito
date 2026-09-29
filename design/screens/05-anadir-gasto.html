@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<title>Zumito — Añadir gasto</title>
+<style>/* Zumito — design tokens shared by every screen */
+
+:root,
+[data-theme="light"] {
+  --color-bg: #FFFBF5;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #FFF4E0;
+  --color-text: #2B1D0E;
+  --color-text-soft: #8A7355;
+  --color-border: rgba(43, 29, 14, 0.09);
+  --shadow-color: rgba(255, 138, 31, 0.22);
+  --overlay: rgba(43, 29, 14, 0.42);
+}
+
+[data-theme="dark"] {
+  --color-bg: #1A1208;
+  --color-surface: #2A1E12;
+  --color-surface-soft: #241A0F;
+  --color-text: #FFF4E0;
+  --color-text-soft: #C7AD87;
+  --color-border: rgba(255, 244, 224, 0.10);
+  --shadow-color: rgba(0, 0, 0, 0.40);
+  --overlay: rgba(0, 0, 0, 0.55);
+}
+
+:root {
+  /* citrus palette — same in both themes */
+  --color-orange: #FF8A1F;
+  --color-lime: #8BC34A;
+  --color-strawberry: #FF5C7A;
+  --color-blueberry: #5B5BD6;
+  --color-lemon: #FFD23F;
+
+  --gradient-citrus: linear-gradient(135deg, #FF8A1F 0%, #FFD23F 100%);
+
+  --font-display: 'Poppins', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+  --font-numeric: 'Inter', system-ui, sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 10px 28px -8px var(--shadow-color);
+  --shadow-card: 0 4px 16px -6px var(--shadow-color);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-body); background: var(--color-bg); color: var(--color-text); -webkit-font-smoothing: antialiased; }
+button { font-family: inherit; cursor: pointer; }
+input, textarea { font-family: inherit; }
+.zu-tap { min-height: 44px; min-width: 44px; }
+</style>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  .zu-label { font-family: var(--font-body); font-weight: 800; font-size: 13px; color: var(--color-text-soft); margin-bottom: 8px; display: block; }
+  .zu-field { width: 100%; border: 1px solid var(--color-border); background: var(--color-surface); border-radius: var(--radius-md); padding: 12px 14px; font-size: 14px; color: var(--color-text); font-family: var(--font-body); }
+  .zu-cat { border-radius: var(--radius-md); border: 2px solid var(--color-border); background: var(--color-surface); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 10px 2px; }
+  .zu-cat-on { border-color: var(--color-orange); background: var(--color-surface-soft); }
+  .zu-grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .zu-chip-sm { border-radius: var(--radius-pill); border: 2px solid var(--color-border); background: var(--color-surface); padding: 8px 14px; font-family: var(--font-body); font-weight: 700; font-size: 13px; color: var(--color-text); white-space: nowrap; }
+  .zu-chip-sm-on { border-color: var(--color-blueberry); background: var(--color-surface-soft); color: var(--color-blueberry); }
+  .zu-key { border: none; background: var(--color-surface); border-radius: var(--radius-md); font-family: var(--font-numeric); font-weight: 700; font-size: 20px; color: var(--color-text); padding: 14px 0; }
+  .zu-mood { border: 2px solid var(--color-border); background: var(--color-surface); border-radius: var(--radius-md); font-size: 24px; padding: 10px 0; flex: 1; }
+  .zu-mood-on { border-color: var(--color-lemon); background: var(--color-surface-soft); }
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="width: 390px; height: 844px; background: var(--color-bg); position: relative; overflow: hidden; display: flex; flex-direction: column;">
+
+  <div style="flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column;">
+
+    <div style="padding: 10px 20px 4px 20px; display: flex; flex-direction: column; align-items: center;">
+      <div style="width: 40px; height: 5px; border-radius: 999px; background: var(--color-border); margin-bottom: 10px;"></div>
+      <div style="width: 100%; display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-family: var(--font-display); font-weight: 800; font-size: 17px;">Nuevo gasto</div>
+        <a href="Main.dc.html" aria-label="Cerrar" style="width: 36px; height: 36px; border-radius: 999px; background: var(--color-surface-soft); display: flex; align-items: center; justify-content: center; text-decoration: none; color: var(--color-text);">
+          <svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+        </a>
+      </div>
+    </div>
+
+    <div style="text-align: center; padding: 14px 20px 6px 20px;">
+      <div class="zu-num" style="font-size: 44px; font-weight: 800; color: var(--color-orange); font-family: var(--font-numeric);">{{formatted}}</div>
+    </div>
+
+    <div style="padding: 6px 20px 18px 20px;">
+      <span class="zu-label" style="margin-bottom: 10px;">Categoría</span>
+      <div class="zu-grid4">
+        <sc-for list="{{cats}}" as="c" hint-placeholder-count="13">
+          <button class="zu-cat zu-tap {{c.cls}}" sc-camel-on-click="{{c.select}}">
+            <span style="font-size: 22px;">{{c.emoji}}</span>
+            <span style="font-family: var(--font-body); font-weight: 700; font-size: 10px;">{{c.name}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="padding: 0 20px 14px 20px;">
+      <label class="zu-label" for="zu-desc">Descripción</label>
+      <input id="zu-desc" class="zu-field" type="text" placeholder="¿En qué te lo has gastado?" value="Cena con amigos">
+    </div>
+
+    <div style="padding: 0 20px 14px 20px;">
+      <label class="zu-label" for="zu-lugar">Lugar</label>
+      <input id="zu-lugar" class="zu-field" type="text" placeholder="Restaurante La Parra" value="Restaurante La Parra">
+    </div>
+
+    <div style="padding: 0 20px 14px 20px;">
+      <span class="zu-label">¿Con quién estabas?</span>
+      <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px;">
+        <sc-for list="{{people}}" as="p" hint-placeholder-count="5">
+          <button class="zu-chip-sm zu-tap {{p.cls}}" sc-camel-on-click="{{p.toggle}}">{{p.name}}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="padding: 0 20px 14px 20px; display: flex; gap: 12px;">
+      <div style="flex: 1;">
+        <label class="zu-label" for="zu-fecha">Fecha</label>
+        <input id="zu-fecha" class="zu-field" type="text" value="Hoy, 29 sept.">
+      </div>
+      <div style="flex: 1;">
+        <label class="zu-label" for="zu-hora">Hora</label>
+        <input id="zu-hora" class="zu-field" type="text" value="14:32">
+      </div>
+    </div>
+
+    <div style="padding: 0 20px 14px 20px;">
+      <label class="zu-label" for="zu-nota">Nota (opcional)</label>
+      <textarea id="zu-nota" class="zu-field" rows="2" placeholder="Algo que recordar sobre este gasto…"></textarea>
+    </div>
+
+    <div style="padding: 0 20px 18px 20px;">
+      <span class="zu-label">¿Cómo te sientes con este gasto?</span>
+      <div style="display: flex; gap: 10px;">
+        <sc-for list="{{moods}}" as="m" hint-placeholder-count="3">
+          <button class="zu-mood zu-tap {{m.cls}}" sc-camel-on-click="{{m.select}}" aria-label="{{m.label}}">{{m.emoji}}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="padding: 0 20px 18px 20px;">
+      <div class="zu-grid4" style="grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px;">
+        <sc-for list="{{keys}}" as="k" hint-placeholder-count="12">
+          <button class="zu-key zu-tap" sc-camel-on-click="{{k.press}}">{{k.label}}</button>
+        </sc-for>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="padding: 14px 20px 22px 20px; border-top: 1px solid var(--color-border); background: var(--color-bg);">
+    <button class="zu-tap" sc-camel-on-click="{{save}}" style="width: 100%; border: none; background: var(--gradient-citrus); color: #2B1D0E; font-family: var(--font-display); font-weight: 800; font-size: 16px; border-radius: var(--radius-pill); padding: 16px; box-shadow: var(--shadow-soft);">Guardar gasto</button>
+  </div>
+
+  <sc-if value="{{saved}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; background: var(--overlay); display: flex; align-items: center; justify-content: center; padding: 40px;">
+      <div style="background: var(--color-surface); border-radius: var(--radius-lg); padding: 32px 24px; text-align: center; box-shadow: var(--shadow-soft); display: flex; flex-direction: column; align-items: center; gap: 10px;">
+        <svg width="96" height="96" sc-camel-view-box="0 0 240 240">
+          <path d="M146,78 Q150,68 153,60" fill="none" stroke="#7A3B00" stroke-width="8" stroke-linecap="round"></path>
+          <path d="M152,66 C132,52 136,22 168,16 C176,42 180,58 152,66 Z" fill="#8BC34A" stroke="#7A3B00" stroke-width="8" stroke-linejoin="round"></path>
+          <circle cx="120" cy="134" r="70" fill="#FF8A1F" stroke="#7A3B00" stroke-width="9"></circle>
+          <ellipse cx="94" cy="106" rx="20" ry="13" fill="#FFFFFF" opacity="0.55"></ellipse>
+          <path d="M90,120 Q99,110 108,120" fill="none" stroke="#7A3B00" stroke-width="6" stroke-linecap="round"></path>
+          <path d="M132,120 Q141,110 150,120" fill="none" stroke="#7A3B00" stroke-width="6" stroke-linecap="round"></path>
+          <path d="M92,146 Q120,174 148,146" fill="none" stroke="#7A3B00" stroke-width="7" stroke-linecap="round"></path>
+        </svg>
+        <div style="font-family: var(--font-display); font-weight: 800; font-size: 19px;">¡Zumito apuntado! 🍊</div>
+        <div style="font-size: 13px; color: var(--color-text-soft);">{{formatted}} en {{catName}}</div>
+        <a href="Main.dc.html" style="margin-top: 8px; width: 100%; border: none; background: var(--gradient-citrus); color: #2B1D0E; font-family: var(--font-display); font-weight: 800; font-size: 14px; border-radius: var(--radius-pill); padding: 12px 24px; text-decoration: none;">Volver a inicio</a>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;section&quot;:&quot;Tema&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      raw: '1250',
+      category: 'Ocio',
+      people: { 'Amigos': true },
+      mood: 'feliz',
+      saved: false,
+    };
+  }
+  press(k) {
+    if (k === '⌫') { this.setState({ raw: this.state.raw.slice(0, -1) }); return; }
+    if (this.state.raw.length >= 7) return;
+    this.setState({ raw: this.state.raw + k });
+  }
+  selectCat(key) { this.setState({ category: key }); }
+  togglePerson(key) {
+    const p = { ...this.state.people };
+    p[key] = !p[key];
+    this.setState({ people: p });
+  }
+  selectMood(key) { this.setState({ mood: key }); }
+  save() { this.setState({ saved: true }); }
+
+  renderVals() {
+    const cents = parseInt(this.state.raw || '0', 10);
+    const euros = Math.floor(cents / 100);
+    const rem = String(cents % 100).padStart(2, '0');
+    const formatted = euros.toLocaleString('es-ES') + ',' + rem + ' €';
+
+    const catList = [
+      ['Comida', '🍽️', 'Comida'], ['Super', '🛒', 'Súper'], ['Cafes', '☕', 'Cafés'],
+      ['Ocio', '🍻', 'Ocio'], ['Transporte', '🚌', 'Transporte'], ['Gasolina', '⛽', 'Gasolina'],
+      ['Hogar', '🏠', 'Hogar'], ['Salud', '💊', 'Salud'], ['Ropa', '👕', 'Ropa'],
+      ['Regalos', '🎁', 'Regalos'], ['Viajes', '✈️', 'Viajes'], ['Suscripciones', '📱', 'Suscripciones'],
+      ['Mascotas', '🐶', 'Mascotas'],
+    ];
+    const cats = catList.map(([key, emoji, name]) => ({
+      key, emoji, name,
+      cls: this.state.category === key ? 'zu-cat-on' : '',
+      select: () => this.selectCat(key),
+    }));
+    const catName = (catList.find(c => c[0] === this.state.category) || [,,'—'])[2];
+
+    const peopleList = ['Solo/a', 'Pareja', 'Familia', 'Amigos', 'Trabajo'];
+    const people = peopleList.map((name) => ({
+      name,
+      cls: this.state.people[name] ? 'zu-chip-sm-on' : '',
+      toggle: () => this.togglePerson(name),
+    }));
+
+    const moodList = [['feliz', '😀', 'Bien'], ['neutral', '😐', 'Normal'], ['mal', '😞', 'Mal']];
+    const moods = moodList.map(([key, emoji, label]) => ({
+      key, emoji, label,
+      cls: this.state.mood === key ? 'zu-mood-on' : '',
+      select: () => this.selectMood(key),
+    }));
+
+    const keyList = ['1','2','3','4','5','6','7','8','9','.','0','⌫'];
+    const keys = keyList.map((label) => ({ label, press: () => this.press(label) }));
+
+    return {
+      theme: this.props.theme ?? 'light',
+      formatted, cats, catName, people, moods, keys,
+      saved: this.state.saved,
+    };
+  }
+}
+</script>
+
+
+</body></html>

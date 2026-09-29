@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<title>Zumito — Ajustes</title>
+<style>/* Zumito — design tokens shared by every screen */
+
+:root,
+[data-theme="light"] {
+  --color-bg: #FFFBF5;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #FFF4E0;
+  --color-text: #2B1D0E;
+  --color-text-soft: #8A7355;
+  --color-border: rgba(43, 29, 14, 0.09);
+  --shadow-color: rgba(255, 138, 31, 0.22);
+  --overlay: rgba(43, 29, 14, 0.42);
+}
+
+[data-theme="dark"] {
+  --color-bg: #1A1208;
+  --color-surface: #2A1E12;
+  --color-surface-soft: #241A0F;
+  --color-text: #FFF4E0;
+  --color-text-soft: #C7AD87;
+  --color-border: rgba(255, 244, 224, 0.10);
+  --shadow-color: rgba(0, 0, 0, 0.40);
+  --overlay: rgba(0, 0, 0, 0.55);
+}
+
+:root {
+  /* citrus palette — same in both themes */
+  --color-orange: #FF8A1F;
+  --color-lime: #8BC34A;
+  --color-strawberry: #FF5C7A;
+  --color-blueberry: #5B5BD6;
+  --color-lemon: #FFD23F;
+
+  --gradient-citrus: linear-gradient(135deg, #FF8A1F 0%, #FFD23F 100%);
+
+  --font-display: 'Poppins', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+  --font-numeric: 'Inter', system-ui, sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 10px 28px -8px var(--shadow-color);
+  --shadow-card: 0 4px 16px -6px var(--shadow-color);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-body); background: var(--color-bg); color: var(--color-text); -webkit-font-smoothing: antialiased; }
+button { font-family: inherit; cursor: pointer; }
+input, textarea { font-family: inherit; }
+.zu-tap { min-height: 44px; min-width: 44px; }
+</style>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  .zu-h1 { font-family: var(--font-display); font-weight: 800; }
+  .zu-sec { font-family: var(--font-body); font-weight: 800; font-size: 12px; color: var(--color-text-soft); text-transform: uppercase; letter-spacing: 0.04em; margin: 4px 0 8px 4px; }
+  .zu-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; }
+  .zu-row { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--color-border); background: none; border-left: none; border-right: none; border-top: none; width: 100%; text-align: left; }
+  .zu-row:last-child { border-bottom: none; }
+  .zu-switch { width: 44px; height: 26px; border-radius: 999px; border: none; position: relative; flex-shrink: 0; }
+  .zu-switch-knob { width: 20px; height: 20px; border-radius: 999px; background: white; position: absolute; top: 3px; transition: left 140ms ease; }
+  .zu-swatch { width: 34px; height: 34px; border-radius: 999px; border: 3px solid transparent; }
+  .zu-swatch-on { border-color: var(--color-text); }
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="width: 390px; height: 844px; background: var(--color-bg); display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="padding: 20px 20px 8px 20px;">
+    <div class="zu-h1" style="font-size: 22px;">Ajustes</div>
+  </div>
+
+  <div style="flex-grow: 1; overflow-y: auto; padding: 8px 20px 16px 20px; display: flex; flex-direction: column; gap: 20px;">
+
+    <div class="zu-card" style="padding: 14px 16px; display: flex; align-items: center; gap: 12px;">
+      <span style="width: 48px; height: 48px; border-radius: 999px; background: var(--gradient-citrus); display: flex; align-items: center; justify-content: center; font-size: 24px;">🍊</span>
+      <div style="flex-grow: 1;">
+        <div style="font-weight: 800; font-size: 15px;">Gonzalo</div>
+        <div style="font-size: 12px; color: var(--color-text-soft);">gonzaduranp@gmail.com</div>
+      </div>
+      <a href="Precios.dc.html" style="background: var(--color-surface-soft); color: var(--color-orange); font-family: var(--font-body); font-weight: 800; font-size: 11px; padding: 8px 12px; border-radius: var(--radius-pill); text-decoration: none;">Premium</a>
+    </div>
+
+    <div>
+      <div class="zu-sec">Categorías</div>
+      <div class="zu-card">
+        <sc-for list="{{cats}}" as="c" hint-placeholder-count="5">
+          <button class="zu-row zu-tap" sc-camel-on-click="{{c.toggle}}">
+            <span style="font-size: 20px; width: 32px; height: 32px; border-radius: 999px; background: var(--color-surface-soft); display: flex; align-items: center; justify-content: center;">{{c.emoji}}</span>
+            <span style="flex-grow: 1; font-weight: 700; font-size: 14px;">{{c.name}}</span>
+            <span style="font-size: 12px; color: var(--color-text-soft);">Cambiar emoji ›</span>
+          </button>
+        </sc-for>
+        <button class="zu-row zu-tap" style="color: var(--color-orange); font-weight: 800;">
+          <span style="width: 32px; text-align: center; font-size: 18px;">＋</span> Añadir categoría
+        </button>
+      </div>
+      <sc-if value="{{pickerOpen}}" hint-placeholder-val="{{false}}">
+        <div class="zu-card" style="margin-top: 8px; padding: 14px;">
+          <div style="font-size: 12px; font-weight: 700; color: var(--color-text-soft); margin-bottom: 10px;">Elige un emoji para «{{pickerFor}}»</div>
+          <div style="display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 8px; font-size: 20px;">
+            <sc-for list="{{emojiPicks}}" as="em" hint-placeholder-count="14">
+              <button class="zu-tap" style="border: none; background: var(--color-surface-soft); border-radius: 10px; padding: 6px 0;" sc-camel-on-click="{{em.pick}}">{{em.e}}</button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div>
+      <div class="zu-sec">Presupuestos</div>
+      <div class="zu-card" style="padding: 14px 16px; display: flex; flex-direction: column; gap: 12px;">
+        <sc-for list="{{budgets}}" as="b" hint-placeholder-count="3">
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700;">
+              <span>{{b.emoji}} {{b.name}}</span><span class="zu-num">{{b.spent}} / {{b.limit}}</span>
+            </div>
+            <div style="height: 7px; border-radius: 999px; background: var(--color-border); margin-top: 5px; overflow: hidden;">
+              <div style="height: 100%; width: {{b.pct}}; background: {{b.color}}; border-radius: 999px;"></div>
+            </div>
+          </div>
+        </sc-for>
+        <button class="zu-tap" style="align-self: flex-start; border: none; background: none; color: var(--color-orange); font-weight: 800; font-size: 13px; padding: 4px 0;">Editar presupuestos ›</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="zu-sec">Atajos rápidos</div>
+      <div class="zu-card" style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 13px; color: var(--color-text-soft);">Crea un atajo de iOS/Android para apuntar un gasto por voz sin abrir la app.</div>
+        <button class="zu-tap" style="border: none; background: var(--gradient-citrus); color: #2B1D0E; font-family: var(--font-display); font-weight: 800; font-size: 13px; border-radius: var(--radius-pill); padding: 12px;">＋ Crear atajo</button>
+        <div>
+          <div style="font-size: 11px; font-weight: 700; color: var(--color-text-soft); margin-bottom: 6px;">Token de acceso</div>
+          <div style="display: flex; gap: 8px;">
+            <div style="flex-grow: 1; background: var(--color-surface-soft); border-radius: var(--radius-sm); padding: 10px 12px; font-family: var(--font-numeric); font-size: 13px;">{{tokenDisplay}}</div>
+            <button class="zu-tap" sc-camel-on-click="{{toggleToken}}" style="border: 1px solid var(--color-border); background: var(--color-surface); border-radius: var(--radius-sm); padding: 0 14px; font-weight: 700; font-size: 12px;">{{tokenBtnLabel}}</button>
+          </div>
+        </div>
+        <button class="zu-tap" sc-camel-on-click="{{toggleGuide}}" style="border: none; background: none; text-align: left; color: var(--color-blueberry); font-weight: 800; font-size: 13px; padding: 0;">Ver guía paso a paso (iPhone / Android) ›</button>
+        <sc-if value="{{guideOpen}}" hint-placeholder-val="{{false}}">
+          <div style="font-size: 12px; color: var(--color-text-soft); background: var(--color-surface-soft); border-radius: var(--radius-sm); padding: 10px 12px; line-height: 1.5;">
+            <b>iPhone:</b> Atajos → Nuevo atajo → añade la acción "Añadir gasto en Zumito" → asígnale una frase de Siri.<br>
+            <b>Android:</b> Ajustes del sistema → Apps predeterminadas → Asistente de voz → añade el atajo de Zumito.
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div>
+      <div class="zu-sec">Privacidad</div>
+      <div class="zu-card">
+        <div class="zu-row" style="border-bottom: none;">
+          <span style="font-size: 18px;">🙈</span>
+          <div style="flex-grow: 1;">
+            <div style="font-weight: 700; font-size: 14px;">Modo privacidad</div>
+            <div style="font-size: 12px; color: var(--color-text-soft);">Oculta los importes con ●●● al abrir la app</div>
+          </div>
+          <button class="zu-switch zu-tap" sc-camel-on-click="{{togglePrivacy}}" style="background: {{privacyBg}};" aria-label="Modo privacidad">
+            <span class="zu-switch-knob" style="left: {{privacyKnob}};"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="zu-sec">Tema de color</div>
+      <div class="zu-card" style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; gap: 10px;">
+          <sc-for list="{{swatches}}" as="s" hint-placeholder-count="5">
+            <button class="zu-swatch zu-tap {{s.cls}}" style="background: {{s.color}};" sc-camel-on-click="{{s.pick}}" aria-label="{{s.name}}"></button>
+          </sc-for>
+        </div>
+        <div style="display: flex; background: var(--color-surface-soft); border-radius: var(--radius-pill); padding: 4px;">
+          <button class="zu-tap" sc-camel-on-click="{{pickLight}}" style="flex:1; border:none; text-align:center; font-weight:700; font-size:13px; padding:8px; border-radius: var(--radius-pill); background: {{lightBg}}; color: {{lightColor}};">☀️ Claro</button>
+          <button class="zu-tap" sc-camel-on-click="{{pickDark}}" style="flex:1; border:none; text-align:center; font-weight:700; font-size:13px; padding:8px; border-radius: var(--radius-pill); background: {{darkBg}}; color: {{darkColor}};">🌙 Oscuro</button>
+        </div>
+        <div style="font-size: 11px; color: var(--color-text-soft);">El resto de pantallas del prototipo cambian de tema desde el panel de Tweaks (arriba, junto al lienzo).</div>
+      </div>
+    </div>
+
+  </div>
+
+  <dc-import name="NavBar" active="ajustes" theme="{{theme}}" hint-size="390px,88px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;section&quot;:&quot;Tema&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      pickerFor: null,
+      tokenVisible: false,
+      guideOpen: false,
+      privacyOn: false,
+      accent: 'naranja',
+      themeOverride: null,
+    };
+  }
+  openPicker(name) { this.setState({ pickerFor: this.state.pickerFor === name ? null : name }); }
+  toggleToken() { this.setState({ tokenVisible: !this.state.tokenVisible }); }
+  toggleGuide() { this.setState({ guideOpen: !this.state.guideOpen }); }
+  togglePrivacy() { this.setState({ privacyOn: !this.state.privacyOn }); }
+  pickAccent(name) { this.setState({ accent: name }); }
+  pickTheme(t) { this.setState({ themeOverride: t }); }
+
+  renderVals() {
+    const theme = this.state.themeOverride ?? this.props.theme ?? 'light';
+    const catList = [
+      ['Hogar','🏠'], ['Comida','🍽️'], ['Súper','🛒'], ['Ocio','🍻'], ['Transporte','🚌'],
+    ];
+    const cats = catList.map(([name, emoji]) => ({ name, emoji, toggle: () => this.openPicker(name) }));
+
+    const emojiPicks = ['🏠','🍽️','🛒','☕','🍻','🚌','⛽','💊','👕','🎁','✈️','📱','🐶','💡']
+      .map((e) => ({ e, pick: () => this.setState({ pickerFor: null }) }));
+
+    const budgets = [
+      { emoji: '🍽️', name: 'Comida', spent: '128,40 €', limit: '150 €', pct: '86%', color: 'var(--color-strawberry)' },
+      { emoji: '🍻', name: 'Ocio',    spent: '88,00 €',  limit: '100 €', pct: '88%', color: 'var(--color-blueberry)' },
+      { emoji: '🛒', name: 'Súper',   spent: '96,10 €',  limit: '200 €', pct: '48%', color: 'var(--color-lime)' },
+    ];
+
+    const swatchList = ['naranja','lima','fresa','arandano','limon'];
+    const swatchColor = { naranja: 'var(--color-orange)', lima: 'var(--color-lime)', fresa: 'var(--color-strawberry)', arandano: 'var(--color-blueberry)', limon: 'var(--color-lemon)' };
+    const swatches = swatchList.map((name) => ({
+      name, color: swatchColor[name],
+      cls: this.state.accent === name ? 'zu-swatch-on' : '',
+      pick: () => this.pickAccent(name),
+    }));
+
+    return {
+      theme,
+      cats,
+      pickerOpen: !!this.state.pickerFor,
+      pickerFor: this.state.pickerFor,
+      emojiPicks,
+      budgets,
+      tokenDisplay: this.state.tokenVisible ? 'zmt_live_8f2c9a41b0d7' : '••••••••••••',
+      tokenBtnLabel: this.state.tokenVisible ? 'Ocultar' : 'Mostrar',
+      toggleToken: () => this.toggleToken(),
+      guideOpen: this.state.guideOpen,
+      toggleGuide: () => this.toggleGuide(),
+      privacyBg: this.state.privacyOn ? 'var(--color-orange)' : 'var(--color-border)',
+      privacyKnob: this.state.privacyOn ? '21px' : '3px',
+      togglePrivacy: () => this.togglePrivacy(),
+      swatches,
+      lightBg: theme === 'light' ? 'var(--color-surface)' : 'transparent',
+      lightColor: theme === 'light' ? 'var(--color-text)' : 'var(--color-text-soft)',
+      darkBg: theme === 'dark' ? 'var(--color-surface)' : 'transparent',
+      darkColor: theme === 'dark' ? 'var(--color-text)' : 'var(--color-text-soft)',
+      pickLight: () => this.pickTheme('light'),
+      pickDark: () => this.pickTheme('dark'),
+    };
+  }
+}
+</script>
+
+
+</body></html>

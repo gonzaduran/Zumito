@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<title>Zumito — Inicio</title>
+<style>/* Zumito — design tokens shared by every screen */
+
+:root,
+[data-theme="light"] {
+  --color-bg: #FFFBF5;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #FFF4E0;
+  --color-text: #2B1D0E;
+  --color-text-soft: #8A7355;
+  --color-border: rgba(43, 29, 14, 0.09);
+  --shadow-color: rgba(255, 138, 31, 0.22);
+  --overlay: rgba(43, 29, 14, 0.42);
+}
+
+[data-theme="dark"] {
+  --color-bg: #1A1208;
+  --color-surface: #2A1E12;
+  --color-surface-soft: #241A0F;
+  --color-text: #FFF4E0;
+  --color-text-soft: #C7AD87;
+  --color-border: rgba(255, 244, 224, 0.10);
+  --shadow-color: rgba(0, 0, 0, 0.40);
+  --overlay: rgba(0, 0, 0, 0.55);
+}
+
+:root {
+  /* citrus palette — same in both themes */
+  --color-orange: #FF8A1F;
+  --color-lime: #8BC34A;
+  --color-strawberry: #FF5C7A;
+  --color-blueberry: #5B5BD6;
+  --color-lemon: #FFD23F;
+
+  --gradient-citrus: linear-gradient(135deg, #FF8A1F 0%, #FFD23F 100%);
+
+  --font-display: 'Poppins', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+  --font-numeric: 'Inter', system-ui, sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 10px 28px -8px var(--shadow-color);
+  --shadow-card: 0 4px 16px -6px var(--shadow-color);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-body); background: var(--color-bg); color: var(--color-text); -webkit-font-smoothing: antialiased; }
+button { font-family: inherit; cursor: pointer; }
+input, textarea { font-family: inherit; }
+.zu-tap { min-height: 44px; min-width: 44px; }
+</style>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  .zu-h1 { font-family: var(--font-display); font-weight: 800; }
+  .zu-num { font-family: var(--font-numeric); font-variant-numeric: tabular-nums; }
+  .zu-seg-btn { border: none; background: none; font-family: var(--font-body); font-weight: 700; font-size: 13px; padding: 8px 0; border-radius: var(--radius-pill); flex: 1; }
+  .zu-cat-row { display: flex; align-items: center; gap: 12px; }
+  .zu-bar-track { flex-grow: 1; height: 8px; border-radius: var(--radius-pill); background: var(--color-border); overflow: hidden; }
+  .zu-bar-fill { height: 100%; border-radius: var(--radius-pill); }
+  .zu-exp-item { border: none; background: none; width: 100%; text-align: left; padding: 0; display: block; }
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="width: 390px; height: 844px; background: var(--color-bg); display: flex; flex-direction: column; overflow: hidden; position: relative;">
+
+  <div style="flex: 1; overflow-y: auto; padding: 20px 20px 12px 20px; display: flex; flex-direction: column; gap: 20px;">
+
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <div style="font-size: 13px; color: var(--color-text-soft); font-weight: 700;">¡Hola, Gonzalo!</div>
+        <div class="zu-h1" style="font-size: 22px; color: var(--color-text);">Tu jugo de septiembre</div>
+      </div>
+      <a href="Ajustes.dc.html" aria-label="Ajustes" style="width: 44px; height: 44px; border-radius: 999px; background: var(--color-surface-soft); display: flex; align-items: center; justify-content: center; font-size: 22px; text-decoration: none; box-shadow: var(--shadow-card);">🍊</a>
+    </div>
+
+    <div style="background: var(--gradient-citrus); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-soft); display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; background: rgba(255,255,255,0.35); border-radius: var(--radius-pill); padding: 4px;">
+        <sc-for list="{{periods}}" as="p" hint-placeholder-count="4">
+          <button class="zu-seg-btn zu-tap" sc-camel-on-click="{{p.select}}" style="color: {{p.textColor}}; background: {{p.bg}};">{{p.label}}</button>
+        </sc-for>
+      </div>
+      <div>
+        <div style="font-size: 13px; font-weight: 700; color: #402400;">Gasto {{periodLabel}}</div>
+        <div class="zu-num" style="font-size: 40px; font-weight: 800; color: #2B1D0E;">{{amount}}</div>
+        <div style="font-size: 13px; font-weight: 700; color: #402400;">{{delta}}</div>
+      </div>
+    </div>
+
+    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 14px 16px; display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 22px;">🔥</span>
+      <div>
+        <div style="font-weight: 800; font-size: 14px;">6 días sin caprichos de más</div>
+        <div style="font-size: 12px; color: var(--color-text-soft);">¡Sigue así, crack!</div>
+      </div>
+    </div>
+
+    <div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px;">
+        <div class="zu-h1" style="font-size: 16px;">Por categoría</div>
+        <a href="Estadisticas.dc.html" style="font-size: 12px; font-weight: 700; color: var(--color-orange); text-decoration: none;">Ver todo</a>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <sc-for list="{{categories}}" as="c" hint-placeholder-count="5">
+          <div class="zu-cat-row">
+            <span style="font-size: 20px; width: 24px; text-align: center;">{{c.emoji}}</span>
+            <div style="flex-grow: 1;">
+              <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 4px;">
+                <span>{{c.name}}</span>
+                <span class="zu-num">{{c.amount}}</span>
+              </div>
+              <div class="zu-bar-track"><div class="zu-bar-fill" style="width: {{c.pct}}; background: {{c.color}};"></div></div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px;">
+        <div class="zu-h1" style="font-size: 16px;">Últimos gastos</div>
+        <a href="Historial.dc.html" style="font-size: 12px; font-weight: 700; color: var(--color-orange); text-decoration: none;">Ver historial</a>
+      </div>
+      <div style="font-size: 11px; color: var(--color-text-soft); margin-bottom: 8px;">Toca un gasto para editarlo o borrarlo</div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <sc-for list="{{expenses}}" as="e" hint-placeholder-count="4">
+          <div style="position: relative; border-radius: var(--radius-md); overflow: hidden;">
+            <div style="position: absolute; inset: 0; display: flex; justify-content: flex-end; align-items: stretch;">
+              <button class="zu-tap" aria-label="Editar {{e.place}}" style="width: 52px; border: none; background: var(--color-blueberry); color: white; font-size: 18px;">✏️</button>
+              <button class="zu-tap" aria-label="Borrar {{e.place}}" style="width: 52px; border: none; background: var(--color-strawberry); color: white; font-size: 18px;">🗑️</button>
+            </div>
+            <button class="zu-exp-item zu-tap" sc-camel-on-click="{{e.toggle}}" style="transform: {{e.translate}}; transition: transform 160ms ease; position: relative; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 20px; width: 36px; height: 36px; border-radius: 999px; background: var(--color-surface-soft); display: flex; align-items: center; justify-content: center;">{{e.emoji}}</span>
+              <span style="flex-grow: 1; text-align: left;">
+                <span style="display: block; font-weight: 700; font-size: 14px;">{{e.place}}</span>
+                <span style="display: block; font-size: 12px; color: var(--color-text-soft);">{{e.when}}</span>
+              </span>
+              <span class="zu-num" style="font-weight: 800; font-size: 15px;">{{e.amount}}</span>
+            </button>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+  </div>
+
+  <dc-import name="NavBar" active="home" theme="{{theme}}" hint-size="390px,88px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;section&quot;:&quot;Tema&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { period: 'Mes', revealed: null };
+  }
+  selectPeriod(p) { this.setState({ period: p }); }
+  toggleReveal(i) { this.setState({ revealed: this.state.revealed === i ? null : i }); }
+
+  renderVals() {
+    const theme = this.props.theme ?? 'light';
+    const data = {
+      Hoy:    { amount: '18,40 €',  delta: '▼ 62% menos que ayer',        label: 'de hoy' },
+      Semana: { amount: '96,20 €',  delta: '▲ 8% más que la semana pasada', label: 'de esta semana' },
+      Mes:    { amount: '482,30 €', delta: '▲ 12% más que en agosto',     label: 'de septiembre' },
+      Total:  { amount: '3.104,55 €', delta: '▲ desde que usas Zumito',   label: 'total' },
+    };
+    const cur = data[this.state.period];
+
+    const periods = ['Hoy', 'Semana', 'Mes', 'Total'].map((p) => ({
+      label: p,
+      select: () => this.selectPeriod(p),
+      bg: p === this.state.period ? '#FFFFFF' : 'transparent',
+      textColor: p === this.state.period ? '#2B1D0E' : '#5A3A00',
+    }));
+
+    const categories = [
+      { emoji: '🏠', name: 'Hogar',    amount: '142,90 €', pct: '78%', color: 'var(--color-orange)' },
+      { emoji: '🍽️', name: 'Comida',   amount: '128,40 €', pct: '70%', color: 'var(--color-strawberry)' },
+      { emoji: '🛒', name: 'Súper',    amount: '96,10 €',  pct: '52%', color: 'var(--color-lime)' },
+      { emoji: '🍻', name: 'Ocio',     amount: '88,00 €',  pct: '48%', color: 'var(--color-blueberry)' },
+      { emoji: '☕', name: 'Cafés',    amount: '24,60 €',  pct: '18%', color: 'var(--color-lemon)' },
+    ];
+
+    const rawExpenses = [
+      { emoji: '🍽️', place: 'Restaurante La Parra', when: 'Hoy · 14:32', amount: '18,40 €' },
+      { emoji: '☕', place: 'Café con Marta',        when: 'Hoy · 09:10', amount: '3,20 €' },
+      { emoji: '🛒', place: 'Mercadona',              when: 'Ayer · 19:05', amount: '42,75 €' },
+      { emoji: '🚌', place: 'Bono bus',               when: 'Ayer · 08:00', amount: '12,00 €' },
+    ];
+    const expenses = rawExpenses.map((e, i) => ({
+      ...e,
+      toggle: () => this.toggleReveal(i),
+      translate: this.state.revealed === i ? 'translateX(-104px)' : 'translateX(0)',
+    }));
+
+    return {
+      theme,
+      periods,
+      periodLabel: cur.label,
+      amount: cur.amount,
+      delta: cur.delta,
+      categories,
+      expenses,
+    };
+  }
+}
+</script>
+
+
+</body></html>
