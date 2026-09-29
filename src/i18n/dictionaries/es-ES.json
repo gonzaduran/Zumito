@@ -15,7 +15,9 @@
     "close": "Cerrar",
     "greeting": "Hola",
     "greetingWithName": "Hola, {name}",
-    "profile": "Tu perfil"
+    "profile": "Tu perfil",
+    "today": "Hoy",
+    "yesterday": "Ayer"
   },
   "home": {
     "periodsLabel": "Periodo",
@@ -68,7 +70,27 @@
   },
   "addExpense": {
     "title": "Nuevo gasto",
-    "comingSoon": "Muy pronto podrás apuntar gastos desde aquí en menos de 5 segundos."
+    "amountLabel": "Importe",
+    "categoryLabel": "Categoría",
+    "descriptionLabel": "Concepto",
+    "descriptionPlaceholder": "¿En qué? (opcional)",
+    "dateLabel": "Fecha",
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "otherDate": "Otra fecha",
+    "save": "Guardar gasto",
+    "keypad": {
+      "label": "Teclado numérico",
+      "decimal": "Coma decimal",
+      "backspace": "Borrar"
+    },
+    "saved": "Gasto guardado",
+    "savedDescription": "{amount} en {category}",
+    "undo": "Deshacer",
+    "undone": "Gasto eliminado",
+    "undoFailed": "No se ha podido deshacer",
+    "saveFailed": "No se ha podido guardar el gasto",
+    "retry": "Reintentar"
   },
   "categoryColors": {
     "rose": "Rosa",
