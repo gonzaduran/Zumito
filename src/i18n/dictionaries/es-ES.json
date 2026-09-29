@@ -13,7 +13,9 @@
   },
   "common": {
     "close": "Cerrar",
-    "greeting": "Hola"
+    "greeting": "Hola",
+    "greetingWithName": "Hola, {name}",
+    "profile": "Tu perfil"
   },
   "home": {
     "periodsLabel": "Periodo",
@@ -23,6 +25,26 @@
       "month": "Mes",
       "total": "Total"
     },
+    "spentLabel": {
+      "today": "Gastado hoy",
+      "week": "Gastado esta semana",
+      "month": "Gastado este mes",
+      "total": "Gastado en total"
+    },
+    "delta": {
+      "more": "{percent} más que {previous}",
+      "less": "{percent} menos que {previous}",
+      "previous": {
+        "today": "ayer",
+        "week": "la semana pasada",
+        "month": "el mes pasado"
+      }
+    },
+    "budgetUsed": "{percent} del presupuesto usado",
+    "categoriesTitle": "Categorías",
+    "seeAll": "Ver todo",
+    "recentTitle": "Movimientos recientes",
+    "historyLink": "Historial",
     "emptyTitle": "Aún no hay gastos hoy",
     "emptyDescription": "Toca + para apuntar tu primer gasto."
   },
@@ -34,7 +56,8 @@
   "stats": {
     "title": "Estadísticas",
     "emptyTitle": "Todavía no hay datos",
-    "emptyDescription": "Cuando apuntes algunos gastos verás en qué se va tu dinero."
+    "emptyDescription": "Cuando apuntes algunos gastos verás en qué se va tu dinero.",
+    "others": "Otros"
   },
   "settings": {
     "title": "Ajustes",
@@ -44,5 +67,19 @@
   "addExpense": {
     "title": "Nuevo gasto",
     "comingSoon": "Muy pronto podrás apuntar gastos desde aquí en menos de 5 segundos."
+  },
+  "categoryColors": {
+    "rose": "Rosa",
+    "brick": "Ladrillo",
+    "terracotta": "Terracota",
+    "amber": "Ámbar",
+    "olive": "Oliva",
+    "moss": "Musgo",
+    "sage": "Salvia",
+    "teal": "Verde azulado",
+    "ocean": "Océano",
+    "denim": "Vaquero",
+    "plum": "Ciruela",
+    "orchid": "Orquídea"
   }
 }
