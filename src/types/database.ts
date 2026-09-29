@@ -209,6 +209,14 @@ export type Database = {
           spent_cents: number
         }[]
       }
+      reorder_categories: {
+        Args: { p_ids: string[] }
+        Returns: undefined
+      }
+      delete_my_account: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       expense_summary: {
         Args: Record<PropertyKey, never>
         Returns: {

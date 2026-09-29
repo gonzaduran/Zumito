@@ -669,6 +669,64 @@ await expectError(
   /permission denied/,
 )
 
+console.log("\nOrden de categorías")
+const E = "55555555-5555-5555-5555-555555555555"
+await db.exec(`insert into auth.users (id, email) values ('${E}', 'e@test.es')`)
+await as("authenticated", E, () =>
+  db.exec(`
+    insert into public.categories (id, name, emoji, color, position) values
+      ('eeeeeeee-0000-0000-0000-000000000001', 'Uno', '1️⃣', 'rose', 0),
+      ('eeeeeeee-0000-0000-0000-000000000002', 'Dos', '2️⃣', 'teal', 1),
+      ('eeeeeeee-0000-0000-0000-000000000003', 'Tres', '3️⃣', 'plum', 2);
+  `),
+)
+await as("authenticated", E, () =>
+  db.query(
+    "select public.reorder_categories(array['eeeeeeee-0000-0000-0000-000000000003', 'eeeeeeee-0000-0000-0000-000000000001', 'eeeeeeee-0000-0000-0000-000000000002']::uuid[])",
+  ),
+)
+const ordered = (
+  await as("authenticated", E, () =>
+    db.query("select name from public.categories order by position"),
+  )
+).rows.map((r) => r.name)
+assert(ordered.join(",") === "Tres,Uno,Dos", "guarda el nuevo orden", ordered.join(","))
+const beforeB = (
+  await db.query(`select id, position from public.categories where user_id = '${B}'`)
+).rows
+await as("authenticated", E, () =>
+  db.query(`select public.reorder_categories(array['${beforeB[0].id}']::uuid[])`),
+)
+const afterB = (await db.query(`select id, position from public.categories where user_id = '${B}'`))
+  .rows
+assert(
+  JSON.stringify(afterB) === JSON.stringify(beforeB),
+  "no puede reordenar categorías de otro usuario",
+  JSON.stringify({ beforeB, afterB }),
+)
+
+console.log("\nBorrar mi cuenta")
+await expectError(
+  "anon no puede borrar cuentas",
+  "anon",
+  null,
+  "select public.delete_my_account()",
+  /permission denied/,
+)
+await as("authenticated", E, () => db.query("select public.delete_my_account()"))
+const leftE = (
+  await db.query(`select
+    (select count(*) from auth.users where id = '${E}') as u,
+    (select count(*) from public.categories where user_id = '${E}') as c,
+    (select count(*) from public.profiles where id = '${E}') as p,
+    (select count(*) from auth.users) as total`)
+).rows[0]
+assert(
+  Number(leftE.u) + Number(leftE.c) + Number(leftE.p) === 0 && Number(leftE.total) >= 3,
+  "borra su cuenta y sus datos, y solo la suya",
+  JSON.stringify(leftE),
+)
+
 console.log("\nBorrado de cuenta")
 await db.exec(`delete from auth.users where id = '${A}'`)
 const left = await db.query(`select
