@@ -530,6 +530,75 @@ await expectError(
   /permission denied/,
 )
 
+console.log("\nEstadísticas")
+const localToday = (await db.query("select (now() at time zone 'Europe/Madrid')::date as d"))
+  .rows[0].d
+const iso = (d) => new Date(d).toISOString().slice(0, 10)
+const byCategory = async (from, to) =>
+  (
+    await as("authenticated", D, () =>
+      db.query(`select * from public.spending_by_category('${from}', '${to}')`),
+    )
+  ).rows
+const todayIso = iso(localToday)
+const tomorrowIso = iso(new Date(new Date(localToday).getTime() + 86400000))
+let statCats = await byCategory(todayIso, tomorrowIso)
+// Hoy (D): Comida 100 (00:30) y Ocio 1500 + 2500.
+assert(
+  statCats.map((c) => `${c.name}:${c.total_cents}:${c.expense_count}`).join(",") ===
+    "Ocio:4000:2,Comida:100:1",
+  "suma por categoría de mayor a menor y cuenta los gastos",
+  JSON.stringify(statCats),
+)
+statCats = await byCategory("2000-01-01", todayIso)
+assert(
+  statCats.length === 1 && statCats[0].name === "Comida" && Number(statCats[0].total_cents) === 600,
+  "el final del rango no se incluye",
+  JSON.stringify(statCats),
+)
+await as("authenticated", D, () =>
+  db.exec(
+    "update public.categories set archived_at = now() where id = 'dddddddd-0000-0000-0000-000000000002'",
+  ),
+)
+statCats = await byCategory(todayIso, tomorrowIso)
+assert(
+  statCats.some((c) => c.name === "Ocio"),
+  "las categorías archivadas siguen contando",
+  JSON.stringify(statCats),
+)
+const months = (
+  await as("authenticated", D, () => db.query("select * from public.spending_by_month(6)"))
+).rows
+assert(months.length === 6, "devuelve 6 meses aunque alguno esté vacío", months.length)
+assert(
+  iso(months[5].month) === `${todayIso.slice(0, 7)}-01` &&
+    months.every((m, i) => i === 0 || iso(m.month) > iso(months[i - 1].month)),
+  "en orden y terminando en el mes actual",
+  JSON.stringify(months.map((m) => iso(m.month))),
+)
+assert(
+  Number(months[5].total_cents) >= 4100 &&
+    months.slice(0, 4).every((m) => Number(m.total_cents) === 0),
+  "el mes actual suma sus gastos y los meses sin gastos van a 0",
+  JSON.stringify(months),
+)
+const monthsB = (
+  await as("authenticated", B, () => db.query("select * from public.spending_by_month(3)"))
+).rows
+assert(
+  monthsB.every((m) => Number(m.total_cents) === 0),
+  "B no suma los gastos de D",
+  JSON.stringify(monthsB),
+)
+await expectError(
+  "anon no puede pedir estadísticas",
+  "anon",
+  null,
+  "select * from public.spending_by_month()",
+  /permission denied/,
+)
+
 console.log("\nBorrado de cuenta")
 await db.exec(`delete from auth.users where id = '${A}'`)
 const left = await db.query(`select

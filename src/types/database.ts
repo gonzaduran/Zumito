@@ -180,6 +180,21 @@ export type Database = {
           day_total_cents: number
         }[]
       }
+      spending_by_category: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          category_id: string
+          name: string
+          emoji: string
+          color: string
+          total_cents: number
+          expense_count: number
+        }[]
+      }
+      spending_by_month: {
+        Args: { p_months?: number }
+        Returns: { month: string; total_cents: number }[]
+      }
       expense_summary: {
         Args: Record<PropertyKey, never>
         Returns: {
