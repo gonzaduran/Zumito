@@ -195,6 +195,20 @@ export type Database = {
         Args: { p_months?: number }
         Returns: { month: string; total_cents: number }[]
       }
+      set_budgets: {
+        Args: { p_budgets: Json }
+        Returns: undefined
+      }
+      budget_status: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          category_id: string | null
+          name: string | null
+          emoji: string | null
+          amount_cents: number
+          spent_cents: number
+        }[]
+      }
       expense_summary: {
         Args: Record<PropertyKey, never>
         Returns: {

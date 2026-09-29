@@ -599,6 +599,76 @@ await expectError(
   /permission denied/,
 )
 
+console.log("\nPresupuestos del mes")
+const setBudgets = (userId, list) =>
+  as("authenticated", userId, () =>
+    db.query(`select public.set_budgets('${JSON.stringify(list)}'::jsonb)`),
+  )
+const budgetStatus = async (userId) =>
+  (await as("authenticated", userId, () => db.query("select * from public.budget_status()"))).rows
+await setBudgets(D, [
+  { category_id: null, amount_cents: 10000 },
+  { category_id: "dddddddd-0000-0000-0000-000000000001", amount_cents: 500 },
+])
+let status = await budgetStatus(D)
+assert(
+  status.length === 2 && status[0].category_id === null && status[1].name === "Comida",
+  "guarda el total y el de categoría (el total primero)",
+  JSON.stringify(status),
+)
+// Mes en curso de D: Comida 100 (hoy) + Ocio 4000 (hoy); el de ayer 23:30 puede ser de este mes o del anterior.
+const comida = status[1]
+assert(
+  Number(comida.spent_cents) >= 100 && Number(comida.spent_cents) <= 300,
+  "lo gastado en la categoría es solo de este mes",
+  JSON.stringify(comida),
+)
+assert(
+  Number(status[0].spent_cents) >= 4100 && Number(status[0].spent_cents) <= 4300,
+  "el total cuenta todas las categorías, también las archivadas",
+  JSON.stringify(status[0]),
+)
+await setBudgets(D, [{ category_id: null, amount_cents: 20000 }])
+status = await budgetStatus(D)
+assert(
+  status.length === 1 && Number(status[0].amount_cents) === 20000,
+  "guardar de nuevo sustituye y borra lo que ya no está",
+  JSON.stringify(status),
+)
+await expectError(
+  "no se pueden repetir categorías y no queda nada a medias",
+  "authenticated",
+  D,
+  `select public.set_budgets('${JSON.stringify([
+    { category_id: "dddddddd-0000-0000-0000-000000000001", amount_cents: 100 },
+    { category_id: "dddddddd-0000-0000-0000-000000000001", amount_cents: 200 },
+  ])}'::jsonb)`,
+  /duplicate key/,
+)
+status = await budgetStatus(D)
+assert(
+  status.length === 1 && Number(status[0].amount_cents) === 20000,
+  "tras el error siguen los de antes",
+  JSON.stringify(status),
+)
+await expectError(
+  "no se puede presupuestar la categoría de otro usuario",
+  "authenticated",
+  B,
+  `select public.set_budgets('${JSON.stringify([
+    { category_id: "dddddddd-0000-0000-0000-000000000001", amount_cents: 100 },
+  ])}'::jsonb)`,
+  /foreign key/,
+)
+assert((await budgetStatus(B)).length === 0, "B no ve los presupuestos de D", "")
+await expectError(
+  "anon no puede ver presupuestos",
+  "anon",
+  null,
+  "select * from public.budget_status()",
+  /permission denied/,
+)
+
 console.log("\nBorrado de cuenta")
 await db.exec(`delete from auth.users where id = '${A}'`)
 const left = await db.query(`select
