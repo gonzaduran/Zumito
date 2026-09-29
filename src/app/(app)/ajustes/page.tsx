@@ -1,4 +1,5 @@
-import { LogOut } from "lucide-react"
+import { ChevronRight, LogOut, PiggyBank } from "lucide-react"
+import Link from "next/link"
 
 import { Logo } from "@/components/brand/logo"
 import { AppHeader } from "@/components/layout/app-header"
@@ -23,6 +24,24 @@ export default async function SettingsPage() {
             <p className="text-sm text-muted-foreground">{dict.app.description}</p>
           </div>
         </div>
+
+        <Card className="p-0">
+          <Link
+            href="/ajustes/presupuestos"
+            className="flex min-h-16 items-center gap-3 rounded-md px-4 py-3 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary-wash text-primary-text">
+              <PiggyBank aria-hidden="true" className="size-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-bold">{dict.settings.budgets}</span>
+              <span className="block text-[13px] text-muted-foreground">
+                {dict.settings.budgetsHint}
+              </span>
+            </span>
+            <ChevronRight aria-hidden="true" className="size-5 text-muted-foreground" />
+          </Link>
+        </Card>
 
         <section aria-labelledby="account-title">
           <h2 id="account-title" className="mb-2 text-[15px] font-extrabold">

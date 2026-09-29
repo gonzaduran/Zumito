@@ -82,7 +82,9 @@
     "account": "Cuenta",
     "signedInAs": "Has entrado como",
     "signOut": "Cerrar sesión",
-    "comingSoon": "Categorías, presupuestos y más ajustes, muy pronto."
+    "comingSoon": "Más ajustes, muy pronto.",
+    "budgets": "Presupuestos",
+    "budgetsHint": "Límites mensuales y avisos"
   },
   "addExpense": {
     "title": "Nuevo gasto",
@@ -202,5 +204,29 @@
     "saveFailed": "No se han podido guardar los cambios",
     "deleteFailed": "No se ha podido eliminar el gasto",
     "retry": "Reintentar"
+  },
+  "budgets": {
+    "title": "Presupuestos",
+    "back": "Volver a Ajustes",
+    "intro": "Pon un límite al mes y te avisaremos cuando te acerques.",
+    "totalTitle": "Total del mes",
+    "totalLabel": "Presupuesto mensual",
+    "byCategoryTitle": "Por categoría",
+    "placeholder": "Sin límite",
+    "spentOf": "Llevas {spent} de {budget}",
+    "spentThisMonth": "Llevas {spent} este mes",
+    "save": "Guardar presupuestos",
+    "saving": "Guardando…",
+    "saved": "Presupuestos guardados",
+    "invalid": "Revisa los importes marcados",
+    "saveFailed": "No se han podido guardar los presupuestos",
+    "notice": {
+      "over": "Te has pasado del presupuesto de {name}",
+      "overTotal": "Te has pasado del presupuesto del mes",
+      "warning": "Vas por el {percent} del presupuesto de {name}",
+      "warningTotal": "Vas por el {percent} del presupuesto del mes",
+      "ok": "Vas bien: todo dentro de tus presupuestos",
+      "okTotal": "Vas bien: llevas {spent} de {budget} este mes"
+    }
   }
 }

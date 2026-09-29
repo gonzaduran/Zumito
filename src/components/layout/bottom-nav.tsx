@@ -38,7 +38,8 @@ export function BottomNav({
   ]
 
   const renderItem = ({ href, label, icon: Icon }: NavItem) => {
-    const active = pathname === href
+    // Las subpantallas (p. ej. /ajustes/presupuestos) marcan su sección.
+    const active = href === "/" ? pathname === "/" : pathname.startsWith(href)
     return (
       <li key={href} className="flex flex-1">
         <Link

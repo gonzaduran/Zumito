@@ -67,3 +67,11 @@ export const getSpendingByMonth = cache(async (months: number = 6) => {
   if (error) throw error
   return data
 })
+
+/** Presupuestos con lo gastado este mes (el total primero). */
+export const getBudgetStatus = cache(async () => {
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc("budget_status")
+  if (error) throw error
+  return data
+})

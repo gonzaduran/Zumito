@@ -63,3 +63,20 @@ export function fromCents(cents: number): string {
     .replace(/0+$/, "")
   return decimals ? `${integer}${DECIMAL_SEPARATOR}${decimals}` : String(integer)
 }
+
+/**
+ * Importe escrito en un campo de texto → céntimos. Admite "150", "12,50", "1.500",
+ * "1.500,5" y "12.5". Vacío → `null` (sin importe). Texto no válido → `NaN`.
+ */
+export function parseEuros(text: string): number | null {
+  const value = text.trim().replace(/\s|€/g, "")
+  if (!value) return null
+  // Con coma, los puntos son de miles. Sin coma, un punto seguido de 1-2 cifras es decimal.
+  const normalized = value.includes(",")
+    ? value.replace(/\./g, "").replace(",", ".")
+    : /^\d+\.\d{1,2}$/.test(value)
+      ? value
+      : value.replace(/\./g, "")
+  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return Number.NaN
+  return Math.round(Number(normalized) * 100)
+}

@@ -1,3 +1,4 @@
+import { BudgetNotice } from "@/components/home/budget-notice"
 import { CategoryBreakdown } from "@/components/home/category-breakdown"
 import { RecentExpenses } from "@/components/home/recent-expenses"
 import { SpendingHeroCard } from "@/components/home/spending-hero-card"
@@ -8,8 +9,14 @@ import { calendarDay, formatCents, formatMonth } from "@/i18n/format"
 import { getDictionary } from "@/i18n/get-dictionary"
 import { interpolate } from "@/i18n/interpolate"
 import { getCategories } from "@/lib/data/categories"
-import { getExpenseSummary, getSpendingByCategory, searchExpenses } from "@/lib/data/expenses"
+import {
+  getBudgetStatus,
+  getExpenseSummary,
+  getSpendingByCategory,
+  searchExpenses,
+} from "@/lib/data/expenses"
 import { getCurrentProfile } from "@/lib/data/profile"
+import { pickBudgetNotice, totalBudgetRing } from "@/lib/budget-view"
 import { toRecentExpenses } from "@/lib/expense-view"
 import { comparisonRange, monthRange, percentChange } from "@/lib/periods"
 import { buildCategoryBreakdown, describeDelta } from "@/lib/stats-view"
@@ -25,13 +32,15 @@ export default async function HomePage() {
   const month = monthRange(today.slice(0, 7))
   const previous = comparisonRange(today.slice(0, 7), today)
 
-  const [summary, recent, categories, byCategory, previousByCategory] = await Promise.all([
+  const [summary, recent, categories, byCategory, previousByCategory, budgets] = await Promise.all([
     getExpenseSummary(),
     searchExpenses({ limit: 5 }),
     getCategories(),
     getSpendingByCategory(month.from, month.to),
     getSpendingByCategory(previous.from, previous.to),
+    getBudgetStatus(),
   ])
+  const budgetNotice = pickBudgetNotice(budgets, dict.budgets.notice)
 
   const previousMonthCents = previousByCategory.reduce((acc, row) => acc + row.total_cents, 0)
   const monthDelta = describeDelta(
@@ -57,7 +66,11 @@ export default async function HomePage() {
             month: { amount: formatCents(summary.monthCents), delta: monthDelta },
             total: period(summary.totalCents),
           }}
+          budget={totalBudgetRing(budgets, dict.home.budgetUsed)}
         />
+        {budgetNotice ? (
+          <BudgetNotice tone={budgetNotice.tone} message={budgetNotice.message} />
+        ) : null}
         <CategoryBreakdown
           title={dict.home.categoriesTitle}
           seeAll={{ href: "/estadisticas", label: dict.home.seeAll }}

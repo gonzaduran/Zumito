@@ -5,6 +5,7 @@ import {
   formatAmountInput,
   fromCents,
   keyFromKeyboard,
+  parseEuros,
   toCents,
   type AmountKey,
 } from "./amount-input"
@@ -68,5 +69,17 @@ describe("teclado de importe", () => {
     for (const cents of [1, 10, 99, 100, 1250, 123456, 100_000_000]) {
       expect(toCents(fromCents(cents))).toBe(cents)
     }
+  })
+
+  it("interpreta importes escritos a mano", () => {
+    expect(parseEuros("150")).toBe(15000)
+    expect(parseEuros("12,50")).toBe(1250)
+    expect(parseEuros("12,5 €")).toBe(1250)
+    expect(parseEuros("1.500")).toBe(150000)
+    expect(parseEuros("1.500,5")).toBe(150050)
+    expect(parseEuros("12.5")).toBe(1250)
+    expect(parseEuros("  ")).toBeNull()
+    expect(parseEuros("doce")).toBeNaN()
+    expect(parseEuros("12,555")).toBeNaN()
   })
 })

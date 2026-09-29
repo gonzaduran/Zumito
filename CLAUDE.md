@@ -113,6 +113,17 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
   - la evolución mensual es una sola serie: el mes elegido en `--primary` y el resto en `--muted-foreground`, con tabla `sr-only`.
 - Los textos de datos usan colores de texto, nunca el color de la serie. Subir el gasto se muestra en `--destructive` y bajarlo en `--positive`, siempre con flecha.
 
+## Presupuestos
+
+- `/ajustes/presupuestos`: un presupuesto total del mes y uno por categoría. Un campo vacío es "sin límite".
+- Los importes aceptan "150", "12,50", "1.500" o "12.5" (`parseEuros`).
+- Se guardan todos de golpe con la función SQL `set_budgets` (atómica). El estado del mes viene de `budget_status()`.
+- El formulario se envía a mano (`onSubmit` + `startTransition`): con `action`, React lo vaciaría y se perdería lo escrito si hay un error.
+- En el Inicio, el anillo muestra el uso del presupuesto total. `pickBudgetNotice` (`src/lib/budget-view.ts`) elige el aviso:
+  - primero, lo que se ha pasado (lo más pasado antes);
+  - después, lo que va por el 80 % o más (redondeado hacia abajo);
+  - si todo va bien, "Vas bien: llevas X de Y este mes".
+
 ## Pruebas
 
 - `npm test`: pruebas unitarias con Vitest (`src/**/*.test.ts`).
