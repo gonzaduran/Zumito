@@ -1,22 +1,31 @@
 "use client"
 
 import { cn } from "cn"
-import { ChartPie, House, ListOrdered, Plus, Settings, type LucideIcon } from "lucide-react"
+import { ChartPie, House, ListOrdered, Settings, type LucideIcon } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { AddExpenseSheet } from "@/components/expenses/add-expense-sheet"
 import type { Dictionary } from "@/i18n/get-dictionary"
+import type { Category } from "@/lib/data/categories"
 
 type BottomNavProps = {
   labels: Dictionary["nav"]
   closeLabel: string
   addExpense: Dictionary["addExpense"]
+  categories: Category[]
+  lastUsedCategoryId: string | null
 }
 
 type NavItem = { href: string; label: string; icon: LucideIcon }
 
-export function BottomNav({ labels, closeLabel, addExpense }: BottomNavProps) {
+export function BottomNav({
+  labels,
+  closeLabel,
+  addExpense,
+  categories,
+  lastUsedCategoryId,
+}: BottomNavProps) {
   const pathname = usePathname()
 
   const left: NavItem[] = [
@@ -55,22 +64,13 @@ export function BottomNav({ labels, closeLabel, addExpense }: BottomNavProps) {
       <ul className="mx-auto flex h-(--nav-height) max-w-lg items-stretch px-2">
         {left.map(renderItem)}
         <li className="flex flex-1 items-center justify-center">
-          <Sheet>
-            <SheetTrigger
-              aria-label={labels.add}
-              className="flex size-14 -translate-y-3 items-center justify-center rounded-full bg-linear-155 from-primary to-primary-strong text-primary-foreground shadow-[0_8px_18px_-4px_var(--primary-wash)] ring-4 ring-background transition-transform outline-none focus-visible:ring-ring active:scale-95"
-            >
-              <Plus aria-hidden="true" className="size-7" strokeWidth={2.6} />
-            </SheetTrigger>
-            <SheetContent closeLabel={closeLabel}>
-              <SheetHeader>
-                <SheetTitle>{addExpense.title}</SheetTitle>
-              </SheetHeader>
-              <p className="px-5 pt-1 pb-6 text-sm text-muted-foreground">
-                {addExpense.comingSoon}
-              </p>
-            </SheetContent>
-          </Sheet>
+          <AddExpenseSheet
+            labels={addExpense}
+            triggerLabel={labels.add}
+            closeLabel={closeLabel}
+            categories={categories}
+            lastUsedCategoryId={lastUsedCategoryId}
+          />
         </li>
         {right.map(renderItem)}
       </ul>

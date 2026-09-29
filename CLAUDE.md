@@ -77,6 +77,28 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - Tipos en `src/types/database.ts`. Tras cada migración, regenerarlos con `npm run db:types` (proyecto enlazado).
 - Validadores Zod en `src/lib/validators`. Sus errores devuelven claves de `validation.*` del diccionario, no textos.
 
+## Registro rápido de gastos
+
+- El panel del "+" está en `src/components/expenses/add-expense-sheet.tsx` y su formulario en `add-expense-form.tsx`.
+- Teclado numérico propio (`amount-keypad.tsx`) con entrada natural y coma decimal: "5" = 5 € y "12,5" = 12,50 €. La lógica pura y sus pruebas están en `src/lib/amount-input.ts`.
+- También admite el teclado físico: números, coma o punto, borrar y Enter para guardar.
+- La categoría preseleccionada es la del último gasto. Fecha por defecto: ahora. Hay atajos "Ayer" y "Otra fecha".
+- Guardado optimista:
+  - el panel se cierra al instante y aparece el aviso "Gasto guardado" con "Deshacer";
+  - el id se genera en el cliente;
+  - si falla, el aviso cambia a "Reintentar";
+  - "Deshacer" espera a que termine el guardado en curso.
+- Acciones de servidor en `src/lib/actions/expenses.ts`. Revalidan todo el layout de la app.
+- Háptica en `src/lib/haptics.ts`. Usa `navigator.vibrate`, que solo existe en Android; en iOS no hace nada.
+- Los totales del Inicio vienen de la función SQL `expense_summary()`, calculada en la zona horaria del perfil.
+- Las fechas se formatean siempre con la zona del usuario (`src/i18n/format.ts`); el servidor está en UTC.
+
+## Pruebas
+
+- `npm test`: pruebas unitarias con Vitest (`src/**/*.test.ts`).
+- `npm run test:db`: esquema y RLS en PGlite.
+- Las pantallas se prueban de principio a fin con Chrome sin interfaz contra un servidor que imita Supabase. Ese recorrido no está en el repo.
+
 ## Autenticación y onboarding
 
 - Acceso sin contraseña con un código de 6 dígitos por email (`signInWithOtp` + `verifyOtp`). Funciona dentro de la PWA instalada, a diferencia de los enlaces mágicos. El enlace del email también sirve (`/auth/confirm`).

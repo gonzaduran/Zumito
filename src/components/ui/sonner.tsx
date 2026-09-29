@@ -37,6 +37,7 @@ function Toaster(props: ToasterProps) {
           toast: "font-sans !shadow-card",
           title: "!font-bold",
           description: "!text-muted-foreground",
+          actionButton: "!h-9 !rounded-full !bg-primary !px-4 !font-bold !text-primary-foreground",
         },
       }}
       {...props}
