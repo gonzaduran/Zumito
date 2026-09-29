@@ -142,6 +142,17 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - Ajustes muestra "Instala Zumito": el botón nativo en Android y Chrome, e instrucciones en iOS. No aparece si ya está instalada.
 - `src/app/(app)/loading.tsx`: esqueleto mientras carga cada pantalla.
 
+## Ajustes
+
+- `/ajustes`: instalar la app, Categorías, Presupuestos, nombre, exportar CSV, cerrar sesión y borrar la cuenta.
+- `/ajustes/categorias`: crear, editar (nombre, emoji y color), ordenar (subir y bajar), archivar y restaurar. El orden se guarda con la función SQL `reorder_categories`. Un nombre repetido (índice único) avisa "Ya tienes una categoría con ese nombre".
+- Un gasto de una categoría archivada se puede editar: el formulario añade su categoría (`categoriesFor` en `expense-list.tsx`).
+- `/ajustes/exportar`: CSV con `;`, BOM e importes "12,50"; neutraliza fórmulas (`src/lib/csv.ts`).
+- Borrar la cuenta usa `delete_my_account()` (security definer; solo borra la fila propia de `auth.users` y el resto cae en cascada).
+- El onboarding guarda la zona horaria del dispositivo (`Intl`) validada en el servidor.
+- `next.config.ts` añade cabeceras de seguridad. No hay CSP todavía: hay que probarla en producción antes de activarla.
+- Páginas `not-found.tsx` y `(app)/error.tsx` en español.
+
 ## Pruebas
 
 - `npm test`: pruebas unitarias con Vitest (`src/**/*.test.ts`).
@@ -164,13 +175,15 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 
 ## Plan por fases
 
-0. Base: Next.js + TS estricto, Tailwind, shadcn/ui, ESLint/Prettier, i18n (es-ES), repo en GitHub y Vercel.
-1. Diseño: integrar el bundle de Claude Design (tokens, tipografía, tema claro/oscuro, componentes base).
-2. Supabase: esquema (perfiles, categorías, gastos, presupuestos), RLS, migraciones, tipos generados.
-3. Auth y onboarding: login, sesión, categorías por defecto con emoji.
-4. Registro rápido: teclado numérico propio, categoría y fecha por defecto, guardado optimista, háptica.
-5. Listado y edición: gastos por día, editar/borrar, estados vacíos.
-6. Análisis: resumen mensual, por categoría, gráficos y tendencias.
-7. Presupuestos: por categoría, avisos de progreso.
-8. PWA: manifest, Serwist, instalable, soporte offline con sincronización.
-9. Pulido: accesibilidad, rendimiento, animaciones, ajustes, pruebas y despliegue a producción.
+Todas completadas (2026-09-30), pendientes de probar con Supabase real:
+
+0. Base ✅
+1. Diseño ✅ (a la espera de las pantallas v2 de Claude Design y del logo definitivo)
+2. Supabase: esquema, RLS y tipos ✅
+3. Autenticación y onboarding ✅
+4. Registro rápido ✅
+5. Historial ✅
+6. Estadísticas ✅
+7. Presupuestos ✅
+8. PWA y sin conexión ✅
+9. Pulido: categorías, perfil, exportar, borrar cuenta, errores y seguridad ✅

@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import type { Dictionary } from "@/i18n/get-dictionary"
 import { interpolate } from "@/i18n/interpolate"
 import { createExpense, deleteExpense, updateExpense } from "@/lib/actions/expenses"
+import { isCategoryColor } from "@/lib/category-colors"
 import type { Category } from "@/lib/data/categories"
 import type { ExpenseGroup, ListedExpense } from "@/lib/expense-view"
 import { haptics } from "@/lib/haptics"
@@ -35,6 +36,20 @@ const toDraft = (expense: ListedExpense): ExpenseDraft => ({
   note: expense.note ?? undefined,
   spentAt: new Date(expense.spentAt),
 })
+
+/** Categorías para editar un gasto: si la suya está archivada, se añade para poder conservarla. */
+function categoriesFor(expense: ListedExpense, categories: Category[]): Category[] {
+  if (categories.some((c) => c.id === expense.categoryId)) return categories
+  return [
+    ...categories,
+    {
+      id: expense.categoryId,
+      name: expense.categoryName,
+      emoji: expense.emoji,
+      color: isCategoryColor(expense.categoryColor) ? expense.categoryColor : "denim",
+    },
+  ]
+}
 
 /** Lista de gastos (agrupada o no). Al tocar uno se abre para editarlo o borrarlo. */
 export function ExpenseList({ groups, categories, labels }: ExpenseListProps) {
@@ -153,7 +168,7 @@ export function ExpenseList({ groups, categories, labels }: ExpenseListProps) {
               key={editing.id}
               labels={labels.form}
               submitLabel={edit.save}
-              categories={categories}
+              categories={categoriesFor(editing, categories)}
               initial={toDraft(editing)}
               defaultCategoryId={editing.categoryId}
               onSubmit={save}

@@ -1,23 +1,49 @@
-import { ChevronRight, LogOut, PiggyBank } from "lucide-react"
-import Link from "next/link"
+import { Download, LogOut, PiggyBank, Tags } from "lucide-react"
 
 import { Logo } from "@/components/brand/logo"
 import { AppHeader } from "@/components/layout/app-header"
 import { InstallAppCard } from "@/components/layout/install-app-card"
+import { DeleteAccount } from "@/components/settings/delete-account"
+import { ProfileNameForm } from "@/components/settings/profile-name-form"
+import { SettingsLink } from "@/components/settings/settings-link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { getDictionary } from "@/i18n/get-dictionary"
-import { getCurrentUser } from "@/lib/data/profile"
+import { getCurrentProfile, getCurrentUser } from "@/lib/data/profile"
 
 import { signOut } from "./actions"
 
+function Section({
+  id,
+  title,
+  children,
+}: {
+  id: string
+  title: string
+  children: React.ReactNode
+}) {
+  return (
+    <section aria-labelledby={id}>
+      <h2 id={id} className="mb-2 text-[15px] font-extrabold">
+        {title}
+      </h2>
+      {children}
+    </section>
+  )
+}
+
 export default async function SettingsPage() {
-  const [dict, user] = await Promise.all([getDictionary(), getCurrentUser()])
+  const [dict, user, profile] = await Promise.all([
+    getDictionary(),
+    getCurrentUser(),
+    getCurrentProfile(),
+  ])
+  const labels = dict.settings
 
   return (
     <>
-      <AppHeader title={dict.settings.title} />
-      <div className="flex flex-col gap-6 px-6 pt-4">
+      <AppHeader title={labels.title} />
+      <div className="flex flex-col gap-7 px-6 pt-4 pb-8">
         <div className="flex items-center gap-4">
           <Logo size={56} className="text-foreground" />
           <div>
@@ -29,42 +55,56 @@ export default async function SettingsPage() {
         <InstallAppCard labels={dict.install} />
 
         <Card className="p-0">
-          <Link
+          <SettingsLink
+            href="/ajustes/categorias"
+            icon={Tags}
+            title={labels.categories}
+            hint={labels.categoriesHint}
+          />
+          <SettingsLink
             href="/ajustes/presupuestos"
-            className="flex min-h-16 items-center gap-3 rounded-md px-4 py-3 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-          >
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary-wash text-primary-text">
-              <PiggyBank aria-hidden="true" className="size-5" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block font-bold">{dict.settings.budgets}</span>
-              <span className="block text-[13px] text-muted-foreground">
-                {dict.settings.budgetsHint}
-              </span>
-            </span>
-            <ChevronRight aria-hidden="true" className="size-5 text-muted-foreground" />
-          </Link>
+            icon={PiggyBank}
+            title={labels.budgets}
+            hint={labels.budgetsHint}
+          />
         </Card>
 
-        <section aria-labelledby="account-title">
-          <h2 id="account-title" className="mb-2 text-[15px] font-extrabold">
-            {dict.settings.account}
-          </h2>
+        <Section id="profile-title" title={labels.profile}>
+          <Card>
+            <ProfileNameForm labels={labels} initialName={profile?.display_name ?? ""} />
+          </Card>
+        </Section>
+
+        <Section id="data-title" title={labels.data}>
+          <Card className="p-0">
+            <SettingsLink
+              href="/ajustes/exportar"
+              icon={Download}
+              title={labels.export}
+              hint={labels.exportHint}
+              download
+            />
+          </Card>
+        </Section>
+
+        <Section id="account-title" title={labels.account}>
           <Card className="flex flex-col gap-4">
             <div className="min-w-0">
-              <p className="text-[13px] text-muted-foreground">{dict.settings.signedInAs}</p>
+              <p className="text-[13px] text-muted-foreground">{labels.signedInAs}</p>
               <p className="truncate font-bold">{user?.email}</p>
             </div>
             <form action={signOut}>
               <Button type="submit" variant="secondary" className="w-full">
                 <LogOut />
-                {dict.settings.signOut}
+                {labels.signOut}
               </Button>
             </form>
           </Card>
-        </section>
+        </Section>
 
-        <p className="text-sm text-muted-foreground">{dict.settings.comingSoon}</p>
+        <Section id="danger-title" title={labels.dangerZone}>
+          <DeleteAccount labels={labels} closeLabel={dict.common.close} />
+        </Section>
       </div>
     </>
   )

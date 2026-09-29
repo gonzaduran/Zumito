@@ -8,6 +8,8 @@ export type ListedExpense = {
   id: string
   amountCents: number
   categoryId: string
+  categoryName: string
+  categoryColor: string
   description: string | null
   note: string | null
   spentAt: string
@@ -30,6 +32,8 @@ function toListed(row: ExpenseRow, subtitle: (row: ExpenseRow) => string): Liste
     id: row.id,
     amountCents: row.amount_cents,
     categoryId: row.category_id,
+    categoryName: row.category_name,
+    categoryColor: row.category_color,
     description: row.description,
     note: row.note,
     spentAt: row.spent_at,

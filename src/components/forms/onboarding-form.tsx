@@ -88,6 +88,11 @@ export function OnboardingForm({ labels }: { labels: Dictionary["onboarding"] })
       ) : (
         <form action={formAction} className="flex flex-1 flex-col">
           <input type="hidden" name="displayName" value={name} />
+          <input
+            type="hidden"
+            name="timezone"
+            value={Intl.DateTimeFormat().resolvedOptions().timeZone}
+          />
           {[...selected].map((key) => (
             <input key={key} type="hidden" name="categories" value={key} />
           ))}

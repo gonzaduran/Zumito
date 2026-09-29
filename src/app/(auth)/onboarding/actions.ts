@@ -7,6 +7,16 @@ import { defaultCategories } from "@/lib/default-categories"
 import { createClient } from "@/lib/supabase/server"
 import { onboardingInputSchema } from "@/lib/validators/onboarding"
 
+function isValidTimeZone(timeZone: string): boolean {
+  if (!timeZone || timeZone.length > 64) return false
+  try {
+    new Intl.DateTimeFormat("en", { timeZone })
+    return true
+  } catch {
+    return false
+  }
+}
+
 export type OnboardingState = { error: keyof Dictionary["onboarding"]["errors"] | null }
 
 export async function completeOnboarding(
@@ -32,6 +42,14 @@ export async function completeOnboarding(
     p_categories: categories,
   })
   if (error) return { error: "saveFailed" }
+
+  // Zona horaria del dispositivo: de ella dependen "hoy", la semana y el mes.
+  const timezone = String(formData.get("timezone") ?? "")
+  if (isValidTimeZone(timezone)) {
+    const { data } = await supabase.auth.getClaims()
+    const userId = data?.claims.sub
+    if (userId) await supabase.from("profiles").update({ timezone }).eq("id", userId)
+  }
 
   redirect("/")
 }

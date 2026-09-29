@@ -12,7 +12,7 @@ PWA de control de gastos personales. Registrar un gasto lleva menos de 5 segundo
 
 1. Crea un proyecto en Supabase.
 2. Copia `.env.example` a `.env.local` y rellena la URL y la publishable key (_Project Settings → API_).
-3. Aplica las migraciones de `supabase/migrations`, en orden:
+3. Aplica las 7 migraciones de `supabase/migrations`, en orden de nombre (van fechadas):
    - desde el panel: pega cada archivo en _SQL Editor_ y ejecútalo, o
    - con la CLI: `npx supabase link --project-ref <ref>` y `npx supabase db push`.
 4. En _Authentication → URL Configuration_:
@@ -28,6 +28,13 @@ PWA de control de gastos personales. Registrar un gasto lleva menos de 5 segundo
 
 Tras cambiar el esquema, regenera los tipos con `npm run db:types` (proyecto enlazado).
 
+## Desplegar en Vercel
+
+1. En [vercel.com/new](https://vercel.com/new) importa el repositorio de GitHub. Detecta Next.js solo.
+2. En _Settings → Environment Variables_ añade `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (las mismas de `.env.local`).
+3. Despliega y añade la URL de Vercel en Supabase: _Site URL_ y _Redirect URLs_ (`https://<tu-dominio>/auth/confirm`).
+4. Abre la app en el móvil e instálala: en Android, desde el aviso de Ajustes; en iPhone, con Safari → Compartir → «Añadir a pantalla de inicio».
+
 ## Comandos
 
 ```bash
@@ -37,6 +44,7 @@ npm run build        # build de producción
 npm run lint         # ESLint
 npm run typecheck    # comprobación de tipos
 npm run format       # formatear con Prettier
+npm test             # pruebas unitarias (Vitest)
 npm run test:db      # prueba el esquema y las políticas RLS en Postgres (PGlite)
 npm run db:types     # regenera src/types/database.ts desde Supabase
 ```
