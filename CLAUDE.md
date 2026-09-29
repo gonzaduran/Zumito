@@ -65,7 +65,18 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - `src/app/(app)`: pantallas con la barra inferior (Inicio, Historial, Estadísticas, Ajustes).
 - `src/components/{ui,forms,charts,layout}`, `src/lib/{supabase,utils,validators}`, `src/hooks`, `src/types`.
 - `src/i18n`: diccionarios tipados y formato de euros y fechas. Ningún texto de interfaz va directamente en los componentes.
-- `supabase/migrations`: migraciones SQL.
+- `supabase/migrations`: migraciones SQL. `supabase/tests/rls.test.mjs` prueba el esquema y las políticas RLS en Postgres (PGlite): `npm run test:db`. Hay que ampliarlo con cada migración.
+
+## Datos (Supabase)
+
+- Tablas: `profiles` (la crea un trigger al registrarse), `categories`, `expenses` y `budgets` (`category_id` nulo = presupuesto total del mes).
+- Importes siempre en céntimos (`amount_cents`, entero). Máximo 1.000.000 €.
+- Las categorías con gastos no se borran: se archivan (`archived_at`).
+- Las referencias a categorías usan la clave compuesta `(category_id, user_id)`, así que no se puede apuntar a la categoría de otro usuario.
+- Los ids de los gastos se pueden generar en el cliente (`crypto.randomUUID()`): sirve para el guardado optimista y hace idempotentes los reintentos sin conexión.
+- Clientes en `src/lib/supabase/{server,client}.ts`. Variables validadas con Zod en `src/lib/env.ts`.
+- Tipos en `src/types/database.ts`. Tras cada migración, regenerarlos con `npm run db:types` (proyecto enlazado).
+- Validadores Zod en `src/lib/validators`. Sus errores devuelven claves de `validation.*` del diccionario, no textos.
 
 ## Plan por fases
 

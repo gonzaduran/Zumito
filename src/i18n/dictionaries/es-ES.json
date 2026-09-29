@@ -81,5 +81,17 @@
     "denim": "Vaquero",
     "plum": "Ciruela",
     "orchid": "Orquídea"
+  },
+  "validation": {
+    "amountRequired": "Introduce un importe mayor que 0",
+    "amountInvalid": "El importe no es válido",
+    "amountTooHigh": "El importe máximo es 1.000.000 €",
+    "categoryRequired": "Elige una categoría",
+    "categoryNameRequired": "Ponle un nombre a la categoría",
+    "categoryNameTooLong": "El nombre puede tener hasta 30 caracteres",
+    "emojiInvalid": "Elige un solo emoji",
+    "colorInvalid": "Elige un color de la lista",
+    "dateInvalid": "La fecha no es válida",
+    "textTooLong": "El texto es demasiado largo"
   }
 }
