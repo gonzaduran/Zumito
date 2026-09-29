@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next"
+import { SerwistProvider } from "@serwist/turbopack/react"
 import { Inter, Manrope } from "next/font/google"
 
 import { Toaster } from "@/components/ui/sonner"
@@ -22,8 +23,11 @@ const inter = Inter({
 export async function generateMetadata(): Promise<Metadata> {
   const dict = await getDictionary()
   return {
+    applicationName: dict.app.name,
     title: dict.app.name,
     description: dict.app.description,
+    appleWebApp: { capable: true, title: dict.app.name, statusBarStyle: "default" },
+    formatDetection: { telephone: false },
   }
 }
 
@@ -42,8 +46,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang={defaultLocale} className={`${manrope.variable} ${inter.variable} h-full`}>
       <body className="flex min-h-full flex-col">
-        {children}
-        <Toaster />
+        {/* En desarrollo no se registra: evita servir versiones viejas desde la caché. */}
+        <SerwistProvider swUrl="/serwist/sw.js" disable={process.env.NODE_ENV === "development"}>
+          {children}
+          <Toaster />
+        </SerwistProvider>
       </body>
     </html>
   )

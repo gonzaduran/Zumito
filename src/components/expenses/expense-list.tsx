@@ -12,6 +12,7 @@ import { createExpense, deleteExpense, updateExpense } from "@/lib/actions/expen
 import type { Category } from "@/lib/data/categories"
 import type { ExpenseGroup, ListedExpense } from "@/lib/expense-view"
 import { haptics } from "@/lib/haptics"
+import { settle } from "@/lib/settle"
 
 import { ExpenseForm, type ExpenseDraft } from "./expense-form"
 
@@ -56,7 +57,7 @@ export function ExpenseList({ groups, categories, labels }: ExpenseListProps) {
     haptics.success()
     toast.success(edit.saved, { id: draft.id })
     startTransition(async () => {
-      const { ok } = await updateExpense(draft)
+      const { ok } = await settle(updateExpense(draft))
       if (ok) return
       haptics.error()
       toast.error(edit.saveFailed, {
@@ -69,7 +70,7 @@ export function ExpenseList({ groups, categories, labels }: ExpenseListProps) {
   const restore = (draft: ExpenseDraft) => {
     setHiddenId(draft.id, false)
     startTransition(async () => {
-      const { ok } = await createExpense(draft)
+      const { ok } = await settle(createExpense(draft))
       if (!ok) toast.error(edit.saveFailed, { id: draft.id })
       else toast.dismiss(draft.id)
     })
@@ -86,7 +87,7 @@ export function ExpenseList({ groups, categories, labels }: ExpenseListProps) {
       action: { label: edit.undo, onClick: () => restore(draft) },
     })
     startTransition(async () => {
-      const { ok } = await deleteExpense(expense.id)
+      const { ok } = await settle(deleteExpense(expense.id))
       if (ok) return
       haptics.error()
       setHiddenId(expense.id, false)

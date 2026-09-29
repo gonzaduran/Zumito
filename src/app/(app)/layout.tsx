@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 
 import { BottomNav } from "@/components/layout/bottom-nav"
+import { OfflineSync } from "@/components/layout/offline-sync"
 import { getDictionary } from "@/i18n/get-dictionary"
 import { getCategories } from "@/lib/data/categories"
 import { getLastUsedCategoryId } from "@/lib/data/expenses"
@@ -26,9 +27,11 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         labels={dict.nav}
         closeLabel={dict.common.close}
         addExpense={dict.addExpense}
+        offline={dict.offline}
         categories={categories}
         lastUsedCategoryId={lastUsedCategoryId}
       />
+      <OfflineSync syncedLabel={dict.offline.synced} />
     </>
   )
 }

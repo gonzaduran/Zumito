@@ -124,6 +124,24 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
   - después, lo que va por el 80 % o más (redondeado hacia abajo);
   - si todo va bien, "Vas bien: llevas X de Y este mes".
 
+## PWA y sin conexión
+
+- Serwist con Turbopack (`@serwist/turbopack`):
+  - `next.config.ts` usa `withSerwist`;
+  - el service worker está en `src/app/sw.ts` y se sirve en `/serwist/sw.js` (`src/app/serwist/[path]/route.ts`);
+  - se registra con `SerwistProvider` en el layout raíz (desactivado en desarrollo).
+- Manifest: `src/app/manifest.ts`.
+- Iconos: `public/icons` (192, 512 y maskable), `src/app/apple-icon.png` y el favicon `src/app/icon.svg`. Se generan a partir del logo provisional; hay que regenerarlos cuando llegue el definitivo.
+- `/~offline`: se muestra si no hay red y la página no estaba en caché. El proxy deja públicas `/serwist` y `/~offline`.
+- Gastos sin conexión (`src/lib/offline-queue.ts`):
+  - van a una cola en `localStorage`;
+  - `OfflineSync` los envía al abrir la app y al volver la red;
+  - "Deshacer" los quita de la cola;
+  - solo salen de la cola cuando el servidor confirma, y el id generado en el cliente evita duplicados si se reenvían.
+- Las acciones de servidor en componentes cliente se esperan con `settle()` (`src/lib/settle.ts`): un fallo de red se trata como error, sin excepciones sin capturar.
+- Ajustes muestra "Instala Zumito": el botón nativo en Android y Chrome, e instrucciones en iOS. No aparece si ya está instalada.
+- `src/app/(app)/loading.tsx`: esqueleto mientras carga cada pantalla.
+
 ## Pruebas
 
 - `npm test`: pruebas unitarias con Vitest (`src/**/*.test.ts`).

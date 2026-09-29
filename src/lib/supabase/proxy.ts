@@ -5,7 +5,7 @@ import { getPublicEnv } from "@/lib/env"
 import type { Database } from "@/types/database"
 
 /** Rutas accesibles sin sesión. */
-const PUBLIC_PATHS = ["/login", "/auth/confirm"]
+const PUBLIC_PATHS = ["/login", "/auth/confirm", "/serwist", "/~offline"]
 
 const isPublicPath = (pathname: string) =>
   PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))

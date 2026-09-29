@@ -228,5 +228,17 @@
       "ok": "Vas bien: todo dentro de tus presupuestos",
       "okTotal": "Vas bien: llevas {spent} de {budget} este mes"
     }
+  },
+  "offline": {
+    "title": "Sin conexión",
+    "description": "Revisa tu conexión. Los gastos que apuntes se guardarán cuando vuelva.",
+    "queued": "Sin conexión: lo guardaremos en cuanto vuelva",
+    "synced": "Gastos pendientes guardados"
+  },
+  "install": {
+    "title": "Instala Zumito",
+    "description": "Tenla en tu pantalla de inicio y ábrela como una app.",
+    "button": "Instalar",
+    "ios": "En Safari, pulsa Compartir y luego «Añadir a pantalla de inicio»."
   }
 }

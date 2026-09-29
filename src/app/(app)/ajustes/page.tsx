@@ -3,6 +3,7 @@ import Link from "next/link"
 
 import { Logo } from "@/components/brand/logo"
 import { AppHeader } from "@/components/layout/app-header"
+import { InstallAppCard } from "@/components/layout/install-app-card"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { getDictionary } from "@/i18n/get-dictionary"
@@ -24,6 +25,8 @@ export default async function SettingsPage() {
             <p className="text-sm text-muted-foreground">{dict.app.description}</p>
           </div>
         </div>
+
+        <InstallAppCard labels={dict.install} />
 
         <Card className="p-0">
           <Link

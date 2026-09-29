@@ -13,6 +13,7 @@ type BottomNavProps = {
   labels: Dictionary["nav"]
   closeLabel: string
   addExpense: Dictionary["addExpense"]
+  offline: Dictionary["offline"]
   categories: Category[]
   lastUsedCategoryId: string | null
 }
@@ -23,6 +24,7 @@ export function BottomNav({
   labels,
   closeLabel,
   addExpense,
+  offline,
   categories,
   lastUsedCategoryId,
 }: BottomNavProps) {
@@ -67,6 +69,7 @@ export function BottomNav({
         <li className="flex flex-1 items-center justify-center">
           <AddExpenseSheet
             labels={addExpense}
+            offlineLabels={offline}
             triggerLabel={labels.add}
             closeLabel={closeLabel}
             categories={categories}

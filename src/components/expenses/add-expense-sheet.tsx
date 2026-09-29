@@ -11,11 +11,14 @@ import { interpolate } from "@/i18n/interpolate"
 import { createExpense, deleteExpense } from "@/lib/actions/expenses"
 import type { Category } from "@/lib/data/categories"
 import { haptics } from "@/lib/haptics"
+import { dequeue, enqueue, isOffline } from "@/lib/offline-queue"
+import { settle } from "@/lib/settle"
 
 import { ExpenseForm, type ExpenseDraft } from "./expense-form"
 
 type AddExpenseSheetProps = {
   labels: Dictionary["addExpense"]
+  offlineLabels: Dictionary["offline"]
   triggerLabel: string
   closeLabel: string
   categories: Category[]
@@ -29,6 +32,7 @@ type AddExpenseSheetProps = {
  */
 export function AddExpenseSheet({
   labels,
+  offlineLabels,
   triggerLabel,
   closeLabel,
   categories,
@@ -43,11 +47,28 @@ export function AddExpenseSheet({
   const defaultCategoryId =
     categories.find((c) => c.id === lastCategoryId)?.id ?? categories[0]?.id ?? ""
 
+  /** Sin conexión: el gasto espera en la cola y se envía al volver la red. */
+  const queue = (expense: ExpenseDraft) => {
+    enqueue(expense)
+    toast.info(offlineLabels.queued, {
+      id: expense.id,
+      action: { label: labels.undo, onClick: () => undo(expense.id) },
+    })
+  }
+
   const persist = (expense: ExpenseDraft) => {
+    if (isOffline()) return queue(expense)
     const request = createExpense(expense)
     pending.current.set(expense.id, request)
     startTransition(async () => {
-      const { ok } = await request
+      let ok: boolean
+      try {
+        ;({ ok } = await request)
+      } catch (error) {
+        pending.current.delete(expense.id)
+        if (isOffline(error)) return queue(expense)
+        ok = false
+      }
       if (ok) return
       haptics.error()
       toast.error(labels.saveFailed, {
@@ -59,9 +80,15 @@ export function AddExpenseSheet({
   }
 
   const undo = (id: string) => {
+    // Si aún estaba en la cola sin conexión, basta con quitarlo de ella.
+    if (dequeue(id)) {
+      toast(labels.undone, { id, description: undefined, action: undefined })
+      return
+    }
     startTransition(async () => {
-      await pending.current.get(id)
-      const { ok } = await deleteExpense(id)
+      const saving = pending.current.get(id)
+      if (saving) await settle(saving)
+      const { ok } = await settle(deleteExpense(id))
       pending.current.delete(id)
       if (ok) toast(labels.undone, { id, description: undefined, action: undefined })
       else toast.error(labels.undoFailed, { id, description: undefined })
