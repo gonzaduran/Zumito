@@ -71,7 +71,7 @@ function BudgetRow({
             defaultValue={field.value}
             aria-invalid={invalid || undefined}
             aria-describedby={hintId}
-            className="h-11 pr-8 text-right num font-bold"
+            className="h-11 pr-8 text-right num font-bold placeholder:text-sm placeholder:font-semibold"
           />
           <span
             aria-hidden="true"
