@@ -4,6 +4,8 @@
  * regenéralos con `npm run db:types` en lugar de editarlos.
  */
 
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+
 export type Database = {
   public: {
     Tables: {
@@ -14,6 +16,7 @@ export type Database = {
           currency: string
           locale: string
           timezone: string
+          onboarded_at: string | null
           created_at: string
           updated_at: string
         }
@@ -23,6 +26,7 @@ export type Database = {
           currency?: string
           locale?: string
           timezone?: string
+          onboarded_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -32,6 +36,7 @@ export type Database = {
           currency?: string
           locale?: string
           timezone?: string
+          onboarded_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -154,7 +159,12 @@ export type Database = {
       }
     }
     Views: { [_ in never]: never }
-    Functions: { [_ in never]: never }
+    Functions: {
+      complete_onboarding: {
+        Args: { p_display_name: string | null; p_categories: Json }
+        Returns: undefined
+      }
+    }
     Enums: { [_ in never]: never }
     CompositeTypes: { [_ in never]: never }
   }

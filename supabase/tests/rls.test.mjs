@@ -322,6 +322,94 @@ await expectError(
   /permission denied|trigger/,
 )
 
+console.log("\nOnboarding")
+const C = "33333333-3333-3333-3333-333333333333"
+await db.exec(`insert into auth.users (id, email) values ('${C}', 'c@test.es')`)
+const onboardingCats = JSON.stringify([
+  { name: "Comida", emoji: "🍽️", color: "amber" },
+  { name: "Ocio", emoji: "🍻", color: "rose" },
+])
+const callOnboarding = (name, cats) =>
+  `select public.complete_onboarding(${name === null ? "null" : `'${name}'`}, '${cats}'::jsonb)`
+await expectError(
+  "anon no puede completar el onboarding",
+  "anon",
+  null,
+  callOnboarding("X", onboardingCats),
+  /permission denied/,
+)
+await expectError(
+  "el onboarding exige al menos una categoría",
+  "authenticated",
+  C,
+  callOnboarding("Carla", "[]"),
+  /al menos una categoría/,
+)
+await expectError(
+  "el onboarding es atómico: un color inválido no deja nada a medias",
+  "authenticated",
+  C,
+  callOnboarding(
+    "Carla",
+    JSON.stringify([
+      { name: "Comida", emoji: "🍽️", color: "amber" },
+      { name: "Mala", emoji: "❓", color: "orange" },
+    ]),
+  ),
+  /check constraint/,
+)
+await expectRows(
+  "tras el error no quedan categorías",
+  "authenticated",
+  C,
+  "select * from public.categories",
+  0,
+)
+await expectRows(
+  "C completa el onboarding",
+  "authenticated",
+  C,
+  callOnboarding("  Carla  ", onboardingCats),
+  1,
+)
+const onboarded = await as("authenticated", C, () =>
+  db.query("select display_name, onboarded_at from public.profiles"),
+)
+assert(
+  onboarded.rows[0].display_name === "Carla" && onboarded.rows[0].onboarded_at !== null,
+  "guarda el nombre recortado y marca el onboarding como hecho",
+  JSON.stringify(onboarded.rows),
+)
+const cats = await as("authenticated", C, () =>
+  db.query("select name, position from public.categories order by position"),
+)
+assert(
+  cats.rows.map((r) => `${r.position}:${r.name}`).join(",") === "0:Comida,1:Ocio",
+  "crea las categorías en el orden elegido",
+  JSON.stringify(cats.rows),
+)
+await expectRows(
+  "repetir el onboarding no duplica nada",
+  "authenticated",
+  C,
+  callOnboarding("Otra", onboardingCats),
+  1,
+)
+await expectRows(
+  "sigue habiendo 2 categorías",
+  "authenticated",
+  C,
+  "select * from public.categories",
+  2,
+)
+await expectRows(
+  "las categorías de C no son visibles para B",
+  "authenticated",
+  B,
+  "select * from public.categories where name = 'Comida'",
+  0,
+)
+
 console.log("\nBorrado de cuenta")
 await db.exec(`delete from auth.users where id = '${A}'`)
 const left = await db.query(`select
