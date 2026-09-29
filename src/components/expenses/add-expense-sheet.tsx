@@ -12,7 +12,7 @@ import { createExpense, deleteExpense } from "@/lib/actions/expenses"
 import type { Category } from "@/lib/data/categories"
 import { haptics } from "@/lib/haptics"
 
-import { AddExpenseForm, type NewExpense } from "./add-expense-form"
+import { ExpenseForm, type ExpenseDraft } from "./expense-form"
 
 type AddExpenseSheetProps = {
   labels: Dictionary["addExpense"]
@@ -43,7 +43,7 @@ export function AddExpenseSheet({
   const defaultCategoryId =
     categories.find((c) => c.id === lastCategoryId)?.id ?? categories[0]?.id ?? ""
 
-  const persist = (expense: NewExpense) => {
+  const persist = (expense: ExpenseDraft) => {
     const request = createExpense(expense)
     pending.current.set(expense.id, request)
     startTransition(async () => {
@@ -68,7 +68,7 @@ export function AddExpenseSheet({
     })
   }
 
-  const handleSave = (expense: NewExpense, category: Category) => {
+  const handleSave = (expense: ExpenseDraft, category: Category) => {
     setOpen(false)
     setLastCategoryId(category.id)
     haptics.success()
@@ -96,11 +96,12 @@ export function AddExpenseSheet({
         <SheetHeader>
           <SheetTitle>{labels.title}</SheetTitle>
         </SheetHeader>
-        <AddExpenseForm
+        <ExpenseForm
           labels={labels}
+          submitLabel={labels.save}
           categories={categories}
           defaultCategoryId={defaultCategoryId}
-          onSave={handleSave}
+          onSubmit={handleSave}
         />
       </SheetContent>
     </Sheet>

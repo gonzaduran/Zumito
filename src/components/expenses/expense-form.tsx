@@ -7,65 +7,92 @@ import { Button } from "@/components/ui/button"
 import { Chip } from "@/components/ui/chip"
 import { Input } from "@/components/ui/input"
 import type { Dictionary } from "@/i18n/get-dictionary"
-import { applyAmountKey, formatAmountInput, keyFromKeyboard, toCents } from "@/lib/amount-input"
+import {
+  applyAmountKey,
+  formatAmountInput,
+  fromCents,
+  keyFromKeyboard,
+  toCents,
+} from "@/lib/amount-input"
 import type { Category } from "@/lib/data/categories"
 import type { ExpenseInput } from "@/lib/validators/expense"
 
 import { AmountKeypad } from "./amount-keypad"
 import { CategoryPicker } from "./category-picker"
 
-export type NewExpense = ExpenseInput & { id: string }
+export type ExpenseDraft = ExpenseInput & { id: string }
 
-type AddExpenseFormProps = {
+type ExpenseFormProps = {
   labels: Dictionary["addExpense"]
+  submitLabel: string
   categories: Category[]
+  /** Gasto a editar. Sin él, el formulario crea uno nuevo. */
+  initial?: ExpenseDraft
   defaultCategoryId: string
-  onSave: (expense: NewExpense, category: Category) => void
+  onSubmit: (expense: ExpenseDraft, category: Category) => void
+  /** Acciones extra bajo el botón principal (p. ej. eliminar). */
+  footer?: React.ReactNode
 }
 
 type DateChoice = "today" | "yesterday" | "other"
 
-/** Fecha local "aaaa-mm-dd" para el selector nativo. */
+/** Fecha local "aaaa-mm-dd" (la del navegador, que es la del usuario). */
 const toDateInputValue = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
 
+const daysAgo = (days: number) => {
+  const date = new Date()
+  date.setDate(date.getDate() - days)
+  return date
+}
+
+function initialDate(spentAt: Date | undefined): { choice: DateChoice; other: string } {
+  const day = toDateInputValue(spentAt ?? new Date())
+  if (day === toDateInputValue(new Date())) return { choice: "today", other: day }
+  if (day === toDateInputValue(daysAgo(1))) return { choice: "yesterday", other: day }
+  return { choice: "other", other: day }
+}
+
 function resolveSpentAt(choice: DateChoice, otherDate: string): Date {
-  const now = new Date()
-  if (choice === "today") return now
-  if (choice === "yesterday") {
-    const yesterday = new Date(now)
-    yesterday.setDate(now.getDate() - 1)
-    return yesterday
-  }
+  if (choice === "today") return new Date()
+  if (choice === "yesterday") return daysAgo(1)
   // Día elegido a mediodía, para que la zona horaria no lo mueva de día.
   return new Date(`${otherDate}T12:00:00`)
 }
 
-export function AddExpenseForm({
+export function ExpenseForm({
   labels,
+  submitLabel,
   categories,
+  initial,
   defaultCategoryId,
-  onSave,
-}: AddExpenseFormProps) {
-  const [amount, setAmount] = useState("")
-  const [categoryId, setCategoryId] = useState(defaultCategoryId)
-  const [description, setDescription] = useState("")
-  const [dateChoice, setDateChoice] = useState<DateChoice>("today")
-  const [otherDate, setOtherDate] = useState(() => toDateInputValue(new Date()))
+  onSubmit,
+  footer,
+}: ExpenseFormProps) {
+  const [startDate] = useState(() => initialDate(initial?.spentAt))
+  const [amount, setAmount] = useState(() => (initial ? fromCents(initial.amountCents) : ""))
+  const [categoryId, setCategoryId] = useState(initial?.categoryId ?? defaultCategoryId)
+  const [description, setDescription] = useState(initial?.description ?? "")
+  const [dateChoice, setDateChoice] = useState<DateChoice>(startDate.choice)
+  const [otherDate, setOtherDate] = useState(startDate.other)
 
   const amountCents = toCents(amount)
   const canSave = amountCents > 0 && (dateChoice !== "other" || Boolean(otherDate))
 
-  const save = () => {
+  const submit = () => {
     const category = categories.find((c) => c.id === categoryId)
     if (!canSave || !category) return
-    onSave(
+    // Al editar sin tocar el día, se conserva la hora original.
+    const dateUnchanged =
+      initial && dateChoice === startDate.choice && otherDate === startDate.other
+    onSubmit(
       {
-        id: crypto.randomUUID(),
+        id: initial?.id ?? crypto.randomUUID(),
         categoryId,
         amountCents,
         description: description.trim() || undefined,
-        spentAt: resolveSpentAt(dateChoice, otherDate),
+        note: initial?.note,
+        spentAt: dateUnchanged ? initial.spentAt : resolveSpentAt(dateChoice, otherDate),
       },
       category,
     )
@@ -78,7 +105,7 @@ export function AddExpenseForm({
       if (target instanceof Element && target.closest("input, textarea, select")) return
       if (event.key === "Enter") {
         event.preventDefault()
-        document.getElementById("save-expense")?.click()
+        document.getElementById("submit-expense")?.click()
         return
       }
       const key = keyFromKeyboard(event.key)
@@ -96,7 +123,7 @@ export function AddExpenseForm({
       className="flex flex-col gap-4 px-5"
       onSubmit={(event) => {
         event.preventDefault()
-        save()
+        submit()
       }}
     >
       <output
@@ -162,9 +189,10 @@ export function AddExpenseForm({
         onKey={(key) => setAmount((current) => applyAmountKey(current, key))}
       />
 
-      <Button id="save-expense" type="submit" size="lg" disabled={!canSave}>
-        {labels.save}
+      <Button id="submit-expense" type="submit" size="lg" disabled={!canSave}>
+        {submitLabel}
       </Button>
+      {footer}
     </form>
   )
 }

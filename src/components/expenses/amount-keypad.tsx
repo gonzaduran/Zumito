@@ -28,7 +28,7 @@ export function AmountKeypad({ labels, onKey }: AmountKeypadProps) {
             haptics.tap()
             onKey(key)
           }}
-          className="flex h-14 items-center justify-center rounded-md bg-card num text-2xl font-bold shadow-card transition-transform outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-95 active:bg-secondary motion-reduce:active:scale-100"
+          className="flex h-14 items-center justify-center rounded-md bg-card num text-2xl font-bold shadow-card transition-transform outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-95 active:bg-secondary motion-reduce:active:scale-100 [@media(max-height:700px)]:h-12"
         >
           {key === "backspace" ? <Delete aria-hidden="true" className="size-6" /> : key}
         </button>

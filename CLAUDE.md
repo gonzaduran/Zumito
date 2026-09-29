@@ -93,6 +93,15 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - Los totales del Inicio vienen de la función SQL `expense_summary()`, calculada en la zona horaria del perfil.
 - Las fechas se formatean siempre con la zona del usuario (`src/i18n/format.ts`); el servidor está en UTC.
 
+## Historial
+
+- `/historial` usa la función SQL `search_expenses`: busca en concepto, nota y nombre de categoría (con los comodines escapados) y calcula el total de cada día sobre todos los resultados.
+- Filtros en la URL (`?q=`, `?c=`) y páginas de 50 con "Ver más" (`?n=`).
+- `ExpenseList` (`src/components/expenses/expense-list.tsx`) se usa en el Inicio y en el Historial. Al tocar un gasto se abre el mismo `ExpenseForm` del "+", ya relleno, con "Guardar cambios" y "Eliminar gasto".
+- Borrar es optimista y tiene "Deshacer", que vuelve a crear el gasto con el mismo id. Al editar sin cambiar el día se conserva la hora original.
+- `src/lib/expense-view.ts` convierte los resultados en filas y grupos por día (función pura, probada).
+- Los paneles hacen scroll y el teclado se compacta en pantallas bajas (iPhone SE).
+
 ## Pruebas
 
 - `npm test`: pruebas unitarias con Vitest (`src/**/*.test.ts`).

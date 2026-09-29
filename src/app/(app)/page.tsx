@@ -3,18 +3,21 @@ import { RecentExpenses } from "@/components/home/recent-expenses"
 import { SpendingHeroCard } from "@/components/home/spending-hero-card"
 import { AppHeader } from "@/components/layout/app-header"
 import { ProfileButton } from "@/components/layout/profile-button"
-import { formatCents, formatMoment, formatMonth } from "@/i18n/format"
+import { formatCents, formatMonth } from "@/i18n/format"
 import { getDictionary } from "@/i18n/get-dictionary"
 import { interpolate } from "@/i18n/interpolate"
-import { getExpenseSummary, getRecentExpenses } from "@/lib/data/expenses"
+import { getCategories } from "@/lib/data/categories"
+import { getExpenseSummary, searchExpenses } from "@/lib/data/expenses"
 import { getCurrentProfile } from "@/lib/data/profile"
+import { toRecentExpenses } from "@/lib/expense-view"
 
 export default async function HomePage() {
-  const [dict, profile, summary, recent] = await Promise.all([
+  const [dict, profile, summary, recent, categories] = await Promise.all([
     getDictionary(),
     getCurrentProfile(),
     getExpenseSummary(),
-    getRecentExpenses(),
+    searchExpenses({ limit: 5 }),
+    getCategories(),
   ])
   const name = profile?.display_name
   const timeZone = profile?.timezone
@@ -49,13 +52,14 @@ export default async function HomePage() {
           title={dict.home.recentTitle}
           historyLink={{ href: "/historial", label: dict.home.historyLink }}
           empty={{ title: dict.home.emptyTitle, description: dict.home.emptyDescription }}
-          items={recent.map((expense) => ({
-            id: expense.id,
-            emoji: expense.category?.emoji ?? "",
-            place: expense.description ?? expense.category?.name ?? "",
-            when: formatMoment(new Date(expense.spent_at), dict.common, { now, timeZone }),
-            amount: formatCents(expense.amount_cents),
-          }))}
+          items={toRecentExpenses(recent.rows, { labels: dict.common, timeZone, now })}
+          categories={categories}
+          listLabels={{
+            form: dict.addExpense,
+            edit: dict.editExpense,
+            dayTotal: dict.history.dayTotal,
+            close: dict.common.close,
+          }}
         />
       </div>
     </>
