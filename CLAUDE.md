@@ -48,9 +48,16 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 ## Diseño
 
 - Pantallas de Claude Design en `design/screens/`. Detalles en `design/README.md`.
-- Fuente de verdad: **sistema v2**, dirección A · Minimal (pantalla 13). De la B (pantalla 14) solo se usa el botón central "+".
-- Las pantallas 01–12 usan la paleta cítrica antigua: solo sirven como referencia de estructura y textos, nunca de estilo.
-- Tokens en `src/app/globals.css`. El acento es `--primary`.
+- Fuente de verdad: **sistema v2**, dirección A · Minimal (pantalla 13). De la B (pantalla 14) se usan el botón "+" elevado y la tarjeta destacada con degradado.
+- Efecto cristal solo en la barra inferior y en las hojas flotantes.
+- Las pantallas 01–12 usan la paleta cítrica antigua. No se adaptan: Claude Design enviará sus versiones v2.
+- Iconos: Lucide. El Toast se deriva de los tokens.
+- Tokens en `src/app/globals.css`.
+- Acento: `--primary` (#5457E5) es el relleno de los botones en ambos modos, con texto blanco. `--primary-text` (#5457E5 en claro, #7274FF en oscuro) es para texto, iconos y enlaces.
+- En oscuro, `--primary-text` no se usa como texto sobre la superficie suave (4,38:1).
+- Categorías: 12 colores OKLCH con el mismo brillo y croma, todos AA (≥ 4,5:1) sobre las superficies. Se definen en `src/lib/category-colors.ts` y `--cat-*`.
+- El emoji es el identificador principal de cada categoría. En gráficos se muestran las 6 mayores y el resto se agrupa en "Otros" (`groupTopCategories`, color `--cat-other`).
+- `--faint` es solo decorativo: no cumple AA como texto.
 - Clases propias: `num` para cifras (Inter con números tabulares) y `tap` para zonas táctiles de 44px.
 
 ## Estructura
