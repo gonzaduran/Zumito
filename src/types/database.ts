@@ -164,6 +164,15 @@ export type Database = {
         Args: { p_display_name: string | null; p_categories: Json }
         Returns: undefined
       }
+      expense_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          today_cents: number
+          week_cents: number
+          month_cents: number
+          total_cents: number
+        }[]
+      }
     }
     Enums: { [_ in never]: never }
     CompositeTypes: { [_ in never]: never }

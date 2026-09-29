@@ -410,6 +410,61 @@ await expectRows(
   0,
 )
 
+console.log("\nTotales por periodo (expense_summary)")
+const D = "44444444-4444-4444-4444-444444444444"
+await db.exec(`insert into auth.users (id, email) values ('${D}', 'd@test.es')`)
+await as("authenticated", D, () =>
+  db.exec(`
+    insert into public.categories (id, name, emoji, color)
+    values ('dddddddd-0000-0000-0000-000000000001', 'Comida', '🍽️', 'amber');
+    -- Inicio del día de hoy en Madrid, como timestamptz.
+    with d as (select (date_trunc('day', now() at time zone 'Europe/Madrid') at time zone 'Europe/Madrid') as start_today)
+    insert into public.expenses (category_id, amount_cents, spent_at)
+    select 'dddddddd-0000-0000-0000-000000000001', v.amount, v.at from d, lateral (values
+      (100::bigint, d.start_today + interval '30 minutes'),   -- hoy 00:30 (22:30 UTC de ayer)
+      (200::bigint, d.start_today - interval '30 minutes'),   -- ayer 23:30
+      (400::bigint, d.start_today - interval '400 days')      -- hace más de un año
+    ) as v(amount, at);
+  `),
+)
+const summary = async () =>
+  (await as("authenticated", D, () => db.query("select * from public.expense_summary()"))).rows[0]
+let s = await summary()
+assert(
+  Number(s.today_cents) === 100,
+  "hoy cuenta el gasto de las 00:30 locales y no el de ayer a las 23:30",
+  JSON.stringify(s),
+)
+assert(Number(s.total_cents) === 700, "el total suma todos los gastos", JSON.stringify(s))
+assert(
+  Number(s.month_cents) >= 100 &&
+    Number(s.month_cents) <= 300 &&
+    Number(s.week_cents) <= Number(s.month_cents) + 200,
+  "semana y mes no incluyen el gasto de hace un año",
+  JSON.stringify(s),
+)
+await as("authenticated", D, () =>
+  db.exec("update public.profiles set timezone = 'Pacific/Kiritimati'"),
+)
+s = await summary()
+assert(
+  Number(s.total_cents) === 700,
+  "cambiar la zona horaria no cambia el total",
+  JSON.stringify(s),
+)
+await as("authenticated", D, () => db.exec("update public.profiles set timezone = 'Europe/Madrid'"))
+const summaryB = (
+  await as("authenticated", B, () => db.query("select * from public.expense_summary()"))
+).rows[0]
+assert(Number(summaryB.total_cents) === 0, "B no suma los gastos de D", JSON.stringify(summaryB))
+await expectError(
+  "anon no puede pedir totales",
+  "anon",
+  null,
+  "select * from public.expense_summary()",
+  /permission denied/,
+)
+
 console.log("\nBorrado de cuenta")
 await db.exec(`delete from auth.users where id = '${A}'`)
 const left = await db.query(`select
