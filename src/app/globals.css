@@ -78,7 +78,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --primary-text: #7274ff;
+    --primary-text: #7477ff;
     --primary-wash: rgb(114 116 255 / 0.14);
 
     --background: #0b0b0e;

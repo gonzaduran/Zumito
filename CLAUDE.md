@@ -53,8 +53,7 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - Las pantallas 01–12 usan la paleta cítrica antigua. No se adaptan: Claude Design enviará sus versiones v2.
 - Iconos: Lucide. El Toast se deriva de los tokens.
 - Tokens en `src/app/globals.css`.
-- Acento: `--primary` (#5457E5) es el relleno de los botones en ambos modos, con texto blanco. `--primary-text` (#5457E5 en claro, #7274FF en oscuro) es para texto, iconos y enlaces.
-- En oscuro, `--primary-text` no se usa como texto sobre la superficie suave (4,38:1).
+- Acento: `--primary` (#5457E5) es el relleno de los botones en ambos modos, con texto blanco. `--primary-text` (#5457E5 en claro, #7477FF en oscuro, ajuste mínimo de #7274FF para cumplir AA en todas las superficies) es para texto, iconos y enlaces.
 - Categorías: 12 colores OKLCH con el mismo brillo y croma, todos AA (≥ 4,5:1) sobre las superficies. Se definen en `src/lib/category-colors.ts` y `--cat-*`.
 - El emoji es el identificador principal de cada categoría. En gráficos se muestran las 6 mayores y el resto se agrupa en "Otros" (`groupTopCategories`, color `--cat-other`).
 - `--faint` es solo decorativo: no cumple AA como texto.
