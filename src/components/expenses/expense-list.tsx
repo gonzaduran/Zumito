@@ -12,6 +12,7 @@ import { createExpense, deleteExpense, updateExpense } from "@/lib/actions/expen
 import { isCategoryColor } from "@/lib/category-colors"
 import type { Category } from "@/lib/data/categories"
 import type { ExpenseGroup, ListedExpense } from "@/lib/expense-view"
+import type { NamedOption } from "@/lib/suggestions"
 import { haptics } from "@/lib/haptics"
 import { settle } from "@/lib/settle"
 
@@ -20,6 +21,8 @@ import { ExpenseForm, type ExpenseDraft } from "./expense-form"
 type ExpenseListProps = {
   groups: ExpenseGroup[]
   categories: Category[]
+  places: NamedOption[]
+  people: NamedOption[]
   labels: {
     form: Dictionary["addExpense"]
     edit: Dictionary["editExpense"]
@@ -35,6 +38,9 @@ const toDraft = (expense: ListedExpense): ExpenseDraft => ({
   description: expense.description ?? undefined,
   note: expense.note ?? undefined,
   spentAt: new Date(expense.spentAt),
+  place: expense.placeName ?? undefined,
+  mood: expense.mood ?? undefined,
+  personIds: expense.people.map((person) => person.id),
 })
 
 /** Categorías para editar un gasto: si la suya está archivada, se añade para poder conservarla. */
@@ -52,7 +58,7 @@ function categoriesFor(expense: ListedExpense, categories: Category[]): Category
 }
 
 /** Lista de gastos (agrupada o no). Al tocar uno se abre para editarlo o borrarlo. */
-export function ExpenseList({ groups, categories, labels }: ExpenseListProps) {
+export function ExpenseList({ groups, categories, places, people, labels }: ExpenseListProps) {
   const [editing, setEditing] = useState<ListedExpense | null>(null)
   // Borrados optimistas: desaparecen al instante, antes de que responda el servidor.
   const [hidden, setHidden] = useState<Set<string>>(() => new Set())
@@ -169,6 +175,8 @@ export function ExpenseList({ groups, categories, labels }: ExpenseListProps) {
               labels={labels.form}
               submitLabel={edit.save}
               categories={categoriesFor(editing, categories)}
+              places={places}
+              people={people}
               initial={toDraft(editing)}
               defaultCategoryId={editing.categoryId}
               onSubmit={save}

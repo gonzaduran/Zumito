@@ -4,6 +4,7 @@ import { ExpenseList } from "@/components/expenses/expense-list"
 import { EmptyState } from "@/components/ui/empty-state"
 import type { Category } from "@/lib/data/categories"
 import type { ListedExpense } from "@/lib/expense-view"
+import type { NamedOption } from "@/lib/suggestions"
 
 import { SectionHeader } from "./section-header"
 
@@ -13,6 +14,8 @@ type RecentExpensesProps = {
   empty: { title: string; description: string }
   items: ListedExpense[]
   categories: Category[]
+  places: NamedOption[]
+  people: NamedOption[]
   listLabels: React.ComponentProps<typeof ExpenseList>["labels"]
 }
 
@@ -23,6 +26,8 @@ export function RecentExpenses({
   empty,
   items,
   categories,
+  places,
+  people,
   listLabels,
 }: RecentExpensesProps) {
   if (items.length === 0) {
@@ -35,6 +40,8 @@ export function RecentExpenses({
       <ExpenseList
         groups={[{ key: "recent", items }]}
         categories={categories}
+        places={places}
+        people={people}
         labels={listLabels}
       />
     </section>

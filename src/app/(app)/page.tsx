@@ -12,6 +12,8 @@ import { getCategories } from "@/lib/data/categories"
 import {
   getBudgetStatus,
   getExpenseSummary,
+  getPeople,
+  getPlaces,
   getSpendingByCategory,
   searchExpenses,
 } from "@/lib/data/expenses"
@@ -32,14 +34,17 @@ export default async function HomePage() {
   const month = monthRange(today.slice(0, 7))
   const previous = comparisonRange(today.slice(0, 7), today)
 
-  const [summary, recent, categories, byCategory, previousByCategory, budgets] = await Promise.all([
-    getExpenseSummary(),
-    searchExpenses({ limit: 5 }),
-    getCategories(),
-    getSpendingByCategory(month.from, month.to),
-    getSpendingByCategory(previous.from, previous.to),
-    getBudgetStatus(),
-  ])
+  const [summary, recent, categories, byCategory, previousByCategory, budgets, places, people] =
+    await Promise.all([
+      getExpenseSummary(),
+      searchExpenses({ limit: 5 }),
+      getCategories(),
+      getSpendingByCategory(month.from, month.to),
+      getSpendingByCategory(previous.from, previous.to),
+      getBudgetStatus(),
+      getPlaces(),
+      getPeople(),
+    ])
   const budgetNotice = pickBudgetNotice(budgets, dict.budgets.notice)
 
   const previousMonthCents = previousByCategory.reduce((acc, row) => acc + row.total_cents, 0)
@@ -86,6 +91,8 @@ export default async function HomePage() {
           empty={{ title: dict.home.emptyTitle, description: dict.home.emptyDescription }}
           items={toRecentExpenses(recent.rows, { labels: dict.common, timeZone, now })}
           categories={categories}
+          places={places}
+          people={people}
           listLabels={{
             form: dict.addExpense,
             edit: dict.editExpense,

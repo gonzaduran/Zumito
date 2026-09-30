@@ -56,7 +56,20 @@
     "emptyDescription": "Aquí verás todos tus gastos, agrupados por día.",
     "noResultsTitle": "No hay resultados",
     "noResultsDescription": "No encontramos gastos con esos filtros. Prueba a cambiarlos.",
-    "clearFilters": "Quitar filtros"
+    "clearFilters": "Quitar filtros",
+    "moreFiltersLabel": "Más filtros",
+    "placeFilter": "Lugar",
+    "personFilter": "Persona",
+    "amountFilter": "Importe",
+    "amountFrom": "Desde",
+    "amountTo": "Hasta",
+    "amountBetween": "De {min} a {max}",
+    "amountAtLeast": "Desde {min}",
+    "amountAtMost": "Hasta {max}",
+    "applyFilter": "Aplicar",
+    "clearFilter": "Quitar filtro",
+    "noPlaces": "Aún no has apuntado ningún lugar.",
+    "noPeople": "Aún no has apuntado a nadie."
   },
   "stats": {
     "title": "Estadísticas",
@@ -125,7 +138,30 @@
     "undone": "Gasto eliminado",
     "undoFailed": "No se ha podido deshacer",
     "saveFailed": "No se ha podido guardar el gasto",
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "moreDetails": "Más detalles",
+    "detailsCount": "{count} añadidos",
+    "placeLabel": "Lugar",
+    "placePlaceholder": "¿Dónde?",
+    "placeSuggestions": "Lugares que has usado",
+    "peopleLabel": "Con quién",
+    "addPerson": "Añadir persona",
+    "newPersonLabel": "Nombre de la persona",
+    "newPersonPlaceholder": "Nombre",
+    "addPersonConfirm": "Añadir",
+    "noteLabel": "Nota",
+    "notePlaceholder": "Algo que recordar sobre este gasto",
+    "moodLabel": "¿Cómo te sientes con este gasto?",
+    "moods": {
+      "good": "Bien",
+      "neutral": "Normal",
+      "bad": "Mal"
+    },
+    "timeLabel": "Hora",
+    "unknownCategory": "No tienes ninguna categoría llamada «{name}»: elige una.",
+    "invalidAmount": "El importe del enlace no es válido: escríbelo tú.",
+    "backHome": "Volver al inicio",
+    "detailsCountOne": "1 añadido"
   },
   "categoryColors": {
     "rose": "Rosa",
@@ -154,7 +190,8 @@
     "textTooLong": "El texto es demasiado largo",
     "emailInvalid": "Revisa el email, no parece válido",
     "codeInvalid": "El código tiene 6 dígitos",
-    "categoriesRequired": "Elige al menos una categoría"
+    "categoriesRequired": "Elige al menos una categoría",
+    "tooManyPeople": "Puedes añadir hasta 20 personas"
   },
   "auth": {
     "title": "Entra en Zumito",
@@ -294,7 +331,10 @@
     "category": "Categoría",
     "description": "Concepto",
     "note": "Nota",
-    "fileName": "zumito-gastos"
+    "fileName": "zumito-gastos",
+    "place": "Lugar",
+    "people": "Con quién",
+    "mood": "Ánimo"
   },
   "errors": {
     "notFoundTitle": "Esta página no existe",

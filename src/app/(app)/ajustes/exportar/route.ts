@@ -3,6 +3,7 @@ import { calendarDay, formatDate, formatTime } from "@/i18n/format"
 import { getDictionary } from "@/i18n/get-dictionary"
 import { toCsv } from "@/lib/csv"
 import { getCurrentProfile } from "@/lib/data/profile"
+import { moods } from "@/lib/validators/expense"
 import { createClient } from "@/lib/supabase/server"
 
 const PAGE_SIZE = 1000
@@ -19,13 +20,25 @@ export async function GET() {
   const labels = dict.export
 
   const rows: string[][] = [
-    [labels.date, labels.time, labels.amount, labels.category, labels.description, labels.note],
+    [
+      labels.date,
+      labels.time,
+      labels.amount,
+      labels.category,
+      labels.description,
+      labels.place,
+      labels.people,
+      labels.mood,
+      labels.note,
+    ],
   ]
   // Por páginas: PostgREST limita el número de filas por petición.
   for (let from = 0; ; from += PAGE_SIZE) {
     const { data, error } = await supabase
       .from("expenses")
-      .select("amount_cents, description, note, spent_at, category:categories(name)")
+      .select(
+        "amount_cents, description, note, spent_at, mood, category:categories(name), place:places(name), expense_people(person:people(name))",
+      )
       .order("spent_at", { ascending: false })
       .range(from, from + PAGE_SIZE - 1)
     if (error) return new Response(null, { status: 500 })
@@ -38,6 +51,14 @@ export async function GET() {
         (expense.amount_cents / 100).toFixed(2).replace(".", ","),
         expense.category?.name ?? "",
         expense.description ?? "",
+        expense.place?.name ?? "",
+        expense.expense_people
+          .map((link) => link.person?.name)
+          .filter(Boolean)
+          .join(", "),
+        (moods as readonly string[]).includes(expense.mood ?? "")
+          ? dict.addExpense.moods[expense.mood as (typeof moods)[number]]
+          : "",
         expense.note ?? "",
       ])
     }

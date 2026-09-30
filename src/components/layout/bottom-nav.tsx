@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation"
 import { AddExpenseSheet } from "@/components/expenses/add-expense-sheet"
 import type { Dictionary } from "@/i18n/get-dictionary"
 import type { Category } from "@/lib/data/categories"
+import type { NamedOption } from "@/lib/suggestions"
 
 type BottomNavProps = {
   labels: Dictionary["nav"]
@@ -15,6 +16,8 @@ type BottomNavProps = {
   addExpense: Dictionary["addExpense"]
   offline: Dictionary["offline"]
   categories: Category[]
+  places: NamedOption[]
+  people: NamedOption[]
   lastUsedCategoryId: string | null
 }
 
@@ -26,6 +29,8 @@ export function BottomNav({
   addExpense,
   offline,
   categories,
+  places,
+  people,
   lastUsedCategoryId,
 }: BottomNavProps) {
   const pathname = usePathname()
@@ -73,6 +78,8 @@ export function BottomNav({
             triggerLabel={labels.add}
             closeLabel={closeLabel}
             categories={categories}
+            places={places}
+            people={people}
             lastUsedCategoryId={lastUsedCategoryId}
           />
         </li>

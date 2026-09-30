@@ -4,7 +4,7 @@ import { BottomNav } from "@/components/layout/bottom-nav"
 import { OfflineSync } from "@/components/layout/offline-sync"
 import { getDictionary } from "@/i18n/get-dictionary"
 import { getCategories } from "@/lib/data/categories"
-import { getLastUsedCategoryId } from "@/lib/data/expenses"
+import { getLastUsedCategoryId, getPeople, getPlaces } from "@/lib/data/expenses"
 import { getCurrentProfile } from "@/lib/data/profile"
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
@@ -13,9 +13,11 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   if (!profile) redirect("/login")
   if (!profile.onboarded_at) redirect("/onboarding")
 
-  const [categories, lastUsedCategoryId] = await Promise.all([
+  const [categories, lastUsedCategoryId, places, people] = await Promise.all([
     getCategories(),
     getLastUsedCategoryId(),
+    getPlaces(),
+    getPeople(),
   ])
 
   return (
@@ -29,6 +31,8 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         addExpense={dict.addExpense}
         offline={dict.offline}
         categories={categories}
+        places={places}
+        people={people}
         lastUsedCategoryId={lastUsedCategoryId}
       />
       <OfflineSync syncedLabel={dict.offline.synced} />
