@@ -41,7 +41,13 @@ export function MonthlyTrendChart({ points, selectedMonth, labels }: MonthlyTren
     <figure>
       <div aria-hidden="true" className="h-44 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={points} margin={{ top: 8, right: 0, bottom: 0, left: 0 }}>
+          <BarChart
+            data={points}
+            margin={{ top: 8, right: 0, bottom: 0, left: 0 }}
+            // Sin foco de teclado: el gráfico está oculto a lectores de pantalla y sus
+            // datos están en la tabla de abajo.
+            accessibilityLayer={false}
+          >
             <XAxis
               dataKey="short"
               axisLine={false}

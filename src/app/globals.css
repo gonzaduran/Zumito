@@ -51,6 +51,8 @@
   /* Estados */
   --positive: #297d56;
   --destructive: #c13e46;
+  /* Texto rojo sobre su propio fondo tenue (botones destructivos): algo más oscuro para AA. */
+  --destructive-text: #b4313b;
 
   /*
    * Categorías: 12 tonos con el mismo brillo y croma en OKLCH
@@ -100,6 +102,7 @@
 
     --positive: #5fbf8f;
     --destructive: #ff6b72;
+    --destructive-text: #ff6b72;
 
     --cat-rose: #da8799;
     --cat-brick: #dc8882;
@@ -145,6 +148,7 @@
   --color-glass-sheet: var(--glass-sheet);
   --color-positive: var(--positive);
   --color-destructive: var(--destructive);
+  --color-destructive-text: var(--destructive-text);
 
   --color-cat-rose: var(--cat-rose);
   --color-cat-brick: var(--cat-brick);

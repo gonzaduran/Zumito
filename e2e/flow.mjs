@@ -1,7 +1,7 @@
 // Recorrido completo de la app con Chrome sin interfaz (CDP) contra el Supabase simulado.
 // Lo lanza e2e/run.mjs (npm run test:e2e). Uso directo: node e2e/flow.mjs <capturas> <light|dark>
 import { spawn } from "node:child_process"
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
@@ -99,6 +99,23 @@ async function waitFor(fn, ms = 8000) {
   }
   return false
 }
+// Auditoría de accesibilidad con axe-core (WCAG 2.0 y 2.1, niveles A y AA).
+const axeSource = readFileSync(
+  new URL("../node_modules/axe-core/axe.min.js", import.meta.url),
+  "utf8",
+)
+async function audit(name) {
+  await sleep(450) // que terminen las animaciones de entrada
+  await send("Runtime.evaluate", { expression: axeSource })
+  const violations = await evaluate(`axe
+    .run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] } })
+    .then((r) => r.violations.map((v) => ({
+      id: v.id,
+      impact: v.impact,
+      nodes: v.nodes.slice(0, 3).map((n) => n.target.join(" ") + " :: " + (n.failureSummary || "").split(String.fromCharCode(10)).slice(1, 2).join(" ")),
+    })))`)
+  check(`accesibilidad AA: ${name}`, violations.length === 0, JSON.stringify(violations))
+}
 const goto = async (p) => {
   await send("Page.navigate", { url: BASE + p })
   await sleep(1200)
@@ -140,6 +157,7 @@ check("/ redirige a /login", (await path()) === "/login", await path())
 await goto("/historial")
 check("/historial redirige a /login", (await path()) === "/login", await path())
 await shot("01-login")
+await audit("login")
 
 console.log("Login")
 await fill("#email", "limite@test.es")
@@ -163,6 +181,7 @@ check(
 )
 check("muestra el email en el texto", (await text()).includes("gonzalo@test.es"))
 await shot("02-codigo")
+await audit("código")
 await fill("#code", "000000")
 await clickText("Entrar")
 check(
@@ -198,6 +217,7 @@ check(
 console.log("Onboarding")
 await sleep(600)
 await shot("04-onboarding-1")
+await audit("onboarding 1")
 await goto("/")
 check("sin onboarding, / vuelve al onboarding", (await path()) === "/onboarding", await path())
 await sleep(500)
@@ -214,6 +234,7 @@ await clickText("Mascotas")
 await clickText("Regalos")
 await sleep(300)
 await shot("05-onboarding-2")
+await audit("onboarding 2")
 await clickText("Empezar")
 check("al terminar va al inicio", await waitFor(async () => (await path()) === "/"), await path())
 const log = await (await fetch("http://localhost:54329/__log")).json()
@@ -243,6 +264,7 @@ console.log("Inicio y ajustes")
 await sleep(600)
 check("saludo con el nombre", (await text()).includes("Hola, Gonzalo"), await text())
 await shot("06-inicio")
+await audit("inicio vacío")
 
 console.log("Registro rápido")
 check(
@@ -274,6 +296,7 @@ await clickText("Cafés")
 await fill('input[placeholder="¿En qué? (opcional)"]', "Café con Marta")
 await sleep(200)
 await shot("08-nuevo-gasto")
+await audit("nuevo gasto")
 const t0 = Date.now()
 await clickSel("#submit-expense")
 check(
@@ -306,6 +329,7 @@ check(
 check("el total de hoy muestra 12,50 €", (await text()).includes("12,50 €"), await text())
 await sleep(500)
 await shot("09-inicio-con-gasto")
+await audit("inicio con datos")
 
 await clickSel('button[aria-label="Añadir gasto"]')
 await waitFor(async () => (await text()).includes("Guardar gasto"))
@@ -392,6 +416,7 @@ check(
   await rowCount(),
 )
 await shot("11-historial")
+await audit("historial")
 
 await evaluate(
   "[...document.querySelectorAll('main li button')].find((b) => b.innerText.includes('Café con Marta')).click()",
@@ -411,6 +436,7 @@ check(
   JSON.stringify(await pressedChips()),
 )
 await shot("12-editar")
+await audit("editar gasto")
 for (const k of ["Borrar", "Borrar", "Borrar", "Borrar", "9"]) await keypad(k)
 await clickText("Guardar cambios")
 check(
@@ -493,6 +519,7 @@ check(
 )
 await sleep(400)
 await shot("15-estadisticas")
+await audit("estadísticas")
 await clickSel('a[aria-label="Mes anterior"]')
 check(
   "el mes anterior sin gastos muestra el estado vacío",
@@ -572,6 +599,7 @@ check(
 )
 await sleep(500)
 await shot("17-presupuestos")
+await audit("presupuestos")
 await goto("/")
 check(
   "el inicio avisa de que te has pasado en Cafés",
@@ -623,6 +651,7 @@ await evaluate(
 await clickSel('[role=radio][aria-label="Océano"]')
 await sleep(200)
 await shot("20-nueva-categoria")
+await audit("nueva categoría")
 await clickText("Crear categoría")
 check(
   "crea la categoría",
@@ -681,6 +710,7 @@ check(
   await text(),
 )
 await shot("21-categorias")
+await audit("categorías")
 await goto("/historial")
 await evaluate(
   "[...document.querySelectorAll('main li button')].find((b) => b.innerText.includes('Café con Marta')).click()",
@@ -847,6 +877,7 @@ check("con onboarding hecho, /onboarding lleva al inicio", (await path()) === "/
 await goto("/ajustes")
 check("ajustes muestra el email", (await text()).includes("gonzalo@test.es"), await text())
 await shot("07-ajustes")
+await audit("ajustes")
 // Un gasto pendiente de esta cuenta y pantallas en caché: no deben quedar en el dispositivo.
 await evaluate(
   `localStorage.setItem('zumito:pending-expenses', JSON.stringify([{ id: '${crypto.randomUUID()}', categoryId: '${crypto.randomUUID()}', amountCents: 100, spentAt: new Date().toISOString() }]))`,

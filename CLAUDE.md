@@ -57,6 +57,8 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - Categorías: 12 colores OKLCH con el mismo brillo y croma, todos AA (≥ 4,5:1) sobre las superficies. Se definen en `src/lib/category-colors.ts` y `--cat-*`.
 - El emoji es el identificador principal de cada categoría. En gráficos se muestran las 6 mayores y el resto se agrupa en "Otros" (`groupTopCategories`, color `--cat-other`).
 - `--faint` es solo decorativo: no cumple AA como texto.
+- `--destructive-text` es para texto rojo sobre su propio fondo tenue (botones destructivos). El chip seleccionado usa `--primary-strong` en claro.
+- El contraste se verifica en cada pantalla con axe-core dentro de `npm run test:e2e`. Un cálculo a mano no basta: los fondos reales (cristal sobre velo, fondos tenues sobre la página) cambian el resultado.
 - Clases propias: `num` para cifras (Inter con números tabulares) y `tap` para zonas táctiles de 44px.
 
 ## Estructura
@@ -158,7 +160,7 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 
 - `npm test`: pruebas unitarias con Vitest (`src/**/*.test.ts`).
 - `npm run test:db`: esquema, funciones SQL y RLS sobre Postgres real (PGlite). Hay que ampliarlo con cada migración.
-- `npm run test:e2e` (`e2e/`): compila en `.next-e2e` apuntando a un Supabase simulado (`e2e/mock-supabase.mjs`) y recorre la app con Chrome sin interfaz, en modo claro y oscuro (unas 100 comprobaciones por modo, con capturas en `e2e/screenshots`). No usa `.env.local`. Si Chrome no está en la ruta habitual, usa `CHROME_PATH`.
+- `npm run test:e2e` (`e2e/`): compila en `.next-e2e` apuntando a un Supabase simulado (`e2e/mock-supabase.mjs`) y recorre la app con Chrome sin interfaz, en modo claro y oscuro (unas 115 comprobaciones por modo, con 14 auditorías de accesibilidad WCAG A/AA con axe-core y capturas en `e2e/screenshots`). No usa `.env.local`. Si Chrome no está en la ruta habitual, usa `CHROME_PATH`.
 - Cuando una función nueva use un endpoint de Supabase que el simulador no conoce, hay que añadirlo a `e2e/mock-supabase.mjs`.
 
 ## Autenticación y onboarding
