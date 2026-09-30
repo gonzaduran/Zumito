@@ -1,7 +1,7 @@
 // Pruebas de extremo a extremo: compila la app contra un Supabase simulado y la recorre
 // con Chrome en modo claro y oscuro. Uso: npm run test:e2e
 import { spawn, spawnSync } from "node:child_process"
-import { rmSync } from "node:fs"
+import { readFileSync, rmSync, writeFileSync } from "node:fs"
 import { createRequire } from "node:module"
 
 const require = createRequire(import.meta.url)
@@ -34,9 +34,16 @@ const startMock = async () => {
   return mock
 }
 
+// Next añade la carpeta de compilación a tsconfig.json: se restaura al terminar.
+const tsconfig = readFileSync("tsconfig.json", "utf8")
+const restoreTsconfig = () => writeFileSync("tsconfig.json", tsconfig)
+
 console.log("Compilando contra el Supabase simulado…")
 const build = spawnSync(process.execPath, [nextBin, "build"], { env, stdio: "inherit" })
-if (build.status !== 0) process.exit(build.status ?? 1)
+if (build.status !== 0) {
+  restoreTsconfig()
+  process.exit(build.status ?? 1)
+}
 
 const server = spawn(process.execPath, [nextBin, "start", "-p", String(PORT)], {
   env,
@@ -59,5 +66,6 @@ try {
   server.kill()
   await sleep(500)
   rmSync(".next-e2e", { recursive: true, force: true })
+  restoreTsconfig()
 }
 process.exit(failed ? 1 : 0)
