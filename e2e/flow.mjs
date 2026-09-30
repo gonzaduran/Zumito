@@ -272,7 +272,9 @@ check(
 )
 check(
   "el anual por defecto, con el precio tachado y el de oferta",
-  plansText.includes("9,99 €") && plansText.includes("8,99 €") && plansText.includes("Ahorra 44 %"),
+  plansText.includes("9,99 €") &&
+    plansText.includes("8,99 €") &&
+    plansText.includes("Ahorras 8,89 €"),
   plansText,
 )
 check(
@@ -297,6 +299,15 @@ check(
   (await text()).includes("1,49 €") && (await text()).includes("/mes"),
   await text(),
 )
+check(
+  "los planes tienen el botón de pago fijo abajo",
+  (
+    await evaluate(
+      "(() => { const a = document.querySelector('aside[aria-label=Premium]'); return a && getComputedStyle(a).position + ' ' + a.innerText })()",
+    )
+  )?.startsWith("fixed"),
+)
+check("y una vista previa de Premium arriba", (await text()).includes("Así se ve con Premium"))
 await shot("05b-planes")
 await audit("planes")
 await goto("/planes")
@@ -313,6 +324,20 @@ check(
   "seguir gratis lleva al inicio",
   await waitFor(async () => (await path()) === "/"),
   await path(),
+)
+check(
+  "el inicio tiene siempre a mano la oferta con su cuenta atrás",
+  await waitFor(async () => {
+    const t = await text()
+    return t.includes("Premium a 8,99 € el primer año") && t.includes("La oferta termina en")
+  }),
+  await text(),
+)
+check(
+  "y la barra queda fija al hacer scroll",
+  (await evaluate(
+    "(() => { const a = document.querySelector('aside[aria-label=Premium]'); return a && getComputedStyle(a).position })()",
+  )) === "fixed",
 )
 const log = await (await fetch("http://localhost:54329/__log")).json()
 const rpc = log.log.find((l) => l.startsWith("rpc "))
@@ -700,6 +725,10 @@ check(
 )
 check("y el anillo muestra el % del total", (await text()).includes("70 %"), await text())
 await shot("18-inicio-presupuesto")
+check(
+  "con Premium no aparece la barra de compra",
+  !(await evaluate("Boolean(document.querySelector('aside[aria-label=Premium]'))")),
+)
 await fetch("http://localhost:54329/__profile?premium_comp=false")
 await goto("/")
 check(
@@ -831,7 +860,7 @@ check(
 )
 await keyboard("Escape")
 await goto("/ajustes/categorias")
-await clickText("Restaurar")
+await waitFor(async () => clickText("Restaurar"))
 check(
   "restaurar la devuelve",
   await waitFor(async () => !(await text()).includes("Archivadas"), 4000),

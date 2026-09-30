@@ -66,6 +66,8 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - Gratis / Premium (1,49 €/mes, 9,99 €/año) / Amigos (próximamente). Precios en `src/lib/billing/plans.ts`.
 - Prueba de 7 días con tarjeta y renovación automática (Stripe Checkout). Oferta de bienvenida: −10 % primer año anual, 5 min desde `start_welcome_offer`.
 - Premium se decide siempre en servidor (`getEntitlement`) y en la base de datos (`is_premium`). Lo bloqueado se muestra con candado, no se esconde.
+- Sin Premium hay una barra de compra fija sobre la barra inferior (`PremiumBar`) en Inicio y Planes: oferta con cuenta atrás o prueba gratis. El ahorro se muestra en euros, no en %.
+- Reseñas y testimonios: solo reales y con permiso. Nunca inventados.
 - El estado de pago solo lo escribe el webhook con `SUPABASE_SECRET_KEY` (nunca en el cliente).
 
 ## Estructura

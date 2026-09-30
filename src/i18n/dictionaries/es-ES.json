@@ -350,18 +350,17 @@
   },
   "plans": {
     "title": "Planes",
-    "heroTitle": "Saca todo el partido a tu dinero",
-    "heroText": "Prueba Premium 7 días gratis. Cancela cuando quieras.",
+    "heroTitle": "Tu dinero, bajo control",
+    "heroText": "Presupuestos por categoría que te avisan antes de pasarte.",
     "intervalLabel": "Forma de pago",
     "monthly": "Mensual",
     "yearly": "Anual",
-    "saveBadge": "Ahorra {percent}",
+    "saveBadge": "Ahorras {amount}",
     "perMonth": "/mes",
     "perYear": "/año",
-    "monthlyEquivalent": "Solo {amount} al mes",
     "offerBadge": "Oferta de bienvenida",
-    "offerTitle": "−{percent} en el plan anual",
-    "offerText": "{price} el primer año en lugar de {regular}.",
+    "offerTitle": "Primer año a {price}",
+    "offerText": "Ahorras {saving} frente a pagar cada mes. Después, {regular} al año.",
     "offerEndsIn": "Termina en",
     "offerEnded": "La oferta de bienvenida ha terminado.",
     "mostChosen": "El más elegido",
@@ -436,6 +435,44 @@
     ],
     "locked": "Premium",
     "unlock": "Desbloquear con Premium",
-    "pausedBudget": "En pausa: los presupuestos por categoría son de Premium."
+    "pausedBudget": "En pausa: los presupuestos por categoría son de Premium.",
+    "preview": {
+      "label": "Así se ve con Premium",
+      "example": "Ejemplo",
+      "rows": [
+        {
+          "emoji": "🛒",
+          "name": "Súper",
+          "status": "180 € de 250 €",
+          "ratio": 0.72
+        },
+        {
+          "emoji": "🍻",
+          "name": "Ocio",
+          "status": "Vas por el 85 %",
+          "ratio": 0.85
+        },
+        {
+          "emoji": "☕",
+          "name": "Cafés",
+          "status": "Te has pasado 4 €",
+          "ratio": 1
+        }
+      ]
+    },
+    "monthlyEquivalent": "Solo {amount} al mes · ahorras {saving} al año",
+    "bar": {
+      "offerTitle": "Premium a {price} el primer año",
+      "offerEndsIn": "La oferta termina en {time}",
+      "offerCta": "Verla",
+      "trialTitle": "Prueba Premium gratis",
+      "trialText": "7 días gratis · cancela cuando quieras",
+      "trialCta": "Probar",
+      "subscribeTitle": "Hazte Premium",
+      "subscribeText": "Desde {price} al mes",
+      "subscribeCta": "Ver planes",
+      "checkoutYear": "{price} al año · ahorras {saving}",
+      "checkoutMonth": "{price} al mes"
+    }
   }
 }

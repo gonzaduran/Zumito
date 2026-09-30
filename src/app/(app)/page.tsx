@@ -3,11 +3,14 @@ import { CategoryBreakdown } from "@/components/home/category-breakdown"
 import { RecentExpenses } from "@/components/home/recent-expenses"
 import { SpendingHeroCard } from "@/components/home/spending-hero-card"
 import { AppHeader } from "@/components/layout/app-header"
+import { HomePremiumBar } from "@/components/plans/home-premium-bar"
 import { ProfileButton } from "@/components/layout/profile-button"
 import { defaultTimeZone } from "@/i18n/config"
 import { calendarDay, formatCents, formatMonth } from "@/i18n/format"
 import { getDictionary } from "@/i18n/get-dictionary"
 import { interpolate } from "@/i18n/interpolate"
+import { getBillingConfig } from "@/lib/billing/config"
+import { PREMIUM_PRICES, WELCOME_YEAR_PRICE, welcomeOfferRemainingMs } from "@/lib/billing/plans"
 import { getCategories } from "@/lib/data/categories"
 import {
   getBudgetStatus,
@@ -115,6 +118,17 @@ export default async function HomePage() {
           }}
         />
       </div>
+      {/* Sin Premium, la oferta o la prueba gratis siempre a mano. */}
+      {!entitlement.premium && getBillingConfig() ? (
+        <HomePremiumBar
+          labels={dict.plans.bar}
+          label={dict.plans.premium.name}
+          offerRemainingMs={welcomeOfferRemainingMs(profile?.welcome_offer_started_at ?? null)}
+          trialAvailable={entitlement.trialAvailable}
+          welcomePrice={formatCents(WELCOME_YEAR_PRICE)}
+          monthPrice={formatCents(PREMIUM_PRICES.month)}
+        />
+      ) : null}
     </>
   )
 }

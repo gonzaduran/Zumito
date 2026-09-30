@@ -1,16 +1,16 @@
 import { AppHeader } from "@/components/layout/app-header"
 import { PlansView } from "@/components/plans/plans-view"
 import { defaultTimeZone } from "@/i18n/config"
-import { formatCents, formatLongDate, formatPercent } from "@/i18n/format"
+import { formatCents, formatLongDate } from "@/i18n/format"
 import { getDictionary } from "@/i18n/get-dictionary"
 import { interpolate } from "@/i18n/interpolate"
 import { getBillingConfig } from "@/lib/billing/config"
 import {
   PREMIUM_PRICES,
   TRIAL_DAYS,
-  WELCOME_DISCOUNT_PERCENT,
   WELCOME_YEAR_PRICE,
-  YEARLY_SAVING_PERCENT,
+  WELCOME_SAVING_CENTS,
+  YEARLY_SAVING_CENTS,
   welcomeOfferRemainingMs,
   type Entitlement,
 } from "@/lib/billing/plans"
@@ -68,8 +68,8 @@ export default async function PlansPage({ searchParams }: PageProps<"/planes">) 
             year: formatCents(PREMIUM_PRICES.year),
             yearMonthly: formatCents(Math.floor(PREMIUM_PRICES.year / 12)),
             welcomeYear: formatCents(WELCOME_YEAR_PRICE),
-            savePercent: formatPercent(YEARLY_SAVING_PERCENT),
-            discountPercent: formatPercent(WELCOME_DISCOUNT_PERCENT),
+            yearSaving: formatCents(YEARLY_SAVING_CENTS),
+            welcomeSaving: formatCents(WELCOME_SAVING_CENTS),
           }}
           premium={entitlement.premium}
           statusMessage={statusMessage(entitlement, labels.status, timeZone)}

@@ -5,7 +5,8 @@ import {
   subscriptionToRow,
   WELCOME_YEAR_PRICE,
   welcomeOfferRemainingMs,
-  YEARLY_SAVING_PERCENT,
+  WELCOME_SAVING_CENTS,
+  YEARLY_SAVING_CENTS,
   type SubscriptionRow,
 } from "./plans"
 
@@ -67,9 +68,10 @@ describe("oferta de bienvenida", () => {
     expect(welcomeOfferRemainingMs(null)).toBe(0)
   })
 
-  it("precios: 8,99 € el primer año y un 44 % de ahorro en el anual", () => {
+  it("precios: 8,99 € el primer año; se ahorran 7,89 € con el anual y 8,89 € con la oferta", () => {
     expect(WELCOME_YEAR_PRICE).toBe(899)
-    expect(YEARLY_SAVING_PERCENT).toBe(44)
+    expect(YEARLY_SAVING_CENTS).toBe(789)
+    expect(WELCOME_SAVING_CENTS).toBe(889)
   })
 })
 

@@ -17,10 +17,15 @@ export const WELCOME_YEAR_PRICE = Math.round(
   PREMIUM_PRICES.year * (1 - WELCOME_DISCOUNT_PERCENT / 100),
 )
 
-/** Ahorro del plan anual frente a 12 meses: 44 %. */
-export const YEARLY_SAVING_PERCENT = Math.round(
-  (1 - PREMIUM_PRICES.year / (PREMIUM_PRICES.month * 12)) * 100,
-)
+/** Lo que cuesta un año pagando cada mes: 17,88 €. */
+const TWELVE_MONTHS = PREMIUM_PRICES.month * 12
+
+/**
+ * Ahorro en euros frente a pagar cada mes durante un año (se entiende antes que un %):
+ * 7,89 € con el anual y 8,89 € el primer año con la oferta de bienvenida.
+ */
+export const YEARLY_SAVING_CENTS = TWELVE_MONTHS - PREMIUM_PRICES.year
+export const WELCOME_SAVING_CENTS = TWELVE_MONTHS - WELCOME_YEAR_PRICE
 
 /** Estados de Stripe que dan acceso: en prueba, activa y pendiente de cobro (Stripe reintenta). */
 const PREMIUM_STATUSES = new Set(["trialing", "active", "past_due"])

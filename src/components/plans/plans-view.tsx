@@ -3,16 +3,20 @@
 import { cn } from "cn"
 import { Check, Clock, Lock, ShieldCheck, Sparkles } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useState, useTransition } from "react"
+import { useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { formatCountdown, useCountdown } from "@/hooks/use-countdown"
 import type { Dictionary } from "@/i18n/get-dictionary"
 import { interpolate } from "@/i18n/interpolate"
 import { openBillingPortal, startCheckout, type BillingActionResult } from "@/lib/actions/billing"
 import type { BillingInterval } from "@/lib/billing/plans"
+
+import { PremiumBar, premiumBarActionClass } from "./premium-bar"
+import { PremiumPreview } from "./premium-preview"
 
 export type PlansViewProps = {
   labels: Dictionary["plans"]
@@ -22,8 +26,9 @@ export type PlansViewProps = {
     year: string
     yearMonthly: string
     welcomeYear: string
-    savePercent: string
-    discountPercent: string
+    /** Ahorro frente a pagar cada mes un año: con el anual y con la oferta. */
+    yearSaving: string
+    welcomeSaving: string
   }
   premium: boolean
   /** Mensaje de estado de la suscripción (prueba, renovación…), si es Premium. */
@@ -39,24 +44,6 @@ export type PlansViewProps = {
   showContinueFree: boolean
 }
 
-const pad = (value: number) => String(value).padStart(2, "0")
-
-/** Cuenta atrás en el navegador a partir de lo que dijo el servidor (el servidor decide al pagar). */
-function useCountdown(initialMs: number) {
-  const [end] = useState(() => Date.now() + initialMs)
-  const [left, setLeft] = useState(initialMs)
-  useEffect(() => {
-    if (initialMs <= 0) return
-    const timer = setInterval(() => {
-      const next = Math.max(0, end - Date.now())
-      setLeft(next)
-      if (next === 0) clearInterval(timer)
-    }, 250)
-    return () => clearInterval(timer)
-  }, [end, initialMs])
-  return left
-}
-
 export function PlansView(props: PlansViewProps) {
   const { labels, prices, premium } = props
   const [interval, setInterval] = useState<BillingInterval>("year")
@@ -64,10 +51,10 @@ export function PlansView(props: PlansViewProps) {
   const left = useCountdown(props.offerRemainingMs)
   const offerLive = left > 0 && !premium
   const withOffer = offerLive && interval === "year"
-  const seconds = Math.ceil(left / 1000)
 
   const price = interval === "year" ? (withOffer ? prices.welcomeYear : prices.year) : prices.month
   const cta = props.trialAvailable ? labels.trialCta : labels.subscribeCta
+  const saving = withOffer ? prices.welcomeSaving : prices.yearSaving
 
   const run = (action: () => Promise<BillingActionResult>) =>
     startTransition(async () => {
@@ -114,6 +101,8 @@ export function PlansView(props: PlansViewProps) {
             <p className="mt-1 text-[15px] text-muted-foreground">{labels.heroText}</p>
           </div>
 
+          <PremiumPreview labels={labels.preview} />
+
           {props.offerRemainingMs > 0 ? (
             <section
               aria-label={labels.offerBadge}
@@ -126,11 +115,11 @@ export function PlansView(props: PlansViewProps) {
               {offerLive ? (
                 <>
                   <p className="mt-3 text-[22px] leading-tight font-extrabold">
-                    {interpolate(labels.offerTitle, { percent: prices.discountPercent })}
+                    {interpolate(labels.offerTitle, { price: prices.welcomeYear })}
                   </p>
                   <p className="mt-1 text-sm font-semibold">
                     {interpolate(labels.offerText, {
-                      price: prices.welcomeYear,
+                      saving: prices.welcomeSaving,
                       regular: prices.year,
                     })}
                   </p>
@@ -141,7 +130,7 @@ export function PlansView(props: PlansViewProps) {
                       aria-live="off"
                       className="num text-[44px] leading-none font-extrabold tracking-tight"
                     >
-                      {pad(Math.floor(seconds / 60))}:{pad(seconds % 60)}
+                      {formatCountdown(left)}
                     </p>
                   </div>
                 </>
@@ -157,7 +146,7 @@ export function PlansView(props: PlansViewProps) {
               <TabsTrigger value="year" className="gap-1.5">
                 {labels.yearly}
                 <span className="ml-1.5 rounded-full bg-primary px-2 py-0.5 text-[11px] font-extrabold text-primary-foreground">
-                  {interpolate(labels.saveBadge, { percent: prices.savePercent })}
+                  {interpolate(labels.saveBadge, { amount: saving })}
                 </span>
               </TabsTrigger>
             </TabsList>
@@ -194,7 +183,7 @@ export function PlansView(props: PlansViewProps) {
             </p>
             {interval === "year" ? (
               <p className="mt-1 text-sm font-bold text-positive">
-                {interpolate(labels.monthlyEquivalent, { amount: prices.yearMonthly })}
+                {interpolate(labels.monthlyEquivalent, { amount: prices.yearMonthly, saving })}
               </p>
             ) : null}
           </div>
@@ -310,6 +299,30 @@ export function PlansView(props: PlansViewProps) {
           ))}
         </div>
       </section>
+
+      {!premium && props.paymentsEnabled ? (
+        <PremiumBar
+          label={labels.premium.name}
+          title={cta}
+          text={
+            <span className="num">
+              {interval === "year"
+                ? interpolate(labels.bar.checkoutYear, { price, saving })
+                : interpolate(labels.bar.checkoutMonth, { price })}
+            </span>
+          }
+          action={
+            <button
+              type="button"
+              className={premiumBarActionClass}
+              disabled={pending}
+              onClick={() => run(() => startCheckout(interval))}
+            >
+              {props.trialAvailable ? labels.bar.trialCta : labels.bar.subscribeCta}
+            </button>
+          }
+        />
+      ) : null}
     </div>
   )
 }
