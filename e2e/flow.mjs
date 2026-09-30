@@ -158,6 +158,14 @@ await goto("/historial")
 check("/historial redirige a /login", (await path()) === "/login", await path())
 await shot("01-login")
 await audit("login")
+const splash = await evaluate(
+  "Promise.all([...document.querySelectorAll('link[rel=apple-touch-startup-image]')].map((l) => fetch(l.href).then((r) => r.ok && r.headers.get('content-type') === 'image/png')))",
+)
+check(
+  "pantallas de carga de iPhone declaradas y accesibles sin sesión",
+  splash.length === 9 && splash.every(Boolean),
+  JSON.stringify(splash),
+)
 
 console.log("Login")
 await fill("#email", "limite@test.es")

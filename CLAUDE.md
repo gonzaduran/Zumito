@@ -134,6 +134,7 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
   - se registra con `SerwistProvider` en el layout raíz (desactivado en desarrollo).
 - Manifest: `src/app/manifest.ts`.
 - Iconos: `public/icons` (192, 512 y maskable), `src/app/apple-icon.png` y el favicon `src/app/icon.svg`. Se generan a partir del logo provisional; hay que regenerarlos cuando llegue el definitivo.
+- Pantallas de carga de iPhone (logo sobre `#FAFAFA`): `public/splash`, declaradas en `appleWebApp.startupImage` desde `src/lib/splash-screens.json`. Se generan a partir del logo, igual que los iconos.
 - `/~offline`: se muestra si no hay red y la página no estaba en caché. El proxy deja públicas `/serwist` y `/~offline`.
 - Gastos sin conexión (`src/lib/offline-queue.ts`):
   - van a una cola en `localStorage`;

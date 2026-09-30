@@ -5,6 +5,7 @@ import { Inter, Manrope } from "next/font/google"
 import { Toaster } from "@/components/ui/sonner"
 import { defaultLocale } from "@/i18n/config"
 import { getDictionary } from "@/i18n/get-dictionary"
+import splashScreens from "@/lib/splash-screens.json"
 
 import "./globals.css"
 
@@ -26,7 +27,13 @@ export async function generateMetadata(): Promise<Metadata> {
     applicationName: dict.app.name,
     title: dict.app.name,
     description: dict.app.description,
-    appleWebApp: { capable: true, title: dict.app.name, statusBarStyle: "default" },
+    appleWebApp: {
+      capable: true,
+      title: dict.app.name,
+      statusBarStyle: "default",
+      // Pantalla de carga de la app instalada en iPhone (logo sobre el fondo de la app).
+      startupImage: splashScreens,
+    },
     formatDetection: { telephone: false },
   }
 }
