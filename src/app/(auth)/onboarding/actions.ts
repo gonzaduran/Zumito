@@ -55,5 +55,6 @@ export async function completeOnboarding(
   // Si venía de un enlace (p. ej. /add?importe=3), vuelve allí.
   const next = await readNext()
   await rememberNext(null)
-  redirect(next ?? "/")
+  // Sin destino pedido, se presentan los planes (con la opción de seguir gratis).
+  redirect(next ?? "/planes?bienvenida=1")
 }

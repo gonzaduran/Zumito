@@ -147,3 +147,11 @@ export function formatMonthName(
     timeZone: "UTC",
   }).format(date)
 }
+
+/** "7 de octubre" en la zona horaria dada. */
+export function formatLongDate(
+  date: Date,
+  { locale = defaultLocale, timeZone = defaultTimeZone }: FormatOptions = {},
+): string {
+  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", timeZone }).format(date)
+}

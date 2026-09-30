@@ -114,7 +114,11 @@
     "deleteDescription": "Se borrarán tu cuenta y todos tus gastos, categorías y presupuestos. No se puede deshacer.",
     "deleteConfirm": "Sí, borrar todo",
     "deleteCancel": "Cancelar",
-    "deleteFailed": "No se ha podido borrar la cuenta"
+    "deleteFailed": "No se ha podido borrar la cuenta",
+    "plan": "Tu plan",
+    "planFree": "Gratis · Prueba Premium 7 días",
+    "planPremium": "Premium",
+    "planFounder": "Fundador · Premium para siempre"
   },
   "addExpense": {
     "title": "Nuevo gasto",
@@ -343,5 +347,95 @@
     "errorTitle": "Algo ha fallado",
     "errorDescription": "No hemos podido cargar esta pantalla. Inténtalo de nuevo.",
     "retry": "Reintentar"
+  },
+  "plans": {
+    "title": "Planes",
+    "heroTitle": "Saca todo el partido a tu dinero",
+    "heroText": "Prueba Premium 7 días gratis. Cancela cuando quieras.",
+    "intervalLabel": "Forma de pago",
+    "monthly": "Mensual",
+    "yearly": "Anual",
+    "saveBadge": "Ahorra {percent}",
+    "perMonth": "/mes",
+    "perYear": "/año",
+    "monthlyEquivalent": "Solo {amount} al mes",
+    "offerBadge": "Oferta de bienvenida",
+    "offerTitle": "−{percent} en el plan anual",
+    "offerText": "{price} el primer año en lugar de {regular}.",
+    "offerEndsIn": "Termina en",
+    "offerEnded": "La oferta de bienvenida ha terminado.",
+    "mostChosen": "El más elegido",
+    "currentPlan": "Tu plan actual",
+    "soon": "Muy pronto",
+    "soonNote": "Lo que llega a Premium se incluye sin coste extra.",
+    "free": {
+      "name": "Gratis",
+      "tagline": "Todo lo esencial, para siempre",
+      "features": [
+        "Gastos, categorías e historial ilimitados",
+        "Registro en 5 segundos, también sin conexión",
+        "Lugar, con quién, nota y estado de ánimo",
+        "Buscador y filtros del historial",
+        "Estadísticas del mes y de 6 meses",
+        "Presupuesto total del mes",
+        "Exporta tus datos cuando quieras"
+      ]
+    },
+    "premium": {
+      "name": "Premium",
+      "tagline": "Controla tu dinero a fondo",
+      "features": ["Todo lo del plan Gratis", "Presupuestos por categoría con avisos"],
+      "upcoming": [
+        "Dividir gastos y grupos con tus amigos",
+        "Atajos: apunta con el botón de acción del iPhone",
+        "Gastos recurrentes y objetivos de ahorro",
+        "Estadísticas por lugar, persona y día de la semana"
+      ]
+    },
+    "friends": {
+      "name": "Amigos",
+      "tagline": "Premium para hasta 5 personas",
+      "price": "3,99 €/mes"
+    },
+    "trialCta": "Empezar 7 días gratis",
+    "subscribeCta": "Hazte Premium",
+    "trialNote": "Hoy no pagas nada. El {date} se cobran {price} y se renueva solo. Cancela cuando quieras.",
+    "renewNote": "Se renueva solo. Cancela cuando quieras.",
+    "continueFree": "Seguir con el plan gratis",
+    "manage": "Gestionar suscripción",
+    "status": {
+      "trialing": "Estás probando Premium gratis hasta el {date}. Después se renueva solo.",
+      "active": "Premium activo. Se renueva el {date}.",
+      "canceling": "Tienes Premium hasta el {date}. No se renovará.",
+      "pastDue": "No hemos podido cobrar la renovación. Revisa tu tarjeta para no perder Premium.",
+      "founder": "Eres Fundador: Premium gratis para siempre. ¡Gracias por estar desde el principio!"
+    },
+    "successTitle": "¡Ya tienes Premium!",
+    "successText": "Si has empezado la prueba, no se te cobrará nada hasta dentro de 7 días.",
+    "notConfigured": "Los pagos se activarán muy pronto.",
+    "failed": "No hemos podido abrir el pago. Inténtalo de nuevo.",
+    "secure": "Pago seguro con Stripe · Apple Pay y tarjeta · Sin permanencia",
+    "faqTitle": "Preguntas frecuentes",
+    "faq": [
+      {
+        "q": "¿Me cobráis algo durante la prueba?",
+        "a": "No. Te pedimos la tarjeta para que Premium siga sin cortes, pero el primer cobro es al terminar los 7 días. Si cancelas antes, no pagas nada."
+      },
+      {
+        "q": "¿Cómo cancelo?",
+        "a": "Desde Ajustes → Tu plan → Gestionar suscripción. Son dos toques y no hay permanencia."
+      },
+      {
+        "q": "¿Qué pasa con mis datos si vuelvo al plan gratis?",
+        "a": "No se borra nada. Lo que es de Premium queda en pausa con un candado y vuelve en cuanto lo reactives."
+      },
+      {
+        "q": "¿Los precios llevan IVA?",
+        "a": "Sí, todos los precios incluyen IVA."
+      }
+    ],
+    "locked": "Premium",
+    "unlock": "Desbloquear con Premium",
+    "pausedBudget": "En pausa: los presupuestos por categoría son de Premium."
   }
 }

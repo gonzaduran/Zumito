@@ -17,7 +17,7 @@ import {
   getSpendingByCategory,
   searchExpenses,
 } from "@/lib/data/expenses"
-import { getCurrentProfile } from "@/lib/data/profile"
+import { getCurrentProfile, getEntitlement } from "@/lib/data/profile"
 import { pickBudgetNotice, totalBudgetRing } from "@/lib/budget-view"
 import { toRecentExpenses } from "@/lib/expense-view"
 import { comparisonRange, monthRange, percentChange } from "@/lib/periods"
@@ -34,17 +34,31 @@ export default async function HomePage() {
   const month = monthRange(today.slice(0, 7))
   const previous = comparisonRange(today.slice(0, 7), today)
 
-  const [summary, recent, categories, byCategory, previousByCategory, budgets, places, people] =
-    await Promise.all([
-      getExpenseSummary(),
-      searchExpenses({ limit: 5 }),
-      getCategories(),
-      getSpendingByCategory(month.from, month.to),
-      getSpendingByCategory(previous.from, previous.to),
-      getBudgetStatus(),
-      getPlaces(),
-      getPeople(),
-    ])
+  const [
+    summary,
+    recent,
+    categories,
+    byCategory,
+    previousByCategory,
+    allBudgets,
+    places,
+    people,
+    entitlement,
+  ] = await Promise.all([
+    getExpenseSummary(),
+    searchExpenses({ limit: 5 }),
+    getCategories(),
+    getSpendingByCategory(month.from, month.to),
+    getSpendingByCategory(previous.from, previous.to),
+    getBudgetStatus(),
+    getPlaces(),
+    getPeople(),
+    getEntitlement(),
+  ])
+  // Sin Premium, los presupuestos por categoría quedan en pausa: solo cuenta el total.
+  const budgets = entitlement.premium
+    ? allBudgets
+    : allBudgets.filter((row) => row.category_id === null)
   const budgetNotice = pickBudgetNotice(budgets, dict.budgets.notice)
 
   const previousMonthCents = previousByCategory.reduce((acc, row) => acc + row.total_cents, 0)

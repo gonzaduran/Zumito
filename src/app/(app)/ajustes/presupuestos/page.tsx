@@ -6,15 +6,16 @@ import { getDictionary } from "@/i18n/get-dictionary"
 import { fromCents } from "@/lib/amount-input"
 import { getCategories } from "@/lib/data/categories"
 import { getBudgetStatus, getSpendingByCategory } from "@/lib/data/expenses"
-import { getCurrentProfile } from "@/lib/data/profile"
+import { getCurrentProfile, getEntitlement } from "@/lib/data/profile"
 import { monthRange } from "@/lib/periods"
 
 export default async function BudgetsPage() {
-  const [dict, profile, categories, status] = await Promise.all([
+  const [dict, profile, categories, status, entitlement] = await Promise.all([
     getDictionary(),
     getCurrentProfile(),
     getCategories(),
     getBudgetStatus(),
+    getEntitlement(),
   ])
   const labels = dict.budgets
   const month = monthRange(
@@ -57,7 +58,12 @@ export default async function BudgetsPage() {
       <AppHeader title={labels.title} back={{ href: "/ajustes", label: labels.back }} />
       <div className="flex flex-col gap-6 px-6 pt-2 pb-8">
         <p className="text-sm text-muted-foreground">{labels.intro}</p>
-        <BudgetsForm labels={labels} total={total} categories={categoryFields} />
+        <BudgetsForm
+          labels={labels}
+          total={total}
+          categories={categoryFields}
+          lock={entitlement.premium ? null : dict.plans}
+        />
       </div>
     </>
   )

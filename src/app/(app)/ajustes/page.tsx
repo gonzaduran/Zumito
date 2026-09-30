@@ -1,4 +1,4 @@
-import { Download, PiggyBank, Tags } from "lucide-react"
+import { Crown, Download, PiggyBank, Tags } from "lucide-react"
 
 import { Logo } from "@/components/brand/logo"
 import { AppHeader } from "@/components/layout/app-header"
@@ -9,7 +9,7 @@ import { SettingsLink } from "@/components/settings/settings-link"
 import { SignOutButton } from "@/components/settings/sign-out-button"
 import { Card } from "@/components/ui/card"
 import { getDictionary } from "@/i18n/get-dictionary"
-import { getCurrentProfile, getCurrentUser } from "@/lib/data/profile"
+import { getCurrentProfile, getCurrentUser, getEntitlement } from "@/lib/data/profile"
 
 function Section({
   id,
@@ -31,12 +31,19 @@ function Section({
 }
 
 export default async function SettingsPage() {
-  const [dict, user, profile] = await Promise.all([
+  const [dict, user, profile, entitlement] = await Promise.all([
     getDictionary(),
     getCurrentUser(),
     getCurrentProfile(),
+    getEntitlement(),
   ])
   const labels = dict.settings
+  const planHint =
+    entitlement.source === "founder"
+      ? labels.planFounder
+      : entitlement.premium
+        ? labels.planPremium
+        : labels.planFree
 
   return (
     <>
@@ -53,6 +60,7 @@ export default async function SettingsPage() {
         <InstallAppCard labels={dict.install} />
 
         <Card className="p-0">
+          <SettingsLink href="/planes" icon={Crown} title={labels.plan} hint={planHint} />
           <SettingsLink
             href="/ajustes/categorias"
             icon={Tags}

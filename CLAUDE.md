@@ -61,6 +61,13 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - El contraste se verifica en cada pantalla con axe-core dentro de `npm run test:e2e`. Un cálculo a mano no basta: los fondos reales (cristal sobre velo, fondos tenues sobre la página) cambian el resultado.
 - Clases propias: `num` para cifras (Inter con números tabulares) y `tap` para zonas táctiles de 44px.
 
+## Planes y pagos
+
+- Gratis / Premium (1,49 €/mes, 9,99 €/año) / Amigos (próximamente). Precios en `src/lib/billing/plans.ts`.
+- Prueba de 7 días con tarjeta y renovación automática (Stripe Checkout). Oferta de bienvenida: −10 % primer año anual, 5 min desde `start_welcome_offer`.
+- Premium se decide siempre en servidor (`getEntitlement`) y en la base de datos (`is_premium`). Lo bloqueado se muestra con candado, no se esconde.
+- El estado de pago solo lo escribe el webhook con `SUPABASE_SECRET_KEY` (nunca en el cliente).
+
 ## Estructura
 
 - `src/app/(app)`: pantallas con la barra inferior (Inicio, Historial, Estadísticas, Ajustes).

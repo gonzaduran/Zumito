@@ -255,7 +255,65 @@ await sleep(300)
 await shot("05-onboarding-2")
 await audit("onboarding 2")
 await clickText("Empezar")
-check("al terminar va al inicio", await waitFor(async () => (await path()) === "/"), await path())
+check(
+  "al terminar presenta los planes",
+  await waitFor(async () => (await path()) === "/planes?bienvenida=1"),
+  await path(),
+)
+await waitFor(async () =>
+  Boolean(await evaluate("Boolean(document.querySelector('[role=timer]'))")),
+)
+const plansText = await text()
+check(
+  "con la oferta de bienvenida y su cuenta atrás",
+  plansText.includes("Oferta de bienvenida") &&
+    /0[45]:\d\d/.test(await evaluate("document.querySelector('[role=timer]')?.innerText ?? ''")),
+  plansText,
+)
+check(
+  "el anual por defecto, con el precio tachado y el de oferta",
+  plansText.includes("9,99 €") && plansText.includes("8,99 €") && plansText.includes("Ahorra 44 %"),
+  plansText,
+)
+check(
+  "explica la prueba de 7 días y la renovación",
+  plansText.includes("Empezar 7 días gratis") &&
+    plansText.includes("Hoy no pagas nada") &&
+    plansText.includes("se renueva solo"),
+  plansText,
+)
+check(
+  "la oferta empieza una sola vez",
+  Boolean((await mock()).profile.welcome_offer_started_at),
+  JSON.stringify((await mock()).profile),
+)
+const offerStart = (await mock()).profile.welcome_offer_started_at
+await evaluate(
+  "[...document.querySelectorAll('[role=tab]')].find((t) => t.innerText.includes('Mensual')).click()",
+)
+await sleep(300)
+check(
+  "en mensual se ve 1,49 € al mes",
+  (await text()).includes("1,49 €") && (await text()).includes("/mes"),
+  await text(),
+)
+await shot("05b-planes")
+await audit("planes")
+await goto("/planes")
+check(
+  "volver a entrar no reinicia la cuenta atrás",
+  (await mock()).profile.welcome_offer_started_at === offerStart,
+  (await mock()).profile.welcome_offer_started_at,
+)
+await goto("/planes?bienvenida=1")
+await evaluate(
+  "[...document.querySelectorAll('a')].find((a) => a.innerText.includes('Seguir con el plan gratis')).click()",
+)
+check(
+  "seguir gratis lleva al inicio",
+  await waitFor(async () => (await path()) === "/"),
+  await path(),
+)
 const log = await (await fetch("http://localhost:54329/__log")).json()
 const rpc = log.log.find((l) => l.startsWith("rpc "))
 const body = rpc ? JSON.parse(rpc.slice(4)) : null
@@ -582,6 +640,21 @@ check(
   (await evaluate("document.querySelector('nav a[aria-current=page]')?.innerText")) === "Ajustes",
 )
 const cafesId = (await mock()).categories.find((c) => c.name === "Cafés").id
+check(
+  "sin Premium, los de categoría tienen candado",
+  (await text()).includes("Desbloquear con Premium") &&
+    (await evaluate(`document.querySelector('#budget-${cafesId}').disabled`)) === true,
+  await text(),
+)
+check(
+  "y el total sí se puede editar",
+  (await evaluate("document.querySelector('#budget-total').disabled")) === false,
+)
+await shot("16b-presupuestos-candado")
+await audit("presupuestos con candado")
+// Fundador: Premium concedido a mano.
+await fetch("http://localhost:54329/__profile?premium_comp=true")
+await goto("/ajustes/presupuestos")
 await fill("#budget-total", "doce")
 await clickText("Guardar presupuestos")
 check(
@@ -627,6 +700,22 @@ check(
 )
 check("y el anillo muestra el % del total", (await text()).includes("70 %"), await text())
 await shot("18-inicio-presupuesto")
+await fetch("http://localhost:54329/__profile?premium_comp=false")
+await goto("/")
+check(
+  "si deja de ser Premium, el aviso de categoría se pausa",
+  !(await text()).includes("Te has pasado del presupuesto de Cafés"),
+  await text(),
+)
+await goto("/ajustes/presupuestos")
+await waitFor(async () => (await text()).includes("En pausa"))
+check(
+  "y los presupuestos de categoría quedan en pausa, sin borrarse",
+  (await text()).includes("En pausa") &&
+    (await evaluate(`document.querySelector('#budget-${cafesId}').value`)) === "10",
+  await text(),
+)
+await fetch("http://localhost:54329/__profile?premium_comp=true")
 await goto("/ajustes/presupuestos")
 await fill(`#budget-${cafesId}`, "")
 await clickText("Guardar presupuestos")
@@ -1096,6 +1185,11 @@ await goto("/onboarding")
 check("con onboarding hecho, /onboarding lleva al inicio", (await path()) === "/", await path())
 await goto("/ajustes")
 check("ajustes muestra el email", (await text()).includes("gonzalo@test.es"), await text())
+check(
+  "y el plan: Fundador",
+  (await text()).includes("Fundador · Premium para siempre"),
+  await text(),
+)
 await shot("07-ajustes")
 await audit("ajustes")
 // Un gasto pendiente de esta cuenta y pantallas en caché: no deben quedar en el dispositivo.

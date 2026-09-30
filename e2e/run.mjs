@@ -14,6 +14,14 @@ const env = {
   NEXT_DIST_DIR: ".next-e2e",
   NEXT_PUBLIC_SUPABASE_URL: `http://localhost:${MOCK_PORT}`,
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "clave-de-prueba",
+  // Pagos "configurados" con valores falsos: la pantalla de planes se ve completa
+  // (las pruebas no llegan a abrir Stripe).
+  STRIPE_SECRET_KEY: "sk_test_e2e",
+  STRIPE_WEBHOOK_SECRET: "whsec_e2e",
+  STRIPE_PRICE_PREMIUM_MONTHLY: "price_e2e_month",
+  STRIPE_PRICE_PREMIUM_YEARLY: "price_e2e_year",
+  STRIPE_COUPON_WELCOME: "ZUMITO_BIENVENIDA_10",
+  SUPABASE_SECRET_KEY: "sb_secret_e2e_no_se_usa_nunca",
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))

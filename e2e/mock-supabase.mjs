@@ -16,7 +16,13 @@ const user = {
 }
 const now = () => Math.floor(Date.now() / 1000)
 const token = `${b64({ alg: "HS256", typ: "JWT" })}.${b64({ sub: user.id, email: user.email, role: "authenticated", aud: "authenticated", iat: now(), exp: now() + 3600, session_id: "s1" })}.${Buffer.from("firma-de-prueba").toString("base64url")}`
-const profile = { display_name: null, onboarded_at: null, timezone: "Europe/Madrid" }
+const profile = {
+  display_name: null,
+  onboarded_at: null,
+  timezone: "Europe/Madrid",
+  premium_comp: false,
+  welcome_offer_started_at: null,
+}
 let categories = []
 let expenses = []
 let budgets = []
@@ -73,7 +79,8 @@ createServer(async (req, res) => {
   if (url.pathname === "/__log")
     return send(res, 200, { log, profile, categories, expenses, budgets, places, people })
   if (url.pathname === "/__profile") {
-    Object.assign(profile, Object.fromEntries(url.searchParams))
+    for (const [key, value] of url.searchParams)
+      profile[key] = value === "true" ? true : value === "false" ? false : value
     return send(res, 200, profile)
   }
   if (url.pathname === "/__fail") {
@@ -111,6 +118,11 @@ createServer(async (req, res) => {
 
   // --- Datos ---
   if (req.method === "GET" && url.pathname === "/rest/v1/profiles") return rows(req, res, [profile])
+  if (req.method === "GET" && url.pathname === "/rest/v1/subscriptions") return rows(req, res, [])
+  if (req.method === "POST" && url.pathname === "/rest/v1/rpc/start_welcome_offer") {
+    profile.welcome_offer_started_at ??= new Date().toISOString()
+    return send(res, 200, profile.welcome_offer_started_at)
+  }
   if (req.method === "POST" && url.pathname === "/rest/v1/rpc/complete_onboarding") {
     const body = await readBody(req)
     log.push(`rpc ${JSON.stringify(body)}`)
@@ -358,7 +370,13 @@ createServer(async (req, res) => {
   if (req.method === "POST" && url.pathname === "/rest/v1/rpc/set_budgets") {
     const body = await readBody(req)
     log.push(`budgets ${JSON.stringify(body)}`)
-    budgets = body.p_budgets
+    // Como en la base de datos: sin Premium solo cambia el total y los de categoría se conservan.
+    budgets = profile.premium_comp
+      ? body.p_budgets
+      : [
+          ...body.p_budgets.filter((b) => b.category_id === null),
+          ...budgets.filter((b) => b.category_id !== null),
+        ]
     return send(res, 204)
   }
   if (req.method === "POST" && url.pathname === "/rest/v1/rpc/budget_status") {

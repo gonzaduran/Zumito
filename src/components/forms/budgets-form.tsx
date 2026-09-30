@@ -1,6 +1,8 @@
 "use client"
 
 import { cn } from "cn"
+import { Lock } from "lucide-react"
+import Link from "next/link"
 import { startTransition, useActionState, useEffect } from "react"
 import { toast } from "sonner"
 
@@ -32,6 +34,8 @@ type BudgetsFormProps = {
   labels: Dictionary["budgets"]
   total: BudgetField
   categories: BudgetField[]
+  /** Sin Premium: textos del candado. Los presupuestos por categoría se ven pero no se editan. */
+  lock: Pick<Dictionary["plans"], "locked" | "unlock" | "pausedBudget"> | null
 }
 
 const initialState: SaveBudgetsState = { status: "idle", invalid: [] }
@@ -41,11 +45,13 @@ function BudgetRow({
   name,
   labels,
   invalid,
+  disabled = false,
 }: {
   field: BudgetField
   name: string
   labels: Dictionary["budgets"]
   invalid: boolean
+  disabled?: boolean
 }) {
   const inputId = `budget-${field.id}`
   const hintId = `${inputId}-hint`
@@ -69,6 +75,7 @@ function BudgetRow({
             autoComplete="off"
             placeholder={labels.placeholder}
             defaultValue={field.value}
+            disabled={disabled}
             aria-invalid={invalid || undefined}
             aria-describedby={hintId}
             className="h-11 pr-8 text-right num font-bold placeholder:text-sm placeholder:font-semibold"
@@ -109,7 +116,7 @@ function BudgetRow({
 }
 
 /** Presupuesto total del mes y por categoría. Un campo vacío es "sin límite". */
-export function BudgetsForm({ labels, total, categories }: BudgetsFormProps) {
+export function BudgetsForm({ labels, total, categories, lock }: BudgetsFormProps) {
   const [state, formAction, saving] = useActionState(saveBudgets, initialState)
 
   useEffect(() => {
@@ -144,9 +151,31 @@ export function BudgetsForm({ labels, total, categories }: BudgetsFormProps) {
       </section>
 
       <section aria-labelledby="budget-categories-title">
-        <h2 id="budget-categories-title" className="mb-1 text-[15px] font-extrabold">
-          {labels.byCategoryTitle}
-        </h2>
+        <div className="mb-1 flex items-center justify-between gap-3">
+          <h2 id="budget-categories-title" className="text-[15px] font-extrabold">
+            {labels.byCategoryTitle}
+          </h2>
+          {lock ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-bold">
+              <Lock aria-hidden="true" className="size-3.5" />
+              {lock.locked}
+            </span>
+          ) : null}
+        </div>
+        {lock ? (
+          <div className="mb-2 flex flex-col gap-1">
+            {categories.some((field) => field.value) ? (
+              <p className="text-xs text-muted-foreground">{lock.pausedBudget}</p>
+            ) : null}
+            <Link
+              href="/planes"
+              className="flex min-h-11 items-center gap-2 text-sm font-bold text-primary-text outline-none focus-visible:rounded-md focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              <Lock aria-hidden="true" className="size-4" />
+              {lock.unlock}
+            </Link>
+          </div>
+        ) : null}
         <Card className="py-1">
           {categories.map((field) => (
             <BudgetRow
@@ -155,6 +184,7 @@ export function BudgetsForm({ labels, total, categories }: BudgetsFormProps) {
               name={`category:${field.id}`}
               labels={labels}
               invalid={isInvalid(field.id)}
+              disabled={lock !== null}
             />
           ))}
         </Card>
