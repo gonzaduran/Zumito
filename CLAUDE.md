@@ -63,11 +63,11 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 
 ## Mi dinero (ingresos)
 
-- Migración : (a mano o generados) y (la nómina: importe, concepto y día del mes 1-31; si el mes es más corto, el último día).
-- apunta los meses que ya tocan en la zona del usuario. Es idempotente () y guarda , así que un ingreso generado que se borra no vuelve. Se llama al leer el Inicio y Mi dinero ().
-- Al reanudar un programado no se apuntan los meses en pausa ( = hoy).
+- Migración `20261003090000_incomes.sql`: `incomes` (a mano o generados) y `recurring_incomes` (la nómina: importe, concepto y día del mes 1-31; si el mes es más corto, el último día).
+- `apply_recurring_incomes()` apunta los meses que ya tocan en la zona del usuario. Es idempotente (`unique (recurring_id, period)`) y guarda `last_period`, así que un ingreso generado que se borra no vuelve. Se llama al leer el Inicio y Mi dinero (`src/lib/data/incomes.ts`).
+- Al reanudar un programado no se apuntan los meses en pausa (`starts_on` = hoy).
 - Gratis: ingresos a mano ilimitados y un ingreso programado. Premium: varios (acción de servidor + trigger en la base de datos).
-- Inicio: tarjeta "Te quedan este mes" (ingresos − gastos del mes) o, sin ingresos, invitación a añadir la nómina. Pantalla en .
+- Inicio: tarjeta "Te quedan este mes" (ingresos − gastos del mes) o, sin ingresos, invitación a añadir la nómina. Pantalla en `/ajustes/dinero`.
 
 ## Planes y pagos
 
