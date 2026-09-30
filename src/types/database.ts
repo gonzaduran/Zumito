@@ -253,9 +253,100 @@ export type Database = {
           },
         ]
       }
+      recurring_incomes: {
+        Row: {
+          id: string
+          user_id: string
+          description: string
+          amount_cents: number
+          day_of_month: number
+          active: boolean
+          starts_on: string
+          last_period: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string
+          description: string
+          amount_cents: number
+          day_of_month: number
+          active?: boolean
+          starts_on?: string
+          last_period?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          description?: string
+          amount_cents?: number
+          day_of_month?: number
+          active?: boolean
+          starts_on?: string
+          last_period?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      incomes: {
+        Row: {
+          id: string
+          user_id: string
+          description: string
+          amount_cents: number
+          received_at: string
+          recurring_id: string | null
+          period: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string
+          description: string
+          amount_cents: number
+          received_at?: string
+          recurring_id?: string | null
+          period?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          description?: string
+          amount_cents?: number
+          received_at?: string
+          recurring_id?: string | null
+          period?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incomes_recurring_id_user_id_fkey"
+            columns: ["recurring_id", "user_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_incomes"
+            referencedColumns: ["id", "user_id"]
+          },
+        ]
+      }
     }
     Views: { [_ in never]: never }
     Functions: {
+      apply_recurring_incomes: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      income_total: {
+        Args: { p_from: string; p_to: string }
+        Returns: number
+      }
       complete_onboarding: {
         Args: { p_display_name: string | null; p_categories: Json }
         Returns: undefined

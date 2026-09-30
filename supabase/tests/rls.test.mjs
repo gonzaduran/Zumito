@@ -1082,6 +1082,118 @@ assert(
   JSON.stringify(leftE),
 )
 
+console.log("\nMi dinero: ingresos e ingresos programados")
+const G = "77777777-7777-7777-7777-777777777777"
+await db.exec(`insert into auth.users (id, email) values ('${G}', 'g@test.es')`)
+const asG = (sql) => as("authenticated", G, () => db.query(sql))
+const applyG = async () =>
+  Number((await asG("select public.apply_recurring_incomes() as n")).rows[0].n)
+await asG(
+  "insert into public.recurring_incomes (description, amount_cents, day_of_month) values ('Nómina', 145000, 1)",
+)
+// Programada hace dos meses: tocan ese mes, el siguiente y este (el día 1 ya ha llegado).
+await db.exec(
+  "update public.recurring_incomes set starts_on = (date_trunc('month', current_date) - interval '2 months')::date",
+)
+assert((await applyG()) === 3, "apunta la nómina de cada mes que ya ha llegado", "")
+assert((await applyG()) === 0, "llamarla otra vez no duplica nada", "")
+const gIncomes = (await asG("select * from public.incomes order by received_at")).rows
+assert(
+  gIncomes.length === 3 &&
+    gIncomes.every((i) => i.description === "Nómina" && Number(i.amount_cents) === 145000),
+  "con su concepto e importe",
+  JSON.stringify(gIncomes),
+)
+await asG(`delete from public.incomes where id = '${gIncomes[2].id}'`)
+assert((await applyG()) === 0, "un ingreso programado borrado no vuelve a aparecer", "")
+const totalG = (
+  await asG(
+    "select public.income_total((date_trunc('month', current_date) - interval '2 months')::date, (date_trunc('month', current_date) + interval '1 month')::date) as t",
+  )
+).rows[0].t
+assert(Number(totalG) === 290000, "suma los ingresos del periodo", String(totalG))
+await expectAffected(
+  "añade un ingreso a mano",
+  "authenticated",
+  G,
+  "insert into public.incomes (description, amount_cents) values ('Bizum de Ana', 2500)",
+  1,
+)
+await expectError(
+  "sin importe no hay ingreso",
+  "authenticated",
+  G,
+  "insert into public.incomes (description, amount_cents) values ('Nada', 0)",
+  /check/,
+)
+await expectError(
+  "sin Premium, solo un ingreso programado",
+  "authenticated",
+  G,
+  "insert into public.recurring_incomes (description, amount_cents, day_of_month) values ('Alquiler', 50000, 5)",
+  /Premium/,
+)
+await db.exec(`update public.profiles set premium_comp = true where id = '${G}'`)
+await expectAffected(
+  "con Premium, varios",
+  "authenticated",
+  G,
+  "insert into public.recurring_incomes (description, amount_cents, day_of_month, active) values ('Alquiler', 50000, 1, false)",
+  1,
+)
+assert((await applyG()) === 0, "uno en pausa no apunta nada", "")
+await expectError(
+  "el día del mes va del 1 al 31",
+  "authenticated",
+  G,
+  "insert into public.recurring_incomes (description, amount_cents, day_of_month) values ('Mal', 100, 32)",
+  /check/,
+)
+await expectRows("B no ve los ingresos de G", "authenticated", B, "select * from public.incomes", 0)
+await expectRows(
+  "ni sus ingresos programados",
+  "authenticated",
+  B,
+  "select * from public.recurring_incomes",
+  0,
+)
+await expectError(
+  "B no puede apuntar ingresos a G",
+  "authenticated",
+  B,
+  `insert into public.incomes (user_id, description, amount_cents) values ('${G}', 'x', 100)`,
+  /row-level security/,
+)
+await expectAffected(
+  "B no puede borrar ingresos de G",
+  "authenticated",
+  B,
+  "delete from public.incomes",
+  0,
+)
+await expectError(
+  "anon no ve ingresos",
+  "anon",
+  null,
+  "select * from public.incomes",
+  /permission denied/,
+)
+await expectError(
+  "anon no puede apuntar programados",
+  "anon",
+  null,
+  "select public.apply_recurring_incomes()",
+  /permission denied/,
+)
+await asG("delete from public.recurring_incomes where description = 'Nómina'")
+const orphan = (await asG("select count(*) as n from public.incomes where recurring_id is null"))
+  .rows[0].n
+assert(
+  Number(orphan) === 3,
+  "borrar el programado conserva los ingresos ya apuntados",
+  String(orphan),
+)
+
 console.log("\nBorrado de cuenta")
 await db.exec(`delete from auth.users where id = '${A}'`)
 const left = await db.query(`select
