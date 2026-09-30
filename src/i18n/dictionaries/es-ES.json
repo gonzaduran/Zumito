@@ -42,7 +42,14 @@
     "recentTitle": "Movimientos recientes",
     "historyLink": "Historial",
     "emptyTitle": "Aún no hay gastos hoy",
-    "emptyDescription": "Toca + para apuntar tu primer gasto."
+    "emptyDescription": "Toca + para apuntar tu primer gasto.",
+    "balanceLeft": "Te quedan este mes",
+    "balanceOver": "Te has pasado este mes",
+    "balanceDetail": "Ingresos {income} · Gastos {spent}",
+    "balanceLink": "Mi dinero",
+    "balanceCtaTitle": "¿Cuánto te queda este mes?",
+    "balanceCtaText": "Añade tu nómina y lo verás aquí cada día.",
+    "balanceCta": "Añadir mi nómina"
   },
   "history": {
     "title": "Historial",
@@ -118,7 +125,9 @@
     "plan": "Tu plan",
     "planFree": "Gratis · Prueba Premium 7 días",
     "planPremium": "Premium",
-    "planFounder": "Fundador · Premium para siempre"
+    "planFounder": "Fundador · Premium para siempre",
+    "money": "Mi dinero",
+    "moneyHint": "Nómina e ingresos del mes"
   },
   "addExpense": {
     "title": "Nuevo gasto",
@@ -195,7 +204,9 @@
     "emailInvalid": "Revisa el email, no parece válido",
     "codeInvalid": "El código tiene 6 dígitos",
     "categoriesRequired": "Elige al menos una categoría",
-    "tooManyPeople": "Puedes añadir hasta 20 personas"
+    "tooManyPeople": "Puedes añadir hasta 20 personas",
+    "descriptionRequired": "Ponle un concepto",
+    "dayInvalid": "Elige un día del 1 al 31"
   },
   "auth": {
     "title": "Entra en Zumito",
@@ -474,5 +485,37 @@
       "checkoutYear": "{price} al año · ahorras {saving}",
       "checkoutMonth": "{price} al mes"
     }
+  },
+  "money": {
+    "title": "Mi dinero",
+    "back": "Volver a Ajustes",
+    "intro": "Apunta lo que cobras y verás cuánto te queda cada mes.",
+    "recurringTitle": "Ingresos programados",
+    "recurringHint": "Se apuntan solos el día que elijas.",
+    "recurringEmpty": "Aún no tienes ninguno. Empieza por tu nómina.",
+    "everyMonth": "El día {day} de cada mes",
+    "paused": "En pausa",
+    "pause": "Pausar",
+    "resume": "Reanudar",
+    "deleteLabel": "Borrar {name}",
+    "addRecurringTitle": "Programar un ingreso",
+    "descriptionLabel": "Concepto",
+    "recurringPlaceholder": "Nómina",
+    "amountLabel": "Importe",
+    "dayLabel": "Día del mes",
+    "dayHint": "Si el mes es más corto, se apunta el último día.",
+    "addRecurring": "Programar",
+    "lockedRecurring": "Más ingresos programados con Premium",
+    "incomesTitle": "Ingresos de este mes",
+    "incomesEmpty": "Aún no hay ingresos este mes.",
+    "automatic": "Automático",
+    "addIncomeTitle": "Añadir un ingreso",
+    "incomePlaceholder": "Bizum, venta, paga extra…",
+    "dateLabel": "Fecha",
+    "addIncome": "Añadir ingreso",
+    "saved": "Ingreso guardado",
+    "recurringSaved": "Ingreso programado",
+    "deleted": "Ingreso borrado",
+    "failed": "No se ha podido guardar. Inténtalo de nuevo."
   }
 }

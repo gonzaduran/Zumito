@@ -28,6 +28,8 @@ let expenses = []
 let budgets = []
 let places = []
 let people = []
+let incomes = []
+let recurringIncomes = []
 
 /** Busca por nombre (sin mayúsculas) o lo crea, como ensure_place/ensure_person. */
 const ensureNamed = (list, raw) => {
@@ -77,7 +79,17 @@ createServer(async (req, res) => {
   log.push(`${req.method} ${url.pathname}${url.search}`)
 
   if (url.pathname === "/__log")
-    return send(res, 200, { log, profile, categories, expenses, budgets, places, people })
+    return send(res, 200, {
+      log,
+      profile,
+      categories,
+      expenses,
+      budgets,
+      places,
+      people,
+      incomes,
+      recurringIncomes,
+    })
   if (url.pathname === "/__profile") {
     for (const [key, value] of url.searchParams)
       profile[key] = value === "true" ? true : value === "false" ? false : value
@@ -400,6 +412,89 @@ createServer(async (req, res) => {
   if (req.method === "DELETE" && url.pathname === "/rest/v1/expenses") {
     const id = (url.searchParams.get("id") ?? "").replace(/^eq\./, "")
     expenses = expenses.filter((e) => e.id !== id)
+    return send(res, 204)
+  }
+  // --- Mi dinero ---
+  const idParam = () => (url.searchParams.get("id") ?? "").replace(/^eq\./, "")
+  if (url.pathname === "/rest/v1/recurring_incomes" && req.method === "HEAD") {
+    res.writeHead(200, { "content-range": `*/${recurringIncomes.length}` })
+    return res.end()
+  }
+  if (req.method === "GET" && url.pathname === "/rest/v1/recurring_incomes")
+    return rows(req, res, recurringIncomes)
+  if (req.method === "POST" && url.pathname === "/rest/v1/recurring_incomes") {
+    const body = await readBody(req)
+    if (!profile.premium_comp && recurringIncomes.length >= 1)
+      return send(res, 403, {
+        code: "42501",
+        message: "Varios ingresos programados son de Premium",
+      })
+    recurringIncomes.push({
+      id: randomUUID(),
+      active: true,
+      starts_on: madridDay(new Date()),
+      last_period: null,
+      ...body,
+    })
+    return send(res, 201)
+  }
+  if (req.method === "PATCH" && url.pathname === "/rest/v1/recurring_incomes") {
+    const body = await readBody(req)
+    const row = recurringIncomes.find((r) => r.id === idParam())
+    if (row) Object.assign(row, body)
+    return send(res, 204)
+  }
+  if (req.method === "DELETE" && url.pathname === "/rest/v1/recurring_incomes") {
+    const id = idParam()
+    recurringIncomes = recurringIncomes.filter((r) => r.id !== id)
+    for (const income of incomes) if (income.recurring_id === id) income.recurring_id = null
+    return send(res, 204)
+  }
+  if (req.method === "POST" && url.pathname === "/rest/v1/rpc/apply_recurring_incomes") {
+    // Solo el mes en curso (el simulador no retrocede meses).
+    const today = madridDay(new Date())
+    const period = `${today.slice(0, 7)}-01`
+    let created = 0
+    for (const r of recurringIncomes) {
+      if (!r.active || (r.last_period && r.last_period >= period)) continue
+      const day = `${today.slice(0, 7)}-${String(r.day_of_month).padStart(2, "0")}`
+      if (day > today) continue
+      incomes.push({
+        id: randomUUID(),
+        description: r.description,
+        amount_cents: r.amount_cents,
+        received_at: new Date(`${day}T07:00:00Z`).toISOString(),
+        recurring_id: r.id,
+      })
+      r.last_period = period
+      created++
+    }
+    return send(res, 200, created)
+  }
+  if (req.method === "POST" && url.pathname === "/rest/v1/rpc/income_total") {
+    const body = await readBody(req)
+    const total = incomes
+      .filter((i) => {
+        const day = madridDay(new Date(i.received_at))
+        return day >= body.p_from && day < body.p_to
+      })
+      .reduce((sum, i) => sum + i.amount_cents, 0)
+    return send(res, 200, total)
+  }
+  if (req.method === "GET" && url.pathname === "/rest/v1/incomes")
+    return rows(
+      req,
+      res,
+      [...incomes].sort((a, b) => b.received_at.localeCompare(a.received_at)),
+    )
+  if (req.method === "POST" && url.pathname === "/rest/v1/incomes") {
+    const body = await readBody(req)
+    incomes.push({ id: randomUUID(), recurring_id: null, ...body })
+    return send(res, 201)
+  }
+  if (req.method === "DELETE" && url.pathname === "/rest/v1/incomes") {
+    const id = idParam()
+    incomes = incomes.filter((i) => i.id !== id)
     return send(res, 204)
   }
   send(res, 404, { message: `sin mock: ${req.method} ${url.pathname}` })

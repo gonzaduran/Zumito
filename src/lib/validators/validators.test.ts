@@ -6,6 +6,7 @@ import { emailSchema, otpSchema } from "./auth"
 import { budgetInputSchema } from "./budget"
 import { categoryInputSchema } from "./category"
 import { expenseInputSchema } from "./expense"
+import { incomeInputSchema, recurringIncomeInputSchema } from "./income"
 import { onboardingInputSchema } from "./onboarding"
 
 const uuid = "8f14e45f-ceea-467a-9575-6c2a1c8e2b3d"
@@ -134,6 +135,57 @@ it("todas las claves de validación tienen texto en es-ES", () => {
     "codeInvalid",
     "categoriesRequired",
     "tooManyPeople",
+    "descriptionRequired",
+    "dayInvalid",
   ]
   for (const key of keys) expect(es.validation).toHaveProperty(key)
+})
+
+describe("ingresos", () => {
+  it("un ingreso necesita concepto, importe y fecha válidos", () => {
+    expect(
+      incomeInputSchema.safeParse({
+        description: " Bizum ",
+        amountCents: 2500,
+        receivedOn: "2026-09-30",
+      }).data?.description,
+    ).toBe("Bizum")
+    expect(
+      firstMessage(
+        incomeInputSchema.safeParse({
+          description: "  ",
+          amountCents: 2500,
+          receivedOn: "2026-09-30",
+        }),
+      ),
+    ).toBe("descriptionRequired")
+    expect(
+      firstMessage(
+        incomeInputSchema.safeParse({
+          description: "x",
+          amountCents: 2500,
+          receivedOn: "30/09/2026",
+        }),
+      ),
+    ).toBe("dateInvalid")
+  })
+
+  it("la nómina se cobra un día del 1 al 31", () => {
+    const base = { description: "Nómina", amountCents: 145000 }
+    expect(recurringIncomeInputSchema.safeParse({ ...base, dayOfMonth: 31 }).success).toBe(true)
+    expect(firstMessage(recurringIncomeInputSchema.safeParse({ ...base, dayOfMonth: 0 }))).toBe(
+      "dayInvalid",
+    )
+    expect(firstMessage(recurringIncomeInputSchema.safeParse({ ...base, dayOfMonth: 32 }))).toBe(
+      "dayInvalid",
+    )
+    expect(firstMessage(recurringIncomeInputSchema.safeParse({ ...base, dayOfMonth: 1.5 }))).toBe(
+      "dayInvalid",
+    )
+    expect(
+      firstMessage(
+        recurringIncomeInputSchema.safeParse({ ...base, amountCents: 0, dayOfMonth: 1 }),
+      ),
+    ).toBe("amountRequired")
+  })
 })

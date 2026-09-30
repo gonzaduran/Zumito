@@ -650,6 +650,89 @@ check(
 )
 await shot("16-inicio-categorias")
 
+console.log("Mi dinero")
+await goto("/")
+check(
+  "sin ingresos, el inicio invita a añadir la nómina",
+  await waitFor(async () => (await text()).includes("¿Cuánto te queda este mes?")),
+  await text(),
+)
+await evaluate(
+  "[...document.querySelectorAll('a')].find((a) => a.innerText.includes('Añadir mi nómina')).click()",
+)
+check(
+  "lleva a Mi dinero",
+  await waitFor(async () => (await path()) === "/ajustes/dinero"),
+  await path(),
+)
+await waitFor(async () => (await text()).includes("Programar un ingreso"))
+await fill("#recurring-amount", "1.450")
+await evaluate(
+  "(() => { const el = document.querySelector('#recurring-day'); const set = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set; set.call(el, '1'); el.dispatchEvent(new Event('change', { bubbles: true })); return true })()",
+)
+await clickText("Programar")
+check(
+  "programa la nómina y apunta ya la de este mes",
+  await waitFor(
+    async () => (await mock()).recurringIncomes.length === 1 && (await mock()).incomes.length === 1,
+  ),
+  JSON.stringify((await mock()).recurringIncomes),
+)
+check(
+  "con su importe en céntimos y el día elegido",
+  (await mock()).recurringIncomes[0]?.amount_cents === 145000 &&
+    (await mock()).recurringIncomes[0]?.day_of_month === 1 &&
+    (await mock()).recurringIncomes[0]?.description === "Nómina",
+  JSON.stringify((await mock()).recurringIncomes),
+)
+check(
+  "se ve como automático, el día 1 de cada mes",
+  await waitFor(async () => {
+    const t = await text()
+    return t.includes("El día 1 de cada mes") && t.includes("Automático")
+  }),
+  await text(),
+)
+check(
+  "sin Premium, el segundo ingreso programado tiene candado",
+  (await text()).includes("Más ingresos programados con Premium") &&
+    !(await evaluate("Boolean(document.querySelector('#recurring-amount'))")),
+  await text(),
+)
+await fill("#income-amount", "25")
+await clickText("Añadir ingreso")
+check(
+  "un ingreso sin concepto avisa",
+  await waitFor(async () => (await text()).includes("Ponle un concepto")),
+  await text(),
+)
+await fill("#income-description", "Bizum de Ana")
+await clickText("Añadir ingreso")
+check(
+  "añade un ingreso a mano",
+  await waitFor(async () =>
+    (await mock()).incomes.some((i) => i.description === "Bizum de Ana" && i.amount_cents === 2500),
+  ),
+  JSON.stringify((await mock()).incomes),
+)
+await waitFor(async () => (await text()).includes("Bizum de Ana"))
+await shot("15b-mi-dinero")
+await audit("mi dinero")
+await goto("/")
+check(
+  "el inicio dice cuánto te queda con ingresos y gastos",
+  await waitFor(async () => {
+    const t = await text()
+    return (
+      (t.includes("Te quedan este mes") || t.includes("Te has pasado este mes")) &&
+      t.includes("Ingresos 1475,00 €")
+    )
+  }),
+  await text(),
+)
+await shot("15c-inicio-saldo")
+await audit("inicio con saldo")
+
 console.log("Presupuestos")
 await goto("/ajustes")
 await evaluate(

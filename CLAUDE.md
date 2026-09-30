@@ -61,6 +61,14 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - El contraste se verifica en cada pantalla con axe-core dentro de `npm run test:e2e`. Un cálculo a mano no basta: los fondos reales (cristal sobre velo, fondos tenues sobre la página) cambian el resultado.
 - Clases propias: `num` para cifras (Inter con números tabulares) y `tap` para zonas táctiles de 44px.
 
+## Mi dinero (ingresos)
+
+- Migración : (a mano o generados) y (la nómina: importe, concepto y día del mes 1-31; si el mes es más corto, el último día).
+- apunta los meses que ya tocan en la zona del usuario. Es idempotente () y guarda , así que un ingreso generado que se borra no vuelve. Se llama al leer el Inicio y Mi dinero ().
+- Al reanudar un programado no se apuntan los meses en pausa ( = hoy).
+- Gratis: ingresos a mano ilimitados y un ingreso programado. Premium: varios (acción de servidor + trigger en la base de datos).
+- Inicio: tarjeta "Te quedan este mes" (ingresos − gastos del mes) o, sin ingresos, invitación a añadir la nómina. Pantalla en .
+
 ## Planes y pagos
 
 - Gratis / Premium (1,49 €/mes, 9,99 €/año) / Amigos (próximamente). Precios en `src/lib/billing/plans.ts`.
@@ -199,7 +207,7 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - Categorías sugeridas: 12, una por color (`src/lib/default-categories.ts`), todas marcadas por defecto.
 - El logo (`src/components/brand/logo.tsx`) es **provisional** hasta que Claude Design entregue el definitivo.
 - Decisiones de producto:
-  - Solo gastos, sin ingresos ni gastos recurrentes por ahora.
+  - Ingresos sí ("Mi dinero"), gastos recurrentes todavía no.
   - Un gasto tiene importe, categoría, concepto, nota y fecha. No se piden "¿con quién?" ni "¿cómo te sientes?", para mantener el registro por debajo de 5 segundos.
 
 ## Plan por fases

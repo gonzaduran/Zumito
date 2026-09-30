@@ -1,3 +1,4 @@
+import { BalanceCard } from "@/components/home/balance-card"
 import { BudgetNotice } from "@/components/home/budget-notice"
 import { CategoryBreakdown } from "@/components/home/category-breakdown"
 import { RecentExpenses } from "@/components/home/recent-expenses"
@@ -12,6 +13,7 @@ import { interpolate } from "@/i18n/interpolate"
 import { getBillingConfig } from "@/lib/billing/config"
 import { PREMIUM_PRICES, WELCOME_YEAR_PRICE, welcomeOfferRemainingMs } from "@/lib/billing/plans"
 import { getCategories } from "@/lib/data/categories"
+import { getIncomeTotal, getRecurringIncomes } from "@/lib/data/incomes"
 import {
   getBudgetStatus,
   getExpenseSummary,
@@ -47,6 +49,8 @@ export default async function HomePage() {
     places,
     people,
     entitlement,
+    monthIncome,
+    recurringIncomes,
   ] = await Promise.all([
     getExpenseSummary(),
     searchExpenses({ limit: 5 }),
@@ -57,6 +61,8 @@ export default async function HomePage() {
     getPlaces(),
     getPeople(),
     getEntitlement(),
+    getIncomeTotal(month.from, month.to),
+    getRecurringIncomes(),
   ])
   // Sin Premium, los presupuestos por categoría quedan en pausa: solo cuenta el total.
   const budgets = entitlement.premium
@@ -90,6 +96,28 @@ export default async function HomePage() {
           }}
           budget={totalBudgetRing(budgets, dict.home.budgetUsed)}
         />
+        {monthIncome > 0 || recurringIncomes.length > 0 ? (
+          <BalanceCard
+            kind="balance"
+            title={
+              monthIncome >= summary.monthCents ? dict.home.balanceLeft : dict.home.balanceOver
+            }
+            amount={formatCents(Math.abs(monthIncome - summary.monthCents))}
+            over={monthIncome < summary.monthCents}
+            detail={interpolate(dict.home.balanceDetail, {
+              income: formatCents(monthIncome),
+              spent: formatCents(summary.monthCents),
+            })}
+            linkLabel={dict.home.balanceLink}
+          />
+        ) : (
+          <BalanceCard
+            kind="cta"
+            title={dict.home.balanceCtaTitle}
+            text={dict.home.balanceCtaText}
+            cta={dict.home.balanceCta}
+          />
+        )}
         {budgetNotice ? (
           <BudgetNotice tone={budgetNotice.tone} message={budgetNotice.message} />
         ) : null}
