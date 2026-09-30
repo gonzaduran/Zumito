@@ -156,8 +156,9 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 ## Pruebas
 
 - `npm test`: pruebas unitarias con Vitest (`src/**/*.test.ts`).
-- `npm run test:db`: esquema y RLS en PGlite.
-- Las pantallas se prueban de principio a fin con Chrome sin interfaz contra un servidor que imita Supabase. Ese recorrido no está en el repo.
+- `npm run test:db`: esquema, funciones SQL y RLS sobre Postgres real (PGlite). Hay que ampliarlo con cada migración.
+- `npm run test:e2e` (`e2e/`): compila en `.next-e2e` apuntando a un Supabase simulado (`e2e/mock-supabase.mjs`) y recorre la app con Chrome sin interfaz, en modo claro y oscuro (unas 100 comprobaciones por modo, con capturas en `e2e/screenshots`). No usa `.env.local`. Si Chrome no está en la ruta habitual, usa `CHROME_PATH`.
+- Cuando una función nueva use un endpoint de Supabase que el simulador no conoce, hay que añadirlo a `e2e/mock-supabase.mjs`.
 
 ## Autenticación y onboarding
 

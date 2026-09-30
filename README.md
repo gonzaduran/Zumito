@@ -46,6 +46,7 @@ npm run typecheck    # comprobación de tipos
 npm run format       # formatear con Prettier
 npm test             # pruebas unitarias (Vitest)
 npm run test:db      # prueba el esquema y las políticas RLS en Postgres (PGlite)
+npm run test:e2e     # recorre la app entera con Chrome contra un Supabase simulado
 npm run db:types     # regenera src/types/database.ts desde Supabase
 ```
 

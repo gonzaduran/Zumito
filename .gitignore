@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# pruebas de extremo a extremo
+/.next-e2e/
+/e2e/screenshots/

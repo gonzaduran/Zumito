@@ -12,6 +12,8 @@ const securityHeaders = [
 ]
 
 const nextConfig: NextConfig = {
+  // Las pruebas de extremo a extremo compilan en otra carpeta (e2e/run.mjs).
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
   poweredByHeader: false,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }]
