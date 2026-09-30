@@ -84,6 +84,8 @@ await db.exec(`
     ('${A}', 'a@test.es', '{"display_name":"Ana"}'),
     ('${B}', 'b@test.es', '{}');
 `)
+// A es Fundadora (Premium): puede usar presupuestos por categoría.
+await db.exec(`update public.profiles set premium_comp = true where id = '${A}'`)
 
 console.log("\nPerfiles")
 const profiles = await db.query(
@@ -413,6 +415,7 @@ await expectRows(
 console.log("\nTotales por periodo (expense_summary)")
 const D = "44444444-4444-4444-4444-444444444444"
 await db.exec(`insert into auth.users (id, email) values ('${D}', 'd@test.es')`)
+await db.exec(`update public.profiles set premium_comp = true where id = '${D}'`)
 await as("authenticated", D, () =>
   db.exec(`
     insert into public.categories (id, name, emoji, color)
@@ -654,9 +657,9 @@ assert(
 await expectError(
   "no se puede presupuestar la categoría de otro usuario",
   "authenticated",
-  B,
+  D,
   `select public.set_budgets('${JSON.stringify([
-    { category_id: "dddddddd-0000-0000-0000-000000000001", amount_cents: 100 },
+    { category_id: "bbbbbbbb-0000-0000-0000-000000000001", amount_cents: 100 },
   ])}'::jsonb)`,
   /foreign key/,
 )
@@ -892,6 +895,134 @@ assert(
 )
 found = await findF("p_query => 'parra'")
 assert(found.length === 1, "el buscador también encuentra por lugar", found.length)
+
+console.log("\nSuscripciones y oferta de bienvenida")
+await expectAffected(
+  "el usuario sigue pudiendo cambiar su nombre y zona horaria",
+  "authenticated",
+  F,
+  "update public.profiles set display_name = 'Fer', timezone = 'Europe/Madrid'",
+  1,
+)
+await expectError(
+  "no puede darse Premium a sí mismo",
+  "authenticated",
+  F,
+  "update public.profiles set premium_comp = true",
+  /permission denied/,
+)
+await expectError(
+  "no puede reiniciar la cuenta atrás de la oferta",
+  "authenticated",
+  F,
+  "update public.profiles set welcome_offer_started_at = now()",
+  /permission denied/,
+)
+const offer1 = (
+  await as("authenticated", F, () => db.query("select public.start_welcome_offer() as t"))
+).rows[0].t
+await new Promise((resolve) => setTimeout(resolve, 30))
+const offer2 = (
+  await as("authenticated", F, () => db.query("select public.start_welcome_offer() as t"))
+).rows[0].t
+assert(
+  offer1 && String(offer1) === String(offer2),
+  "la oferta empieza una sola vez (repetir no la reinicia)",
+  JSON.stringify({ offer1, offer2 }),
+)
+await expectError(
+  "anon no puede empezar ofertas",
+  "anon",
+  null,
+  "select public.start_welcome_offer()",
+  /permission denied/,
+)
+await db.exec(`insert into public.subscriptions (user_id, stripe_customer_id, stripe_subscription_id, status)
+  values ('${F}', 'cus_F', 'sub_F', 'trialing')`)
+await expectRows(
+  "ve su propia suscripción",
+  "authenticated",
+  F,
+  "select * from public.subscriptions",
+  1,
+)
+await expectRows(
+  "B no ve la suscripción de F",
+  "authenticated",
+  B,
+  "select * from public.subscriptions",
+  0,
+)
+await expectError(
+  "no puede cambiar su suscripción",
+  "authenticated",
+  F,
+  "update public.subscriptions set status = 'active'",
+  /permission denied/,
+)
+await expectError(
+  "no puede crearse una suscripción",
+  "authenticated",
+  B,
+  `insert into public.subscriptions (user_id, stripe_customer_id, status) values ('${B}', 'cus_B', 'active')`,
+  /permission denied/,
+)
+await expectError(
+  "anon no ve suscripciones",
+  "anon",
+  null,
+  "select * from public.subscriptions",
+  /permission denied/,
+)
+await expectError(
+  "sin Premium no se crea un presupuesto por categoría",
+  "authenticated",
+  B,
+  "insert into public.budgets (category_id, amount_cents) values ('bbbbbbbb-0000-0000-0000-000000000001', 1000)",
+  /Premium/,
+)
+await as("authenticated", F, () =>
+  db.exec(
+    "insert into public.categories (id, name, emoji, color, position) values ('ffffffff-0000-0000-0000-00000000000c', 'Casa', '🏠', 'teal', 0)",
+  ),
+)
+const fBudgets = (list) =>
+  as("authenticated", F, () =>
+    db.query(`select public.set_budgets('${JSON.stringify(list)}'::jsonb)`),
+  )
+await fBudgets([
+  { category_id: null, amount_cents: 50000 },
+  { category_id: "ffffffff-0000-0000-0000-00000000000c", amount_cents: 20000 },
+])
+await db.exec(`update public.subscriptions set status = 'canceled' where user_id = '${F}'`)
+const premiumF = (await as("authenticated", F, () => db.query("select public.is_premium() as p")))
+  .rows[0].p
+assert(premiumF === false, "con la suscripción cancelada ya no es Premium", String(premiumF))
+await fBudgets([
+  { category_id: null, amount_cents: 60000 },
+  { category_id: "ffffffff-0000-0000-0000-00000000000c", amount_cents: 1 },
+])
+const fRows = (
+  await as("authenticated", F, () =>
+    db.query(
+      "select category_id, amount_cents from public.budgets order by category_id nulls first",
+    ),
+  )
+).rows
+assert(
+  fRows.length === 2 &&
+    Number(fRows[0].amount_cents) === 60000 &&
+    Number(fRows[1].amount_cents) === 20000,
+  "sin Premium cambia el total y el de categoría queda en pausa (no se borra ni se cambia)",
+  JSON.stringify(fRows),
+)
+await expectError(
+  "nadie con sesión ve los eventos de Stripe",
+  "authenticated",
+  F,
+  "select * from public.stripe_events",
+  /permission denied/,
+)
 
 console.log("\nOrden de categorías")
 const E = "55555555-5555-5555-5555-555555555555"

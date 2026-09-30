@@ -17,6 +17,8 @@ export type Database = {
           locale: string
           timezone: string
           onboarded_at: string | null
+          premium_comp: boolean
+          welcome_offer_started_at: string | null
           created_at: string
           updated_at: string
         }
@@ -135,6 +137,54 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          user_id: string
+          stripe_customer_id: string
+          stripe_subscription_id: string | null
+          status: string | null
+          price_id: string | null
+          billing_interval: string | null
+          trial_end: string | null
+          current_period_end: string | null
+          cancel_at_period_end: boolean
+          trial_used: boolean
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          stripe_customer_id: string
+          stripe_subscription_id?: string | null
+          status?: string | null
+          price_id?: string | null
+          billing_interval?: string | null
+          trial_end?: string | null
+          current_period_end?: string | null
+          cancel_at_period_end?: boolean
+          trial_used?: boolean
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          stripe_customer_id?: string
+          stripe_subscription_id?: string | null
+          status?: string | null
+          price_id?: string | null
+          billing_interval?: string | null
+          trial_end?: string | null
+          current_period_end?: string | null
+          cancel_at_period_end?: boolean
+          trial_used?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      stripe_events: {
+        Row: { id: string; type: string; processed_at: string }
+        Insert: { id: string; type: string; processed_at?: string }
+        Update: { id?: string; type?: string; processed_at?: string }
+        Relationships: []
+      }
       places: {
         Row: { id: string; user_id: string; name: string; created_at: string }
         Insert: { id?: string; user_id?: string; name: string; created_at?: string }
@@ -237,6 +287,14 @@ export type Database = {
           day: string
           day_total_cents: number
         }[]
+      }
+      is_premium: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      start_welcome_offer: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       save_expense: {
         Args: {
