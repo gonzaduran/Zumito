@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { getDictionary, type Dictionary } from "@/i18n/get-dictionary"
 import { defaultCategories } from "@/lib/default-categories"
 import { createClient } from "@/lib/supabase/server"
+import { readNext, rememberNext } from "@/lib/next-cookie"
 import { onboardingInputSchema } from "@/lib/validators/onboarding"
 
 function isValidTimeZone(timeZone: string): boolean {
@@ -51,5 +52,8 @@ export async function completeOnboarding(
     if (userId) await supabase.from("profiles").update({ timezone }).eq("id", userId)
   }
 
-  redirect("/")
+  // Si venía de un enlace (p. ej. /add?importe=3), vuelve allí.
+  const next = await readNext()
+  await rememberNext(null)
+  redirect(next ?? "/")
 }

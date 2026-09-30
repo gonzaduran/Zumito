@@ -95,6 +95,21 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - Los totales del Inicio vienen de la función SQL `expense_summary()`, calculada en la zona horaria del perfil.
 - Las fechas se formatean siempre con la zona del usuario (`src/i18n/format.ts`); el servidor está en UTC.
 
+## Detalles del gasto, /add y filtros
+
+- Migración `20261001090000_expense_details.sql`: tablas `places`, `people` y `expense_people` (RLS y claves compuestas con `user_id`), y columnas `expenses.place_id` y `expenses.mood` (`good`, `neutral` o `bad`).
+- Guardar y editar usan la función SQL `save_expense`: gasto, lugar y personas en una transacción; crea lugar y personas nuevas por nombre sin distinguir mayúsculas; el mismo id actualiza (idempotente para la cola sin conexión).
+- `places_by_frequency` y `people_by_frequency` alimentan el autocompletado (`suggest` en `src/lib/suggestions.ts`: sin tildes, primero lo que empieza por el texto).
+- Formulario: el flujo base (importe, categoría, concepto, fecha y guardar) no cambia. Lugar, con quién, hora, nota y ánimo van plegados en "Más detalles", que se abre solo si el gasto ya tiene alguno.
+- `/add?categoria=&importe=&descripcion=&lugar=` (`src/app/(app)/add`): prellena con `parseQuickAddParams`, que busca la categoría por nombre y valida el importe con el tope. Lo que no sirve se avisa, no rompe la pantalla.
+- Vuelta tras el login:
+  - el proxy manda a `/login?next=…`;
+  - `safeNextPath` solo admite rutas internas;
+  - la ruta se guarda en la cookie `zumito-next` (httpOnly, 1 h) para el enlace del email y el onboarding.
+- Historial: filtros por lugar (`?l=`), persona (`?p=`) e importe (`?min=`, `?max=` en euros) como chips con panel. Los parámetros no válidos se ignoran.
+- La lógica de guardado optimista está en `src/hooks/use-expense-saver.ts` (panel del "+" y `/add`).
+- Pendiente conocido: la hora del formulario usa la zona del dispositivo y la lista la del perfil. Coinciden salvo que el usuario viaje; hay que poder cambiar la zona en Ajustes.
+
 ## Historial
 
 - `/historial` usa la función SQL `search_expenses`: busca en concepto, nota y nombre de categoría (con los comodines escapados) y calcula el total de cada día sobre todos los resultados.
@@ -161,7 +176,7 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 
 - `npm test`: pruebas unitarias con Vitest (`src/**/*.test.ts`).
 - `npm run test:db`: esquema, funciones SQL y RLS sobre Postgres real (PGlite). Hay que ampliarlo con cada migración.
-- `npm run test:e2e` (`e2e/`): compila en `.next-e2e` apuntando a un Supabase simulado (`e2e/mock-supabase.mjs`) y recorre la app con Chrome sin interfaz, en modo claro y oscuro (unas 115 comprobaciones por modo, con 14 auditorías de accesibilidad WCAG A/AA con axe-core y capturas en `e2e/screenshots`). No usa `.env.local`. Si Chrome no está en la ruta habitual, usa `CHROME_PATH`.
+- `npm run test:e2e` (`e2e/`): compila en `.next-e2e` apuntando a un Supabase simulado (`e2e/mock-supabase.mjs`) y recorre la app con Chrome sin interfaz, en modo claro y oscuro (unas 145 comprobaciones por modo, con 18 auditorías de accesibilidad WCAG A/AA con axe-core y capturas en `e2e/screenshots`). No usa `.env.local`. Si Chrome no está en la ruta habitual, usa `CHROME_PATH`.
 - Cuando una función nueva use un endpoint de Supabase que el simulador no conoce, hay que añadirlo a `e2e/mock-supabase.mjs`.
 
 ## Autenticación y onboarding

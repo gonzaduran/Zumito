@@ -141,10 +141,15 @@ const pressedChips = () =>
     "[...document.querySelectorAll('[aria-label=\"Categoría\"] [data-pressed]')].map((b) => b.innerText.trim())",
   )
 const mock = async () => (await fetch("http://localhost:54329/__log")).json()
+// Teclas especiales con su código real; el resto se envían como texto (dígitos, letras).
+const SPECIAL_KEYS = { Enter: 13, Escape: 27, ArrowUp: 38, ArrowDown: 40, Backspace: 8 }
 async function keyboard(key) {
-  const extra = key === "Enter" ? { code: "Enter", windowsVirtualKeyCode: 13 } : { text: key }
-  await send("Input.dispatchKeyEvent", { type: "keyDown", key, ...extra })
-  await send("Input.dispatchKeyEvent", { type: "keyUp", key })
+  const code = SPECIAL_KEYS[key]
+  const extra = code
+    ? { code: key, windowsVirtualKeyCode: code, nativeVirtualKeyCode: code }
+    : { text: key }
+  await send("Input.dispatchKeyEvent", { type: code ? "rawKeyDown" : "keyDown", key, ...extra })
+  await send("Input.dispatchKeyEvent", { type: "keyUp", key, ...(code ? extra : {}) })
 }
 const clickText = (t) =>
   evaluate(
@@ -155,7 +160,13 @@ console.log("Sin sesión")
 await goto("/")
 check("/ redirige a /login", (await path()) === "/login", await path())
 await goto("/historial")
-check("/historial redirige a /login", (await path()) === "/login", await path())
+check(
+  "/historial redirige a /login recordando la ruta",
+  (await path()) === "/login?next=%2Fhistorial",
+  await path(),
+)
+// El resto del recorrido entra desde un login sin ruta de vuelta.
+await goto("/login")
 await shot("01-login")
 await audit("login")
 const splash = await evaluate(
@@ -754,7 +765,7 @@ check(
   "exporta los gastos en CSV",
   csv.type.includes("text/csv") &&
     csv.disposition.includes("zumito-gastos-") &&
-    csv.body.includes("Fecha;Hora;Importe;Categoría;Concepto;Nota"),
+    csv.body.includes("Fecha;Hora;Importe;Categoría;Concepto;Lugar;Con quién;Ánimo;Nota"),
   JSON.stringify(csv).slice(0, 300),
 )
 check(
@@ -762,6 +773,207 @@ check(
   csv.body.includes(";9,00;Café;Café con Marta;"),
   csv.body.slice(0, 300),
 )
+
+console.log("Más detalles")
+const fillArea = (sel, value) =>
+  evaluate(
+    `(() => { const el = document.querySelector(${JSON.stringify(sel)}); const set = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set; set.call(el, ${JSON.stringify(value)}); el.dispatchEvent(new Event('input', { bubbles: true })); return true })()`,
+  )
+const detailsExpanded = () =>
+  evaluate(
+    "[...document.querySelectorAll('button')].find((b) => b.innerText.includes('Más detalles'))?.getAttribute('aria-expanded')",
+  )
+const dialogButton = (label) =>
+  `[...document.querySelectorAll('[role=dialog] button')].find((b) => b.innerText.trim() === ${JSON.stringify(label)})`
+const openAdd = async () => {
+  await clickSel('button[aria-label="Añadir gasto"]')
+  await waitFor(async () => (await text()).includes("Guardar gasto"))
+  await sleep(300)
+}
+await goto("/")
+await openAdd()
+check(
+  "los detalles empiezan plegados",
+  (await detailsExpanded()) === "false",
+  await detailsExpanded(),
+)
+for (const k of ["2", "3", "Coma decimal", "5"]) await keypad(k)
+await clickText("Más detalles")
+check("se despliegan al tocar", await waitFor(async () => (await detailsExpanded()) === "true"))
+await fill("input[role=combobox]", "Mercadona")
+await clickText("Añadir persona")
+await waitFor(
+  async () =>
+    await evaluate(`Boolean(document.querySelector('input[aria-label="Nombre de la persona"]'))`),
+)
+await fill('input[aria-label="Nombre de la persona"]', "Marta")
+await keyboard("Enter")
+check(
+  "la persona nueva aparece como chip marcado",
+  await waitFor(async () =>
+    JSON.stringify(
+      await evaluate(
+        `[...document.querySelectorAll('[aria-label="Con quién"] [data-pressed]')].map((b) => b.innerText.trim())`,
+      ),
+    ).includes("Marta"),
+  ),
+)
+await fill("input[type=time]", "09:15")
+await fillArea("textarea", "Compra semanal")
+await clickSel('button[aria-label="Bien"]')
+await audit("más detalles")
+await shot("23-mas-detalles")
+const beforeDetails = (await mock()).expenses.length
+await clickSel("#submit-expense")
+check(
+  "guarda con los detalles",
+  await waitFor(async () => (await mock()).expenses.length === beforeDetails + 1, 5000),
+)
+let m2 = await mock()
+const detailed = m2.expenses.find((e) => e.amount_cents === 2350)
+const localTime = (iso) =>
+  new Intl.DateTimeFormat("es-ES", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: "Atlantic/Canary",
+  }).format(new Date(iso))
+check(
+  "con lugar, persona, nota, ánimo y la hora elegida",
+  m2.places.some((p) => p.name === "Mercadona" && p.id === detailed?.place_id) &&
+    m2.people.some((p) => p.name === "Marta" && detailed?.person_ids.includes(p.id)) &&
+    detailed?.note === "Compra semanal" &&
+    detailed?.mood === "good" &&
+    localTime(detailed.spent_at) === "09:15",
+  JSON.stringify({ detailed, places: m2.places, people: m2.people }),
+)
+
+await openAdd()
+await keypad("4")
+await clickText("Más detalles")
+await fill("input[role=combobox]", "mer")
+check(
+  "autocompleta el lugar por lo usado",
+  await waitFor(async () =>
+    (
+      await evaluate("[...document.querySelectorAll('[role=option]')].map((o) => o.innerText)")
+    ).includes("Mercadona"),
+  ),
+)
+await evaluate("document.querySelector('input[role=combobox]').focus()")
+await keyboard("ArrowDown")
+await keyboard("Enter")
+check(
+  "elige la sugerencia con el teclado",
+  (await evaluate("document.querySelector('input[role=combobox]').value")) === "Mercadona",
+)
+await evaluate(
+  `[...document.querySelectorAll('[aria-label="Con quién"] button')].find((b) => b.innerText.trim() === 'Marta').click()`,
+)
+await sleep(200)
+await clickSel("#submit-expense")
+await waitFor(async () => (await mock()).expenses.some((e) => e.amount_cents === 400), 5000)
+m2 = await mock()
+const second = m2.expenses.find((e) => e.amount_cents === 400)
+check(
+  "reutiliza el lugar y la persona sin duplicarlos",
+  m2.places.length === 1 &&
+    m2.people.length === 1 &&
+    second?.place_id === m2.places[0].id &&
+    second.person_ids[0] === m2.people[0].id,
+  JSON.stringify({ second, places: m2.places, people: m2.people }),
+)
+
+console.log("Filtros del historial")
+await goto("/historial")
+const historyRows = () => evaluate("document.querySelectorAll('main li button').length")
+const allRows = await historyRows()
+await clickText("Lugar")
+await waitFor(async () => await evaluate(`Boolean(${dialogButton("Mercadona")})`))
+await audit("filtro de lugar")
+await evaluate(dialogButton("Mercadona") + ".click()")
+check(
+  "filtra por lugar",
+  await waitFor(async () => (await path()).includes("l=") && (await historyRows()) === 2, 5000),
+  `${await path()} ${await historyRows()}`,
+)
+await goto("/historial")
+await clickText("Persona")
+await waitFor(async () => await evaluate(`Boolean(${dialogButton("Marta")})`))
+await evaluate(dialogButton("Marta") + ".click()")
+check(
+  "filtra por persona",
+  await waitFor(async () => (await path()).includes("p=") && (await historyRows()) === 2, 5000),
+  `${await path()} ${await historyRows()}`,
+)
+await goto("/historial")
+await clickText("Importe")
+await waitFor(async () => await evaluate("Boolean(document.querySelector('#amount-min'))"))
+await fill("#amount-min", "20")
+await clickText("Aplicar")
+check(
+  "filtra por importe mínimo",
+  await waitFor(async () => (await path()).includes("min=20") && (await historyRows()) === 1, 5000),
+  `${await path()} ${await historyRows()}`,
+)
+check("y el chip muestra el filtro", (await text()).includes("Desde 20,00 €"), await text())
+await shot("24-historial-filtros")
+await goto("/historial?min=abc&l=no-es-un-id")
+check(
+  "parámetros de filtro no válidos se ignoran",
+  (await historyRows()) === allRows,
+  `${await historyRows()} de ${allRows}`,
+)
+
+console.log("Añadir desde un enlace (/add)")
+const outputText = async () =>
+  [...(await evaluate("document.querySelector('output')?.innerText ?? ''"))]
+    .filter((ch) => ch.trim() !== "")
+    .join("")
+await goto("/add?categoria=CAFE&importe=3,5&descripcion=Caf%C3%A9%20solo&lugar=Bar%20Pepe")
+await waitFor(async () => (await text()).includes("Guardar gasto"))
+check("prellena el importe", (await outputText()) === "3,5€", await outputText())
+check(
+  "prellena la categoría por nombre sin distinguir mayúsculas ni tildes",
+  JSON.stringify(await pressedChips()).includes("Café"),
+  JSON.stringify(await pressedChips()),
+)
+check(
+  "prellena el concepto",
+  (await evaluate(`document.querySelector('input[placeholder="¿En qué? (opcional)"]').value`)) ===
+    "Café solo",
+)
+check(
+  "y el lugar, con los detalles abiertos",
+  (await evaluate("document.querySelector('input[role=combobox]')?.value")) === "Bar Pepe",
+)
+await audit("añadir desde enlace")
+await shot("25-add-enlace")
+await clickSel("#submit-expense")
+check(
+  "al guardar vuelve al inicio",
+  await waitFor(async () => (await path()) === "/", 4000),
+  await path(),
+)
+check(
+  "y guarda el gasto del enlace",
+  await waitFor(
+    async () =>
+      (await mock()).expenses.some((e) => e.amount_cents === 350 && e.description === "Café solo"),
+    5000,
+  ),
+)
+await goto("/add?categoria=Nada&importe=2000000")
+check(
+  "avisa de categoría desconocida",
+  await waitFor(async () => (await text()).includes("No tienes ninguna categoría llamada «Nada»")),
+  await text(),
+)
+check(
+  "y de importe no válido (tope de 1.000.000 €)",
+  (await text()).includes("El importe del enlace no es válido"),
+)
+check("sin prellenar el importe inválido", (await outputText()) === "0€", await outputText())
 
 console.log("PWA y sin conexión")
 await goto("/")
@@ -936,14 +1148,32 @@ check(
   `${await path()}`,
 )
 
-console.log("Borrar la cuenta")
-await goto("/login")
+console.log("Enlace /add sin sesión")
+await goto("/add?categoria=Comida&importe=5")
+check(
+  "sin sesión, /add lleva al login recordando a dónde iba",
+  (await path()).startsWith("/login?next=") &&
+    decodeURIComponent(await path()).includes("/add?categoria=Comida&importe=5"),
+  await path(),
+)
 await fill("#email", "gonzalo@test.es")
 await clickText("Enviarme el código")
 await waitFor(async () => (await text()).includes("Revisa tu email"))
 await fill("#code", "123456")
 await clickText("Entrar")
-await waitFor(async () => (await path()) === "/")
+check(
+  "tras entrar vuelve a /add con los mismos parámetros",
+  await waitFor(async () => (await path()) === "/add?categoria=Comida&importe=5", 6000),
+  await path(),
+)
+const afterLogin = [...(await evaluate("document.querySelector('output')?.innerText ?? ''"))]
+  .filter((ch) => ch.trim() !== "")
+  .join("")
+check("y el formulario sigue prellenado", afterLogin === "5€", afterLogin)
+await goto("/login?next=https://malo.example")
+check("un next externo no redirige fuera", (await path()) === "/", await path())
+
+console.log("Borrar la cuenta")
 await goto("/ajustes")
 await clickText("Borrar mi cuenta")
 check(

@@ -1,6 +1,7 @@
 import { Logo } from "@/components/brand/logo"
 import { LoginForm } from "@/components/forms/login-form"
 import { getDictionary } from "@/i18n/get-dictionary"
+import { safeNextPath } from "@/lib/safe-next"
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const [dict, params] = await Promise.all([getDictionary(), searchParams])
@@ -13,6 +14,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       <LoginForm
         labels={dict.auth}
         initialError={params.error === "link" ? "linkFailed" : undefined}
+        next={safeNextPath(Array.isArray(params.next) ? params.next[0] : params.next) ?? undefined}
       />
     </>
   )

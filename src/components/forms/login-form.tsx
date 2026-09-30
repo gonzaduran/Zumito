@@ -13,12 +13,14 @@ type LoginFormProps = {
   labels: Dictionary["auth"]
   /** Error que llega por la URL (p. ej. un enlace caducado). */
   initialError?: keyof Dictionary["auth"]["errors"]
+  /** Ruta a la que volver tras entrar (ya validada). */
+  next?: string
 }
 
 const initialSendState: SendCodeState = { email: null, error: null, resent: false }
 
 /** Acceso sin contraseña en dos pasos: email y código de un solo uso. */
-export function LoginForm({ labels, initialError }: LoginFormProps) {
+export function LoginForm({ labels, initialError, next }: LoginFormProps) {
   const [sendState, sendAction, sending] = useActionState(sendCode, {
     ...initialSendState,
     error: initialError ?? null,
@@ -40,6 +42,7 @@ export function LoginForm({ labels, initialError }: LoginFormProps) {
   if (!email) {
     return (
       <form action={sendAction} className="flex flex-col gap-5">
+        {next ? <input type="hidden" name="next" value={next} /> : null}
         <div>
           <Label htmlFor="email">{labels.emailLabel}</Label>
           <Input
@@ -110,6 +113,7 @@ export function LoginForm({ labels, initialError }: LoginFormProps) {
         </Button>
         <form action={sendAction}>
           <input type="hidden" name="email" value={email} />
+          {next ? <input type="hidden" name="next" value={next} /> : null}
           <Button type="submit" variant="ghost" size="sm" disabled={sending}>
             {labels.resend}
           </Button>

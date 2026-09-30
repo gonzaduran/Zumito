@@ -2,6 +2,7 @@ import type { EmailOtpType } from "@supabase/supabase-js"
 import { redirect } from "next/navigation"
 import type { NextRequest } from "next/server"
 
+import { destinationAfterSignIn } from "@/lib/next-cookie"
 import { createClient } from "@/lib/supabase/server"
 
 const EMAIL_OTP_TYPES: EmailOtpType[] = ["email", "magiclink", "signup"]
@@ -24,5 +25,5 @@ export async function GET(request: NextRequest) {
     verified = !error
   }
 
-  redirect(verified ? "/" : "/login?error=link")
+  redirect(verified ? await destinationAfterSignIn(supabase) : "/login?error=link")
 }

@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
 import { getPublicEnv } from "@/lib/env"
+import { safeNextPath } from "@/lib/safe-next"
 import type { Database } from "@/types/database"
 
 /** Rutas accesibles sin sesión. */
@@ -51,8 +52,14 @@ export async function updateSession(request: NextRequest) {
     return redirect
   }
 
-  if (!isLoggedIn && !isPublicPath(pathname)) return redirectTo("/login")
-  if (isLoggedIn && pathname === "/login") return redirectTo("/")
+  if (!isLoggedIn && !isPublicPath(pathname)) {
+    // Recuerda a dónde iba para volver tras entrar (p. ej. /add?importe=3).
+    const next = pathname === "/" ? null : safeNextPath(pathname + request.nextUrl.search)
+    return redirectTo(next ? `/login?next=${encodeURIComponent(next)}` : "/login")
+  }
+  if (isLoggedIn && pathname === "/login") {
+    return redirectTo(safeNextPath(request.nextUrl.searchParams.get("next")) ?? "/")
+  }
 
   return response
 }

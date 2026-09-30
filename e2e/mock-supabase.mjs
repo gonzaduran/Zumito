@@ -20,6 +20,27 @@ const profile = { display_name: null, onboarded_at: null, timezone: "Europe/Madr
 let categories = []
 let expenses = []
 let budgets = []
+let places = []
+let people = []
+
+/** Busca por nombre (sin mayúsculas) o lo crea, como ensure_place/ensure_person. */
+const ensureNamed = (list, raw) => {
+  const name = (raw ?? "").trim()
+  if (!name) return null
+  const found = list.find((item) => item.name.toLowerCase() === name.toLowerCase())
+  if (found) return found.id
+  const item = { id: randomUUID(), name }
+  list.push(item)
+  return item.id
+}
+const usesOf = (id, key) =>
+  expenses.filter((e) => (key === "place" ? e.place_id === id : e.person_ids?.includes(id))).length
+const peopleOf = (e) =>
+  (e.person_ids ?? [])
+    .map((id) => people.find((p) => p.id === id))
+    .filter(Boolean)
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(({ id, name }) => ({ id, name }))
 const log = []
 
 const readBody = (req) =>
@@ -50,7 +71,7 @@ createServer(async (req, res) => {
   log.push(`${req.method} ${url.pathname}${url.search}`)
 
   if (url.pathname === "/__log")
-    return send(res, 200, { log, profile, categories, expenses, budgets })
+    return send(res, 200, { log, profile, categories, expenses, budgets, places, people })
   if (url.pathname === "/__profile") {
     Object.assign(profile, Object.fromEntries(url.searchParams))
     return send(res, 200, profile)
@@ -163,6 +184,8 @@ createServer(async (req, res) => {
     categories = []
     expenses = []
     budgets = []
+    places = []
+    people = []
     Object.assign(profile, {
       display_name: null,
       onboarded_at: null,
@@ -201,36 +224,74 @@ createServer(async (req, res) => {
           description: e.description,
           note: e.note ?? null,
           spent_at: e.spent_at,
+          mood: e.mood ?? null,
           category: c ? { name: c.name, emoji: c.emoji } : null,
+          place: e.place_id ? { name: places.find((p) => p.id === e.place_id)?.name } : null,
+          expense_people: peopleOf(e).map((p) => ({ person: { name: p.name } })),
         }
       })
     return rows(req, res, list)
   }
-  if (req.method === "POST" && url.pathname === "/rest/v1/expenses") {
-    const body = await readBody(req)
-    const expense = Array.isArray(body) ? body[0] : body
+  if (req.method === "POST" && url.pathname === "/rest/v1/rpc/save_expense") {
+    const b = await readBody(req)
+    const expense = {
+      id: b.p_id,
+      category_id: b.p_category_id,
+      amount_cents: b.p_amount_cents,
+      description: b.p_description?.trim() || null,
+      note: b.p_note?.trim() || null,
+      spent_at: b.p_spent_at,
+    }
     log.push(`insert ${JSON.stringify(expense)}`)
     if (profile.failInserts) return send(res, 500, { message: "fallo simulado" })
     await new Promise((r) => setTimeout(r, 400)) // latencia de red
-    // Como en Postgres: la clave única se comprueba al insertar.
-    if (expenses.some((e) => e.id === expense.id))
-      return send(res, 409, { code: "23505", message: "duplicate key" })
     if (!categories.some((c) => c.id === expense.category_id))
       return send(res, 409, { code: "23503", message: "foreign key" })
-    expenses.push({ ...expense, created_at: new Date().toISOString() })
-    return send(res, 201)
+    expense.place_id = ensureNamed(places, b.p_place)
+    expense.mood = b.p_mood ?? null
+    const newIds = (b.p_new_people ?? []).map((name) => ensureNamed(people, name))
+    expense.person_ids = [...new Set([...(b.p_person_ids ?? []), ...newIds])].filter(Boolean)
+    // Como save_expense: el mismo id actualiza en lugar de duplicar.
+    const existing = expenses.find((e) => e.id === expense.id)
+    if (existing) Object.assign(existing, expense)
+    else expenses.push({ ...expense, created_at: new Date().toISOString() })
+    return send(res, 204)
+  }
+  if (req.method === "POST" && url.pathname === "/rest/v1/rpc/places_by_frequency") {
+    const list = places.map((p) => ({ ...p, uses: usesOf(p.id, "place") }))
+    return send(
+      res,
+      200,
+      list.sort((a, b) => b.uses - a.uses || a.name.localeCompare(b.name)),
+    )
+  }
+  if (req.method === "POST" && url.pathname === "/rest/v1/rpc/people_by_frequency") {
+    const list = people.map((p) => ({ ...p, uses: usesOf(p.id, "person") }))
+    return send(
+      res,
+      200,
+      list.sort((a, b) => b.uses - a.uses || a.name.localeCompare(b.name)),
+    )
   }
   if (req.method === "POST" && url.pathname === "/rest/v1/rpc/search_expenses") {
     const body = await readBody(req)
     const q = (body.p_query ?? "").toLowerCase()
     const list = expenses
       .map((e) => ({ e, c: categories.find((c) => c.id === e.category_id) }))
+      .map(({ e, c }) => ({ e, c, place: places.find((p) => p.id === e.place_id) }))
       .filter(
-        ({ e, c }) =>
+        ({ e, c, place }) =>
           (!body.p_category_id || e.category_id === body.p_category_id) &&
-          (!q || [e.description, e.note, c?.name].some((t) => t?.toLowerCase().includes(q))),
+          (!body.p_place_id || e.place_id === body.p_place_id) &&
+          (!body.p_person_id || e.person_ids?.includes(body.p_person_id)) &&
+          (body.p_min_cents == null || e.amount_cents >= body.p_min_cents) &&
+          (body.p_max_cents == null || e.amount_cents <= body.p_max_cents) &&
+          (!q ||
+            [e.description, e.note, c?.name, place?.name].some((t) =>
+              t?.toLowerCase().includes(q),
+            )),
       )
-      .map(({ e, c }) => ({
+      .map(({ e, c, place }) => ({
         id: e.id,
         amount_cents: e.amount_cents,
         description: e.description,
@@ -240,6 +301,10 @@ createServer(async (req, res) => {
         category_name: c.name,
         category_emoji: c.emoji,
         category_color: c.color,
+        place_id: e.place_id ?? null,
+        place_name: place?.name ?? null,
+        mood: e.mood ?? null,
+        people: peopleOf(e),
         day: madridDay(new Date(e.spent_at)),
       }))
     for (const r of list)
@@ -313,12 +378,6 @@ createServer(async (req, res) => {
     })
     rows.sort((a, b) => (a.category_id === null ? -1 : b.category_id === null ? 1 : 0))
     return send(res, 200, rows)
-  }
-  if (req.method === "PATCH" && url.pathname === "/rest/v1/expenses") {
-    const id = (url.searchParams.get("id") ?? "").replace(/^eq./, "")
-    const body = await readBody(req)
-    expenses = expenses.map((e) => (e.id === id ? { ...e, ...body } : e))
-    return send(res, 204)
   }
   if (req.method === "DELETE" && url.pathname === "/rest/v1/expenses") {
     const id = (url.searchParams.get("id") ?? "").replace(/^eq\./, "")

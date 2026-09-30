@@ -12,7 +12,7 @@ PWA de control de gastos personales. Registrar un gasto lleva menos de 5 segundo
 
 1. Crea un proyecto en Supabase.
 2. Copia `.env.example` a `.env.local` y rellena la URL y la publishable key (_Project Settings → API_).
-3. Aplica las 7 migraciones de `supabase/migrations`, en orden de nombre (van fechadas):
+3. Aplica las migraciones de `supabase/migrations`, en orden de nombre (van fechadas):
    - desde el panel: pega cada archivo en _SQL Editor_ y ejecútalo, o
    - con la CLI: `npx supabase link --project-ref <ref>` y `npx supabase db push`.
 4. En _Authentication → URL Configuration_:

@@ -4,6 +4,8 @@ import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 
 import type { Dictionary } from "@/i18n/get-dictionary"
+import { destinationAfterSignIn, rememberNext } from "@/lib/next-cookie"
+import { safeNextPath } from "@/lib/safe-next"
 import { createClient } from "@/lib/supabase/server"
 import { emailSchema, otpSchema } from "@/lib/validators/auth"
 
@@ -17,6 +19,8 @@ export async function sendCode(prev: SendCodeState, formData: FormData): Promise
   if (!parsed.success) return { email: null, error: "invalidEmail", resent: false }
 
   const email = parsed.data
+  // Ruta a la que volver tras entrar (también si se entra con el enlace del email).
+  await rememberNext(safeNextPath(formData.get("next")))
   const origin = (await headers()).get("origin")
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithOtp({
@@ -53,6 +57,6 @@ export async function verifyCode(
   })
   if (error) return { error: "invalidCode" }
 
-  // El layout privado decide si toca el onboarding o el inicio.
-  redirect("/")
+  // Vuelve a donde iba (p. ej. /add?importe=3). El layout decide si antes toca el onboarding.
+  redirect(await destinationAfterSignIn(supabase))
 }
