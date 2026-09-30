@@ -1,7 +1,11 @@
 import { formatCents, formatDayLabel, formatMoment, formatTime } from "@/i18n/format"
+import type { Mood } from "@/lib/validators/expense"
+import { moods } from "@/lib/validators/expense"
 import type { Database } from "@/types/database"
 
 export type ExpenseRow = Database["public"]["Functions"]["search_expenses"]["Returns"][number]
+
+export type PersonRef = { id: string; name: string }
 
 /** Gasto listo para mostrar y editar (serializable para pasarlo a componentes cliente). */
 export type ListedExpense = {
@@ -13,6 +17,9 @@ export type ListedExpense = {
   description: string | null
   note: string | null
   spentAt: string
+  placeName: string | null
+  mood: Mood | null
+  people: PersonRef[]
   emoji: string
   title: string
   subtitle: string
@@ -27,7 +34,31 @@ type ViewOptions = {
   now?: Date
 }
 
-function toListed(row: ExpenseRow, subtitle: (row: ExpenseRow) => string): ListedExpense {
+const isMood = (value: string | null): value is Mood =>
+  value !== null && (moods as readonly string[]).includes(value)
+
+/** La columna jsonb "people" de search_expenses: [{ id, name }]. */
+function parsePeople(value: unknown): PersonRef[] {
+  if (!Array.isArray(value)) return []
+  return value.flatMap((item) =>
+    item && typeof item === "object" && "id" in item && "name" in item
+      ? [{ id: String(item.id), name: String(item.name) }]
+      : [],
+  )
+}
+
+/**
+ * Título: el concepto, o el lugar, o la categoría. El subtítulo añade lo que no esté
+ * ya en el título (categoría y lugar) y el momento.
+ */
+function toListed(row: ExpenseRow, moment: string): ListedExpense {
+  const title = row.description ?? row.place_name ?? row.category_name
+  const details = [
+    title !== row.category_name ? row.category_name : null,
+    row.place_name && title !== row.place_name ? row.place_name : null,
+    moment,
+  ].filter(Boolean)
+
   return {
     id: row.id,
     amountCents: row.amount_cents,
@@ -37,10 +68,12 @@ function toListed(row: ExpenseRow, subtitle: (row: ExpenseRow) => string): Liste
     description: row.description,
     note: row.note,
     spentAt: row.spent_at,
+    placeName: row.place_name,
+    mood: isMood(row.mood) ? row.mood : null,
+    people: parsePeople(row.people),
     emoji: row.category_emoji,
-    // Sin concepto, el título es la categoría.
-    title: row.description ?? row.category_name,
-    subtitle: subtitle(row),
+    title,
+    subtitle: details.join(" · "),
     amount: formatCents(row.amount_cents),
   }
 }
@@ -48,7 +81,7 @@ function toListed(row: ExpenseRow, subtitle: (row: ExpenseRow) => string): Liste
 /** Lista plana (Inicio): "Hoy · 14:32". */
 export function toRecentExpenses(rows: ExpenseRow[], { labels, timeZone, now }: ViewOptions) {
   return rows.map((row) =>
-    toListed(row, (r) => formatMoment(new Date(r.spent_at), labels, { timeZone, now })),
+    toListed(row, formatMoment(new Date(row.spent_at), labels, { timeZone, now })),
   )
 }
 
@@ -69,12 +102,7 @@ export function groupExpensesByDay(
       }
       groups.push(group)
     }
-    group.items.push(
-      toListed(row, (r) => {
-        const time = formatTime(new Date(r.spent_at), { timeZone })
-        return r.description ? `${r.category_name} · ${time}` : time
-      }),
-    )
+    group.items.push(toListed(row, formatTime(new Date(row.spent_at), { timeZone })))
   }
   return groups
 }

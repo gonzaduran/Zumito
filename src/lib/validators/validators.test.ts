@@ -40,6 +40,37 @@ describe("gasto", () => {
   })
 })
 
+describe("detalles del gasto", () => {
+  const base = { categoryId: uuid, amountCents: 1840, spentAt: new Date() }
+
+  it("acepta lugar, ánimo, personas y personas nuevas", () => {
+    const result = expenseInputSchema.parse({
+      ...base,
+      place: "  La Parra ",
+      mood: "good",
+      personIds: [uuid],
+      newPeople: [" Marta "],
+    })
+    expect(result.place).toBe("La Parra")
+    expect(result.newPeople).toEqual(["Marta"])
+  })
+
+  it("rechaza un ánimo desconocido y personas no válidas", () => {
+    expect(expenseInputSchema.safeParse({ ...base, mood: "eufórico" }).success).toBe(false)
+    expect(expenseInputSchema.safeParse({ ...base, personIds: ["x"] }).success).toBe(false)
+    expect(expenseInputSchema.safeParse({ ...base, newPeople: ["   "] }).success).toBe(false)
+  })
+
+  it("no admite más de 20 personas entre guardadas y nuevas", () => {
+    const result = expenseInputSchema.safeParse({
+      ...base,
+      personIds: Array.from({ length: 15 }, () => uuid),
+      newPeople: Array.from({ length: 6 }, (_, i) => `P${i}`),
+    })
+    expect(firstMessage(result)).toBe("tooManyPeople")
+  })
+})
+
 describe("categoría", () => {
   it.each(["🍽️", "👨‍👩‍👧", "🇪🇸", "☕"])("acepta el emoji %s", (emoji) => {
     expect(categoryInputSchema.safeParse({ name: "Comida", emoji, color: "amber" }).success).toBe(
@@ -102,6 +133,7 @@ it("todas las claves de validación tienen texto en es-ES", () => {
     "emailInvalid",
     "codeInvalid",
     "categoriesRequired",
+    "tooManyPeople",
   ]
   for (const key of keys) expect(es.validation).toHaveProperty(key)
 })

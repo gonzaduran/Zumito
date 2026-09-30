@@ -16,6 +16,10 @@ const row = (overrides: Partial<ExpenseRow>): ExpenseRow => ({
   category_name: "Comida",
   category_emoji: "🍽️",
   category_color: "amber",
+  place_id: null,
+  place_name: null,
+  mood: null,
+  people: [],
   day: "2026-10-01",
   day_total_cents: 1000,
   ...overrides,
@@ -52,5 +56,29 @@ describe("vista de gastos", () => {
     const [item] = toRecentExpenses([row({ amount_cents: 1250 })], { labels, now })
     expect(item?.subtitle).toBe("Hoy · 10:00")
     expect(clean(item?.amount)).toBe("12,50 €")
+  })
+
+  it("con lugar: título el concepto y el lugar en el subtítulo; sin concepto, el lugar es el título", () => {
+    const [group] = groupExpensesByDay(
+      [
+        row({ description: "Cena", place_id: "p1", place_name: "La Parra" }),
+        row({ place_id: "p1", place_name: "La Parra", spent_at: "2026-10-01T07:05:00Z" }),
+      ],
+      { labels, now },
+    )
+    expect(group?.items.map((i) => [i.title, i.subtitle])).toEqual([
+      ["Cena", "Comida · La Parra · 10:00"],
+      ["La Parra", "Comida · 09:05"],
+    ])
+  })
+
+  it("lee las personas y el ánimo, e ignora valores raros", () => {
+    const [item] = toRecentExpenses(
+      [row({ mood: "good", people: [{ id: "a", name: "Marta" }, { nope: true }] })],
+      { labels, now },
+    )
+    expect(item?.people).toEqual([{ id: "a", name: "Marta" }])
+    expect(item?.mood).toBe("good")
+    expect(toRecentExpenses([row({ mood: "eufórico" })], { labels, now })[0]?.mood).toBeNull()
   })
 })

@@ -3,6 +3,7 @@ import "server-only"
 import { cache } from "react"
 
 import { createClient } from "@/lib/supabase/server"
+import type { NamedOption } from "@/lib/suggestions"
 
 export type ExpenseSummary = {
   todayCents: number
@@ -38,14 +39,27 @@ export const getLastUsedCategoryId = cache(async (): Promise<string | null> => {
   return data?.category_id ?? null
 })
 
-export type HistoryFilters = { query?: string; categoryId?: string; limit: number }
+export type HistoryFilters = {
+  query?: string
+  categoryId?: string
+  placeId?: string
+  personId?: string
+  minCents?: number
+  maxCents?: number
+  limit: number
+}
 
 /** Historial filtrado. Pide uno más del límite para saber si hay más resultados. */
-export async function searchExpenses({ query, categoryId, limit }: HistoryFilters) {
+export async function searchExpenses(filters: HistoryFilters) {
+  const { query, categoryId, placeId, personId, minCents, maxCents, limit } = filters
   const supabase = await createClient()
   const { data, error } = await supabase.rpc("search_expenses", {
     p_query: query || null,
     p_category_id: categoryId || null,
+    p_place_id: placeId || null,
+    p_person_id: personId || null,
+    p_min_cents: minCents ?? null,
+    p_max_cents: maxCents ?? null,
     p_limit: limit + 1,
   })
   if (error) throw error
@@ -72,6 +86,22 @@ export const getSpendingByMonth = cache(async (months: number = 6) => {
 export const getBudgetStatus = cache(async () => {
   const supabase = await createClient()
   const { data, error } = await supabase.rpc("budget_status")
+  if (error) throw error
+  return data
+})
+
+/** Lugares del usuario, de más a menos usados (para autocompletar y filtrar). */
+export const getPlaces = cache(async (): Promise<NamedOption[]> => {
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc("places_by_frequency", { p_limit: 200 })
+  if (error) throw error
+  return data
+})
+
+/** Personas del usuario, de más a menos frecuentes. */
+export const getPeople = cache(async (): Promise<NamedOption[]> => {
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc("people_by_frequency", { p_limit: 200 })
   if (error) throw error
   return data
 })
