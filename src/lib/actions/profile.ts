@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 
+import { getBillingConfig, getStripe } from "@/lib/billing/config"
 import { createClient } from "@/lib/supabase/server"
 
 const displayNameSchema = z
@@ -34,6 +35,22 @@ export async function updateDisplayName(name: string): Promise<{ ok: boolean }> 
 /** Borra la cuenta y todos sus datos. No se puede deshacer. Para usar con useActionState. */
 export async function deleteAccount(): Promise<{ ok: boolean }> {
   const supabase = await createClient()
+  // Antes de borrar, se cancela la suscripción para que no se le vuelva a cobrar.
+  // Si no se puede cancelar, no se borra nada.
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("stripe_subscription_id, status")
+    .maybeSingle()
+  const subscriptionId = subscription?.stripe_subscription_id
+  if (subscriptionId && subscription.status !== "canceled") {
+    const config = getBillingConfig()
+    if (!config) return { ok: false }
+    try {
+      await getStripe(config).subscriptions.cancel(subscriptionId)
+    } catch {
+      return { ok: false }
+    }
+  }
   const { error } = await supabase.rpc("delete_my_account")
   if (error) return { ok: false }
   await supabase.auth.signOut()

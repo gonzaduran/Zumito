@@ -28,6 +28,24 @@ PWA de control de gastos personales. Registrar un gasto lleva menos de 5 segundo
 
 Tras cambiar el esquema, regenera los tipos con `npm run db:types` (proyecto enlazado).
 
+## Pagos (Stripe)
+
+Premium: 1,49 €/mes o 9,99 €/año, con 7 días de prueba (una vez por persona) y renovación
+automática. Oferta de bienvenida: −10 % el primer año del plan anual durante 5 minutos desde
+que se ven los planes por primera vez (lo controla el servidor).
+
+1. Aplica la migración `supabase/migrations/20261002090000_billing.sql`.
+2. Con una clave de prueba: `STRIPE_SECRET_KEY=sk_test_… npm run stripe:setup`. Crea
+   producto, precios, cupón y portal, e imprime las variables.
+3. Crea el webhook en Stripe hacia `/api/stripe/webhook` (eventos `checkout.session.completed`
+   y `customer.subscription.*`) y guarda su `whsec_…` en `STRIPE_WEBHOOK_SECRET`.
+4. Añade `SUPABASE_SECRET_KEY` (solo servidor). Todas las variables están en `.env.example`.
+5. Prueba con la tarjeta `4242 4242 4242 4242` (cualquier fecha futura y CVC).
+
+Sin estas variables la app funciona igual y la pantalla de planes dice "muy pronto".
+Premium gratis a mano (Fundadores): `update profiles set premium_comp = true where id = '…'`
+en el editor SQL.
+
 ## Desplegar en Vercel
 
 1. En [vercel.com/new](https://vercel.com/new) importa el repositorio de GitHub. Detecta Next.js solo.
