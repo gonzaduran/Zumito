@@ -87,6 +87,8 @@ export type Database = {
           description: string | null
           note: string | null
           spent_at: string
+          place_id: string | null
+          mood: string | null
           created_at: string
           updated_at: string
         }
@@ -98,6 +100,8 @@ export type Database = {
           description?: string | null
           note?: string | null
           spent_at?: string
+          place_id?: string | null
+          mood?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -109,6 +113,8 @@ export type Database = {
           description?: string | null
           note?: string | null
           spent_at?: string
+          place_id?: string | null
+          mood?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -118,6 +124,46 @@ export type Database = {
             columns: ["category_id", "user_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id", "user_id"]
+          },
+          {
+            foreignKeyName: "expenses_place_id_user_id_fkey"
+            columns: ["place_id", "user_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id", "user_id"]
+          },
+        ]
+      }
+      places: {
+        Row: { id: string; user_id: string; name: string; created_at: string }
+        Insert: { id?: string; user_id?: string; name: string; created_at?: string }
+        Update: { id?: string; user_id?: string; name?: string; created_at?: string }
+        Relationships: []
+      }
+      people: {
+        Row: { id: string; user_id: string; name: string; created_at: string }
+        Insert: { id?: string; user_id?: string; name: string; created_at?: string }
+        Update: { id?: string; user_id?: string; name?: string; created_at?: string }
+        Relationships: []
+      }
+      expense_people: {
+        Row: { expense_id: string; person_id: string; user_id: string }
+        Insert: { expense_id: string; person_id: string; user_id?: string }
+        Update: { expense_id?: string; person_id?: string; user_id?: string }
+        Relationships: [
+          {
+            foreignKeyName: "expense_people_expense_id_user_id_fkey"
+            columns: ["expense_id", "user_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id", "user_id"]
+          },
+          {
+            foreignKeyName: "expense_people_person_id_user_id_fkey"
+            columns: ["person_id", "user_id"]
+            isOneToOne: false
+            referencedRelation: "people"
             referencedColumns: ["id", "user_id"]
           },
         ]
@@ -165,7 +211,15 @@ export type Database = {
         Returns: undefined
       }
       search_expenses: {
-        Args: { p_query?: string | null; p_category_id?: string | null; p_limit?: number }
+        Args: {
+          p_query?: string | null
+          p_category_id?: string | null
+          p_place_id?: string | null
+          p_person_id?: string | null
+          p_min_cents?: number | null
+          p_max_cents?: number | null
+          p_limit?: number
+        }
         Returns: {
           id: string
           amount_cents: number
@@ -176,9 +230,36 @@ export type Database = {
           category_name: string
           category_emoji: string
           category_color: string
+          place_id: string | null
+          place_name: string | null
+          mood: string | null
+          people: Json
           day: string
           day_total_cents: number
         }[]
+      }
+      save_expense: {
+        Args: {
+          p_id: string
+          p_category_id: string
+          p_amount_cents: number
+          p_spent_at: string
+          p_description?: string | null
+          p_note?: string | null
+          p_place?: string | null
+          p_mood?: string | null
+          p_person_ids?: string[]
+          p_new_people?: string[]
+        }
+        Returns: undefined
+      }
+      places_by_frequency: {
+        Args: { p_limit?: number }
+        Returns: { id: string; name: string; uses: number }[]
+      }
+      people_by_frequency: {
+        Args: { p_limit?: number }
+        Returns: { id: string; name: string; uses: number }[]
       }
       spending_by_category: {
         Args: { p_from: string; p_to: string }

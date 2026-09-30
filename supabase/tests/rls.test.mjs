@@ -669,6 +669,230 @@ await expectError(
   /permission denied/,
 )
 
+console.log("\nDetalles del gasto: lugar, personas y ánimo")
+const F = "66666666-6666-6666-6666-666666666666"
+await db.exec(`insert into auth.users (id, email) values ('${F}', 'f@test.es')`)
+await as("authenticated", F, () =>
+  db.exec(`insert into public.categories (id, name, emoji, color)
+    values ('ffffffff-0000-0000-0000-000000000001', 'Comida', '🍽️', 'amber')`),
+)
+const saveExpense = (userId, args) =>
+  as("authenticated", userId, () =>
+    db.query(
+      `select public.save_expense(
+        p_id => $1, p_category_id => $2, p_amount_cents => $3, p_spent_at => now(),
+        p_description => $4, p_note => $5, p_place => $6, p_mood => $7,
+        p_person_ids => $8::uuid[], p_new_people => $9::text[])`,
+      [
+        args.id,
+        args.category ?? "ffffffff-0000-0000-0000-000000000001",
+        args.amount ?? 1000,
+        args.description ?? null,
+        args.note ?? null,
+        args.place ?? null,
+        args.mood ?? null,
+        args.personIds ?? [],
+        args.newPeople ?? [],
+      ],
+    ),
+  )
+const X1 = "f1f1f1f1-0000-4000-8000-000000000001"
+await saveExpense(F, {
+  id: X1,
+  amount: 2350,
+  description: "Cena",
+  note: "Cumple",
+  place: "  La Parra ",
+  mood: "good",
+  newPeople: ["Marta", "Luis", "marta"],
+})
+let saved = (
+  await as("authenticated", F, () =>
+    db.query(`select e.amount_cents, e.mood, e.note, pl.name as place,
+      (select array_agg(p.name order by p.name) from public.expense_people ep
+         join public.people p on p.id = ep.person_id where ep.expense_id = e.id) as people
+      from public.expenses e left join public.places pl on pl.id = e.place_id where e.id = '${X1}'`),
+  )
+).rows[0]
+assert(
+  saved?.amount_cents == 2350 &&
+    saved.mood === "good" &&
+    saved.place === "La Parra" &&
+    saved.note === "Cumple",
+  "guarda el gasto con lugar (recortado), nota y ánimo",
+  JSON.stringify(saved),
+)
+assert(
+  JSON.stringify(saved?.people) === JSON.stringify(["Luis", "Marta"]),
+  "crea las personas nuevas sin duplicar (Marta y marta son la misma)",
+  JSON.stringify(saved?.people),
+)
+const X2 = "f1f1f1f1-0000-4000-8000-000000000002"
+await saveExpense(F, { id: X2, amount: 500, place: "la parra" })
+const placesF = (await as("authenticated", F, () => db.query("select name from public.places")))
+  .rows
+assert(
+  placesF.length === 1,
+  "reutiliza el lugar sin distinguir mayúsculas",
+  JSON.stringify(placesF),
+)
+const marta = (
+  await as("authenticated", F, () => db.query("select id from public.people where name = 'Marta'"))
+).rows[0].id
+await saveExpense(F, { id: X1, amount: 2400, place: "Casa", personIds: [marta] })
+saved = (
+  await as("authenticated", F, () =>
+    db.query(`select e.amount_cents, e.mood, pl.name as place,
+      (select count(*) from public.expense_people ep where ep.expense_id = e.id) as people
+      from public.expenses e left join public.places pl on pl.id = e.place_id where e.id = '${X1}'`),
+  )
+).rows[0]
+assert(
+  saved.amount_cents == 2400 &&
+    saved.place === "Casa" &&
+    Number(saved.people) === 1 &&
+    saved.mood === null,
+  "guardar el mismo id actualiza (no duplica) y sustituye las personas",
+  JSON.stringify(saved),
+)
+const countF = (
+  await as("authenticated", F, () => db.query("select count(*) from public.expenses"))
+).rows[0]
+assert(Number(countF.count) === 2, "sigue habiendo 2 gastos", countF.count)
+await expectError(
+  "ánimo fuera de los valores permitidos",
+  "authenticated",
+  F,
+  `select public.save_expense('f1f1f1f1-0000-4000-8000-000000000003', 'ffffffff-0000-0000-0000-000000000001', 100, now(), p_mood => 'eufórico')`,
+  /check constraint/,
+)
+await expectError(
+  "el gasto es atómico: con un error no se crea el lugar",
+  "authenticated",
+  F,
+  `select public.save_expense('f1f1f1f1-0000-4000-8000-000000000004', 'ffffffff-0000-0000-0000-000000000001', 0, now(), p_place => 'Lugar fantasma')`,
+  /check constraint/,
+)
+await expectRows(
+  "tras el error no existe ese lugar",
+  "authenticated",
+  F,
+  "select * from public.places where name = 'Lugar fantasma'",
+  0,
+)
+await expectError(
+  "no puede usar las personas de otro usuario",
+  "authenticated",
+  B,
+  `select public.save_expense('b1b1b1b1-0000-4000-8000-000000000001', 'bbbbbbbb-0000-0000-0000-000000000001', 100, now(), p_person_ids => array['${marta}']::uuid[])`,
+  /foreign key/,
+)
+await expectError(
+  "no puede sobrescribir el gasto de otro usuario con su id",
+  "authenticated",
+  B,
+  `select public.save_expense('${X1}', 'bbbbbbbb-0000-0000-0000-000000000001', 1, now())`,
+  /row-level security|duplicate key/,
+)
+const stillF = (await db.query(`select amount_cents from public.expenses where id = '${X1}'`))
+  .rows[0]
+assert(stillF.amount_cents == 2400, "y el gasto ajeno queda intacto", JSON.stringify(stillF))
+await expectError(
+  "no admite más de 20 personas",
+  "authenticated",
+  F,
+  `select public.save_expense('f1f1f1f1-0000-4000-8000-000000000005', 'ffffffff-0000-0000-0000-000000000001', 100, now(), p_new_people => array(select 'P' || g from generate_series(1, 21) g))`,
+  /Demasiadas personas/,
+)
+for (const table of ["places", "people", "expense_people"]) {
+  await expectRows(`B no ve ${table} de F`, "authenticated", B, `select * from public.${table}`, 0)
+  await expectError(
+    `anon no puede leer ${table}`,
+    "anon",
+    null,
+    `select * from public.${table}`,
+    /permission denied/,
+  )
+}
+await expectAffected(
+  "B no puede borrar las personas de F",
+  "authenticated",
+  B,
+  "delete from public.people",
+  0,
+)
+await expectAffected(
+  "B no puede renombrar los lugares de F",
+  "authenticated",
+  B,
+  "update public.places set name = 'x'",
+  0,
+)
+await expectError(
+  "B no puede enlazar a F en su gasto",
+  "authenticated",
+  B,
+  `insert into public.expense_people (expense_id, person_id) values ('${X2}', '${marta}')`,
+  /foreign key|row-level security/,
+)
+
+const byFreq = (
+  await as("authenticated", F, () =>
+    db.query("select name, uses from public.places_by_frequency()"),
+  )
+).rows
+assert(
+  byFreq.map((r) => `${r.name}:${r.uses}`).join(",") === "Casa:1,La Parra:1" ||
+    byFreq.map((r) => `${r.name}:${r.uses}`).join(",") === "La Parra:1,Casa:1",
+  "lugares con su número de usos",
+  JSON.stringify(byFreq),
+)
+await saveExpense(F, { id: "f1f1f1f1-0000-4000-8000-000000000006", amount: 700, place: "Casa" })
+const topPlace = (
+  await as("authenticated", F, () => db.query("select name from public.places_by_frequency(1)"))
+).rows[0]
+assert(topPlace.name === "Casa", "ordenados de más a menos usados", JSON.stringify(topPlace))
+const topPeople = (
+  await as("authenticated", F, () =>
+    db.query("select name, uses from public.people_by_frequency()"),
+  )
+).rows
+assert(
+  topPeople[0]?.name === "Marta" && Number(topPeople[0].uses) === 1,
+  "personas por frecuencia",
+  JSON.stringify(topPeople),
+)
+
+const findF = async (args) =>
+  (await as("authenticated", F, () => db.query(`select * from public.search_expenses(${args})`)))
+    .rows
+const casaId = (
+  await as("authenticated", F, () => db.query("select id from public.places where name = 'Casa'"))
+).rows[0].id
+let found = await findF(`p_place_id => '${casaId}'`)
+assert(
+  found.length === 2 && found.every((r) => r.place_name === "Casa"),
+  "filtra por lugar",
+  JSON.stringify(found.map((r) => r.place_name)),
+)
+found = await findF(`p_person_id => '${marta}'`)
+assert(
+  found.length === 1 && found[0].people.some((p) => p.name === "Marta"),
+  "filtra por persona y devuelve sus personas",
+  JSON.stringify(found),
+)
+found = await findF("p_min_cents => 600, p_max_cents => 2400")
+assert(
+  found
+    .map((r) => Number(r.amount_cents))
+    .sort((a, b) => a - b)
+    .join(",") === "700,2400",
+  "filtra por rango de importe (incluye los extremos)",
+  JSON.stringify(found.map((r) => r.amount_cents)),
+)
+found = await findF("p_query => 'parra'")
+assert(found.length === 1, "el buscador también encuentra por lugar", found.length)
+
 console.log("\nOrden de categorías")
 const E = "55555555-5555-5555-5555-555555555555"
 await db.exec(`insert into auth.users (id, email) values ('${E}', 'e@test.es')`)
