@@ -1,4 +1,4 @@
-import { Download, LogOut, PiggyBank, Tags } from "lucide-react"
+import { Download, PiggyBank, Tags } from "lucide-react"
 
 import { Logo } from "@/components/brand/logo"
 import { AppHeader } from "@/components/layout/app-header"
@@ -6,12 +6,10 @@ import { InstallAppCard } from "@/components/layout/install-app-card"
 import { DeleteAccount } from "@/components/settings/delete-account"
 import { ProfileNameForm } from "@/components/settings/profile-name-form"
 import { SettingsLink } from "@/components/settings/settings-link"
-import { Button } from "@/components/ui/button"
+import { SignOutButton } from "@/components/settings/sign-out-button"
 import { Card } from "@/components/ui/card"
 import { getDictionary } from "@/i18n/get-dictionary"
 import { getCurrentProfile, getCurrentUser } from "@/lib/data/profile"
-
-import { signOut } from "./actions"
 
 function Section({
   id,
@@ -93,12 +91,7 @@ export default async function SettingsPage() {
               <p className="text-[13px] text-muted-foreground">{labels.signedInAs}</p>
               <p className="truncate font-bold">{user?.email}</p>
             </div>
-            <form action={signOut}>
-              <Button type="submit" variant="secondary" className="w-full">
-                <LogOut />
-                {labels.signOut}
-              </Button>
-            </form>
+            <SignOutButton label={labels.signOut} />
           </Card>
         </Section>
 

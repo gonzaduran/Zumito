@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sheet"
 import type { Dictionary } from "@/i18n/get-dictionary"
 import { deleteAccount } from "@/lib/actions/profile"
+import { clearLocalData } from "@/lib/local-data"
 
 /** Borrar la cuenta, con confirmación. Si sale bien, la acción redirige al login. */
 export function DeleteAccount({
@@ -42,7 +43,11 @@ export function DeleteAccount({
             <SheetTitle>{labels.deleteTitle}</SheetTitle>
             <SheetDescription>{labels.deleteDescription}</SheetDescription>
           </SheetHeader>
-          <form action={formAction} className="flex flex-col gap-2 px-5 pt-2">
+          <form
+            action={formAction}
+            onSubmit={() => void clearLocalData()}
+            className="flex flex-col gap-2 px-5 pt-2"
+          >
             <Button type="submit" variant="destructive" size="lg" disabled={pending}>
               {labels.deleteConfirm}
             </Button>

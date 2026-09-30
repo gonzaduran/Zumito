@@ -1,12 +1,20 @@
 import { describe, expect, it } from "vitest"
 
-import { dequeue, enqueue, isOffline, readQueue, type QueuedExpense } from "./offline-queue"
+import {
+  clearQueue,
+  dequeue,
+  enqueue,
+  isOffline,
+  readQueue,
+  type QueuedExpense,
+} from "./offline-queue"
 
 const memoryStorage = () => {
   const data = new Map<string, string>()
   return {
     getItem: (key: string) => data.get(key) ?? null,
     setItem: (key: string, value: string) => void data.set(key, value),
+    removeItem: (key: string) => void data.delete(key),
   }
 }
 
@@ -55,5 +63,12 @@ describe("cola sin conexión", () => {
   it("un TypeError de fetch es falta de conexión", () => {
     expect(isOffline(new TypeError("Failed to fetch"))).toBe(true)
     expect(isOffline(new Error("otro"))).toBe(false)
+  })
+
+  it("se vacía al cerrar sesión", () => {
+    const storage = memoryStorage()
+    enqueue(expense("a"), storage)
+    clearQueue(storage)
+    expect(readQueue(storage)).toEqual([])
   })
 })

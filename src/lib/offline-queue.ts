@@ -7,7 +7,7 @@ import type { ExpenseInput } from "@/lib/validators/expense"
 
 export type QueuedExpense = ExpenseInput & { id: string }
 
-type Storage = Pick<globalThis.Storage, "getItem" | "setItem">
+type Storage = Pick<globalThis.Storage, "getItem" | "setItem" | "removeItem">
 
 const KEY = "zumito:pending-expenses"
 
@@ -50,4 +50,13 @@ export function dequeue(id: string, storage: Storage | null = defaultStorage()):
 export function isOffline(error?: unknown): boolean {
   if (typeof navigator !== "undefined" && navigator.onLine === false) return true
   return error instanceof TypeError
+}
+
+/** Vacía la cola (al cerrar sesión: los gastos pendientes son de esa cuenta). */
+export function clearQueue(storage: Storage | null = defaultStorage()) {
+  try {
+    storage?.removeItem(KEY)
+  } catch {
+    // Sin almacenamiento: no hay nada que borrar.
+  }
 }

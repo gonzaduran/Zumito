@@ -847,11 +847,44 @@ check("con onboarding hecho, /onboarding lleva al inicio", (await path()) === "/
 await goto("/ajustes")
 check("ajustes muestra el email", (await text()).includes("gonzalo@test.es"), await text())
 await shot("07-ajustes")
+// Un gasto pendiente de esta cuenta y pantallas en caché: no deben quedar en el dispositivo.
+await evaluate(
+  `localStorage.setItem('zumito:pending-expenses', JSON.stringify([{ id: '${crypto.randomUUID()}', categoryId: '${crypto.randomUUID()}', amountCents: 100, spentAt: new Date().toISOString() }]))`,
+)
+// Ninguna pantalla privada puede quedar en caché (la precaché y /login no tienen datos).
+const privateCached = async () =>
+  evaluate(`(async () => {
+    const privatePaths = ["/", "/historial", "/estadisticas", "/ajustes"]
+    const found = []
+    for (const key of await caches.keys()) {
+      if (key.includes("precache")) continue
+      for (const request of await (await caches.open(key)).keys()) {
+        const path = new URL(request.url).pathname
+        if (privatePaths.some((p) => path === p || path.startsWith(p + "/"))) found.push(key + " " + path)
+      }
+    }
+    return found
+  })()`)
+const privateBefore = await privateCached()
 await clickText("Cerrar sesión")
 check(
   "cerrar sesión lleva a /login",
   await waitFor(async () => (await path()) === "/login"),
   await path(),
+)
+check(
+  "cerrar sesión vacía la cola sin conexión",
+  (await evaluate("localStorage.getItem('zumito:pending-expenses')")) === null,
+)
+check(
+  "antes de cerrar sesión había pantallas privadas en caché",
+  privateBefore.length > 0,
+  JSON.stringify(privateBefore),
+)
+check(
+  "y al cerrarla no deja ninguna",
+  await waitFor(async () => (await privateCached()).length === 0, 4000),
+  JSON.stringify(await privateCached()),
 )
 await goto("/")
 check("tras cerrar sesión, / vuelve a pedir login", (await path()) === "/login", await path())

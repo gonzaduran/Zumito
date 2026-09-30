@@ -139,6 +139,7 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
   - "Deshacer" los quita de la cola;
   - solo salen de la cola cuando el servidor confirma, y el id generado en el cliente evita duplicados si se reenvían.
 - Las acciones de servidor en componentes cliente se esperan con `settle()` (`src/lib/settle.ts`): un fallo de red se trata como error, sin excepciones sin capturar.
+- Al cerrar sesión o borrar la cuenta, `clearLocalData()` (`src/lib/local-data.ts`) vacía la cola sin conexión y las cachés de ejecución del service worker (pantallas con datos). La precaché se conserva porque no tiene datos personales y mantiene la app funcionando sin red.
 - Ajustes muestra "Instala Zumito": el botón nativo en Android y Chrome, e instrucciones en iOS. No aparece si ya está instalada.
 - `src/app/(app)/loading.tsx`: esqueleto mientras carga cada pantalla.
 
