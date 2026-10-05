@@ -228,7 +228,7 @@
       "invalidCode": "El código no es correcto o ha caducado",
       "tooManyRequests": "Has pedido muchos códigos. Espera un minuto y vuelve a intentarlo.",
       "sendFailed": "No hemos podido enviarte el código. Inténtalo de nuevo.",
-      "linkFailed": "El enlace no es válido o ha caducado. Pide un código nuevo."
+      "linkFailed": "El enlace no es válido o ha caducado. Ábrelo en el mismo navegador en el que lo pediste, o pide uno nuevo."
     }
   },
   "onboarding": {
