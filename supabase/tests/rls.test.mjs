@@ -1281,9 +1281,8 @@ assert(
   "resumen por cuenta: gastado e ingresado, en su orden",
   JSON.stringify(hSummary),
 )
-const filtered = (
-  await asH(`select id from public.search_expenses(p_account_id => '${parents}')`)
-).rows
+const filtered = (await asH(`select id from public.search_expenses(p_account_id => '${parents}')`))
+  .rows
 assert(filtered.length === 1, "el historial filtra por cuenta", JSON.stringify(filtered))
 const hByCategory = (
   await asH(
@@ -1320,7 +1319,13 @@ await expectError(
   `insert into public.incomes (description, amount_cents, account_id) values ('x', 100, '${parents}')`,
   /foreign key|row-level security/,
 )
-await expectRows("B no ve las cuentas de H", "authenticated", B, `select * from public.accounts where user_id = '${H}'`, 0)
+await expectRows(
+  "B no ve las cuentas de H",
+  "authenticated",
+  B,
+  `select * from public.accounts where user_id = '${H}'`,
+  0,
+)
 await expectError(
   "las cuentas no se borran (se archivan)",
   "authenticated",
