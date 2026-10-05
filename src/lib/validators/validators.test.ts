@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import es from "@/i18n/dictionaries/es-ES.json"
 
-import { emailSchema, otpSchema } from "./auth"
+import { emailSchema, passwordSchema } from "./auth"
 import { budgetInputSchema } from "./budget"
 import { categoryInputSchema } from "./category"
 import { expenseInputSchema } from "./expense"
@@ -100,10 +100,11 @@ describe("presupuesto, acceso y onboarding", () => {
     expect(budgetInputSchema.safeParse({ categoryId: null, amountCents: 80000 }).success).toBe(true)
   })
 
-  it("normaliza el email y valida el código", () => {
+  it("normaliza el email y valida la contraseña", () => {
     expect(emailSchema.parse("  Ana@Test.ES ")).toBe("ana@test.es")
-    expect(otpSchema.safeParse("123456").success).toBe(true)
-    expect(firstMessage(otpSchema.safeParse("12a456"))).toBe("codeInvalid")
+    expect(passwordSchema.safeParse("12345678").success).toBe(true)
+    expect(firstMessage(passwordSchema.safeParse("1234567"))).toBe("passwordTooShort")
+    expect(firstMessage(passwordSchema.safeParse("x".repeat(73)))).toBe("passwordTooLong")
   })
 
   it("exige al menos una categoría conocida y quita duplicados", () => {
@@ -132,7 +133,8 @@ it("todas las claves de validación tienen texto en es-ES", () => {
     "dateInvalid",
     "textTooLong",
     "emailInvalid",
-    "codeInvalid",
+    "passwordTooShort",
+    "passwordTooLong",
     "categoriesRequired",
     "tooManyPeople",
     "descriptionRequired",

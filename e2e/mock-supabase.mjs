@@ -29,6 +29,8 @@ let budgets = []
 let places = []
 let people = []
 let incomes = []
+/** Cuentas con contraseña: email → contraseña. */
+const accounts = new Map()
 let recurringIncomes = []
 
 /** Busca por nombre (sin mayúsculas) o lo crea, como ensure_place/ensure_person. */
@@ -101,17 +103,8 @@ createServer(async (req, res) => {
   }
 
   // --- Auth ---
-  if (req.method === "POST" && url.pathname === "/auth/v1/otp") {
-    const body = await readBody(req)
-    if (body.email === "limite@test.es")
-      return send(res, 429, { code: "over_email_send_rate_limit", msg: "rate limit" })
-    return send(res, 200, {})
-  }
-  if (req.method === "POST" && url.pathname === "/auth/v1/verify") {
-    const body = await readBody(req)
-    if (body.token !== "123456")
-      return send(res, 403, { code: "otp_expired", msg: "Token has expired or is invalid" })
-    return send(res, 200, {
+  const session = () =>
+    send(res, 200, {
       access_token: token,
       token_type: "bearer",
       expires_in: 3600,
@@ -119,6 +112,25 @@ createServer(async (req, res) => {
       refresh_token: "refresh",
       user,
     })
+  if (req.method === "POST" && url.pathname === "/auth/v1/signup") {
+    const body = await readBody(req)
+    if (accounts.has(body.email))
+      return send(res, 422, { error_code: "user_already_exists", msg: "User already registered" })
+    if ((body.password ?? "").length < 8)
+      return send(res, 422, {
+        code: "weak_password",
+        msg: "Password should be at least 8 characters",
+      })
+    accounts.set(body.email, body.password)
+    return session()
+  }
+  if (req.method === "POST" && url.pathname === "/auth/v1/token") {
+    const body = await readBody(req)
+    if (body.email === "limite@test.es")
+      return send(res, 429, { error_code: "over_request_rate_limit", msg: "rate limit" })
+    if (accounts.get(body.email) !== body.password)
+      return send(res, 400, { error_code: "invalid_credentials", msg: "Invalid login credentials" })
+    return session()
   }
   if (req.method === "GET" && url.pathname === "/auth/v1/user") {
     return logged ? send(res, 200, user) : send(res, 401, { code: "bad_jwt", msg: "invalid" })

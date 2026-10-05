@@ -122,7 +122,7 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - Vuelta tras el login:
   - el proxy manda a `/login?next=…`;
   - `safeNextPath` solo admite rutas internas;
-  - la ruta se guarda en la cookie `zumito-next` (httpOnly, 1 h) para el enlace del email y el onboarding.
+  - la ruta se guarda en la cookie `zumito-next` (httpOnly, 1 h) para usarla al terminar el onboarding (y en los enlaces de email).
 - Historial: filtros por lugar (`?l=`), persona (`?p=`) e importe (`?min=`, `?max=` en euros) como chips con panel. Los parámetros no válidos se ignoran.
 - La lógica de guardado optimista está en `src/hooks/use-expense-saver.ts` (panel del "+" y `/add`).
 - Pendiente conocido: la hora del formulario usa la zona del dispositivo y la lista la del perfil. Coinciden salvo que el usuario viaje; hay que poder cambiar la zona en Ajustes.
@@ -198,7 +198,10 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 
 ## Autenticación y onboarding
 
-- Acceso sin contraseña con un código de 6 dígitos por email (`signInWithOtp` + `verifyOtp`). Funciona dentro de la PWA instalada, a diferencia de los enlaces mágicos. El enlace del email también sirve (`/auth/confirm`).
+- Acceso con email y contraseña (`signInWithPassword` y `signUp`), con pestañas "Entrar" y "Crear cuenta". Contraseña de 8 a 72 caracteres (`passwordSchema`). Decisión del usuario (2026-10-05): sin correos al registrarse, porque el SMTP por defecto de Supabase limita a ~2 emails por hora y solo envía al equipo.
+- Requiere desactivar "Confirm email" en Supabase. Si sigue activo, crear cuenta no da sesión y la app avisa (`emailNotConfirmed`). Antes de abrir al público: SMTP propio, volver a activar la confirmación y añadir "¿Has olvidado la contraseña?".
+- Al entrar no se dice si falla el email o la contraseña: siempre "El email o la contraseña no son correctos".
+- `/auth/confirm` se mantiene para enlaces de email (confirmación o recuperación futuras).
 - `src/proxy.ts` refresca la sesión y protege las rutas: sin sesión todo lleva a `/login`, salvo `/login` y `/auth/confirm`.
 - `src/app/(app)/layout.tsx` redirige a `/onboarding` si `profiles.onboarded_at` es nulo.
 - Para leer la sesión y el perfil se usan `getCurrentUser` y `getCurrentProfile` (`src/lib/data/profile.ts`), cacheados por petición.

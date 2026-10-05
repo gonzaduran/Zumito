@@ -179,11 +179,26 @@ check(
 )
 
 console.log("Login")
-await fill("#email", "limite@test.es")
-await clickText("Enviarme el código")
+const submit = () => clickSel("form button[type=submit]")
+const tab = (name) =>
+  evaluate(
+    `[...document.querySelectorAll('[role=tab]')].find((t) => t.innerText.includes(${JSON.stringify(name)})).click()`,
+  )
 check(
-  "límite de envíos muestra el aviso",
-  await waitFor(async () => (await text()).includes("Has pedido muchos códigos")),
+  "pide email y contraseña, sin códigos",
+  Boolean(
+    await evaluate(
+      "Boolean(document.querySelector('#email') && document.querySelector('#password'))",
+    ),
+  ),
+  await text(),
+)
+await fill("#email", "limite@test.es")
+await fill("#password", "secreta123")
+await submit()
+check(
+  "demasiados intentos muestra el aviso",
+  await waitFor(async () => (await text()).includes("Demasiados intentos")),
   await text(),
 )
 check(
@@ -192,45 +207,37 @@ check(
   await evaluate("document.querySelector('#email').value"),
 )
 await fill("#email", "gonzalo@test.es")
-await clickText("Enviarme el código")
+await fill("#password", "secreta123")
+await submit()
 check(
-  "pasa al paso del código",
-  await waitFor(async () => (await text()).includes("Revisa tu email")),
+  "sin cuenta, avisa de email o contraseña incorrectos",
+  await waitFor(async () => (await text()).includes("El email o la contraseña no son correctos")),
   await text(),
 )
-check("muestra el email en el texto", (await text()).includes("gonzalo@test.es"))
-await shot("02-codigo")
-await audit("código")
-await fill("#code", "000000")
-await clickText("Entrar")
+await shot("03-login-error")
+await tab("Crear cuenta")
 check(
-  "código incorrecto muestra error",
-  await waitFor(async () => (await text()).includes("no es correcto")),
+  "crear cuenta explica el mínimo de la contraseña",
+  await waitFor(async () => (await text()).includes("Mínimo 8 caracteres")),
   await text(),
 )
-await shot("03-codigo-error")
-await clickText("Usar otro email")
+await clickSel('button[aria-label="Mostrar contraseña"]')
 check(
-  "'Usar otro email' vuelve al campo con el email anterior",
-  await waitFor(
-    async () => (await evaluate("document.querySelector('#email')?.value")) === "gonzalo@test.es",
-  ),
-  await text(),
+  "se puede ver la contraseña",
+  (await evaluate("document.querySelector('#password').type")) === "text",
 )
-await fill("#email", "otro@test.es")
-await clickText("Enviarme el código")
+await shot("02-crear-cuenta")
+await audit("crear cuenta")
+await submit()
 check(
-  "con el email nuevo pasa al código de ese email",
-  await waitFor(async () => (await text()).includes("otro@test.es")),
-  await text(),
-)
-check("y no muestra el email anterior", !(await text()).includes("gonzalo@test.es"), await text())
-await fill("#code", "123456")
-await clickText("Entrar")
-check(
-  "código correcto lleva al onboarding",
+  "crear la cuenta entra directamente y lleva al onboarding",
   await waitFor(async () => (await path()) === "/onboarding"),
   await path(),
+)
+check(
+  "con el email y la contraseña escritos",
+  (await mock()).log.some((l) => l.startsWith("POST /auth/v1/signup")),
+  JSON.stringify((await mock()).log.slice(-10)),
 )
 
 console.log("Onboarding")
@@ -1362,11 +1369,17 @@ check(
     decodeURIComponent(await path()).includes("/add?categoria=Comida&importe=5"),
   await path(),
 )
+await tab("Crear cuenta")
 await fill("#email", "gonzalo@test.es")
-await clickText("Enviarme el código")
-await waitFor(async () => (await text()).includes("Revisa tu email"))
-await fill("#code", "123456")
-await clickText("Entrar")
+await fill("#password", "secreta123")
+await submit()
+check(
+  "crear cuenta con un email ya registrado avisa",
+  await waitFor(async () => (await text()).includes("Ya hay una cuenta con ese email")),
+  await text(),
+)
+await tab("Entrar")
+await submit()
 check(
   "tras entrar vuelve a /add con los mismos parámetros",
   await waitFor(async () => (await path()) === "/add?categoria=Comida&importe=5", 6000),

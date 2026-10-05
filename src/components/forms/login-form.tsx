@@ -1,13 +1,14 @@
 "use client"
 
+import { Eye, EyeOff } from "lucide-react"
 import { useActionState, useState } from "react"
 
-import { sendCode, verifyCode, type SendCodeState } from "@/app/(auth)/login/actions"
+import { authenticate, type AuthState } from "@/app/(auth)/login/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { Dictionary } from "@/i18n/get-dictionary"
-import { interpolate } from "@/i18n/interpolate"
 
 type LoginFormProps = {
   labels: Dictionary["auth"]
@@ -17,31 +18,36 @@ type LoginFormProps = {
   next?: string
 }
 
-const initialSendState: SendCodeState = { email: null, error: null, resent: false }
+type Mode = "signin" | "signup"
 
-/** Acceso sin contraseña en dos pasos: email y código de un solo uso. */
+/** Entrar o crear cuenta con email y contraseña. */
 export function LoginForm({ labels, initialError, next }: LoginFormProps) {
-  const [sendState, sendAction, sending] = useActionState(sendCode, {
-    ...initialSendState,
+  const [state, action, pending] = useActionState(authenticate, {
     error: initialError ?? null,
-  })
-  const [verifyState, verifyAction, verifying] = useActionState(verifyCode, { error: null })
-  const [changingEmail, setChangingEmail] = useState(false)
-  // Controlado para que el email no se borre si el envío falla.
-  const [emailInput, setEmailInput] = useState("")
+  } satisfies AuthState)
+  const [mode, setMode] = useState<Mode>("signin")
+  // Controlados para que no se borren si el envío falla.
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
-  // Tras "Usar otro email", se vuelve al paso del código solo cuando el nuevo envío sale bien.
-  const [lastSendState, setLastSendState] = useState(sendState)
-  if (lastSendState !== sendState) {
-    setLastSendState(sendState)
-    if (sendState.email && !sendState.error) setChangingEmail(false)
-  }
+  const emailError = state.error === "invalidEmail"
+  const passwordError =
+    state.error === "passwordTooShort" ||
+    state.error === "passwordTooLong" ||
+    state.error === "invalidCredentials"
 
-  const email = changingEmail ? null : sendState.email
+  return (
+    <div className="flex flex-col gap-6">
+      <Tabs value={mode} onValueChange={(value) => setMode(value as Mode)}>
+        <TabsList variant="segmented" aria-label={labels.modeLabel}>
+          <TabsTrigger value="signin">{labels.signIn}</TabsTrigger>
+          <TabsTrigger value="signup">{labels.signUp}</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
-  if (!email) {
-    return (
-      <form action={sendAction} className="flex flex-col gap-5">
+      <form action={action} className="flex flex-col gap-5">
+        <input type="hidden" name="mode" value={mode} />
         {next ? <input type="hidden" name="next" value={next} /> : null}
         <div>
           <Label htmlFor="email">{labels.emailLabel}</Label>
@@ -52,76 +58,67 @@ export function LoginForm({ labels, initialError, next }: LoginFormProps) {
             inputMode="email"
             autoComplete="email"
             placeholder={labels.emailPlaceholder}
-            value={emailInput}
-            onChange={(event) => setEmailInput(event.target.value)}
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
             required
-            autoFocus
-            aria-invalid={sendState.error === "invalidEmail" || undefined}
-            aria-describedby={sendState.error ? "login-error" : undefined}
+            aria-invalid={emailError || undefined}
+            aria-describedby={state.error ? "login-error" : undefined}
           />
         </div>
-        {sendState.error ? (
-          <p id="login-error" role="alert" className="text-sm font-semibold text-destructive">
-            {labels.errors[sendState.error]}
-          </p>
-        ) : null}
-        <Button type="submit" size="lg" disabled={sending}>
-          {sending ? labels.sending : labels.sendCode}
-        </Button>
-      </form>
-    )
-  }
-
-  return (
-    <div className="flex flex-col gap-5">
-      <div>
-        <h2 className="text-lg font-extrabold">{labels.codeTitle}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {interpolate(labels.codeSubtitle, { email })}
-        </p>
-      </div>
-      <form action={verifyAction} className="flex flex-col gap-5">
-        <input type="hidden" name="email" value={email} />
         <div>
-          <Label htmlFor="code">{labels.codeLabel}</Label>
-          <Input
-            id="code"
-            name="code"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            pattern="[0-9]*"
-            maxLength={8}
-            required
-            autoFocus
-            className="h-14 text-center num text-2xl font-bold tracking-[0.4em]"
-            aria-invalid={verifyState.error ? true : undefined}
-            aria-describedby={verifyState.error ? "code-error" : undefined}
-          />
+          <Label htmlFor="password">{labels.passwordLabel}</Label>
+          <div className="relative">
+            <Input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+              minLength={mode === "signup" ? 8 : undefined}
+              maxLength={72}
+              className="pr-12"
+              aria-invalid={passwordError || undefined}
+              aria-describedby={
+                [mode === "signup" ? "password-hint" : null, state.error ? "login-error" : null]
+                  .filter(Boolean)
+                  .join(" ") || undefined
+              }
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((value) => !value)}
+              aria-label={showPassword ? labels.hidePassword : labels.showPassword}
+              aria-pressed={showPassword}
+              className="absolute top-1/2 right-1 flex size-11 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              {showPassword ? (
+                <EyeOff aria-hidden="true" className="size-5" />
+              ) : (
+                <Eye aria-hidden="true" className="size-5" />
+              )}
+            </button>
+          </div>
+          {mode === "signup" ? (
+            <p id="password-hint" className="mt-2 text-xs text-muted-foreground">
+              {labels.passwordHint}
+            </p>
+          ) : null}
         </div>
-        {verifyState.error ? (
-          <p id="code-error" role="alert" className="text-sm font-semibold text-destructive">
-            {labels.errors[verifyState.error]}
+        {state.error ? (
+          <p id="login-error" role="alert" className="text-sm font-semibold text-destructive">
+            {labels.errors[state.error]}
           </p>
         ) : null}
-        <Button type="submit" size="lg" disabled={verifying}>
-          {verifying ? labels.verifying : labels.verify}
+        <Button type="submit" size="lg" disabled={pending}>
+          {pending
+            ? labels.submitting
+            : mode === "signup"
+              ? labels.signUpSubmit
+              : labels.signInSubmit}
         </Button>
       </form>
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" size="sm" onClick={() => setChangingEmail(true)}>
-          {labels.changeEmail}
-        </Button>
-        <form action={sendAction}>
-          <input type="hidden" name="email" value={email} />
-          {next ? <input type="hidden" name="next" value={next} /> : null}
-          <Button type="submit" variant="ghost" size="sm" disabled={sending}>
-            {labels.resend}
-          </Button>
-        </form>
-      </div>
-      <p aria-live="polite" className="text-center text-sm text-muted-foreground">
-        {sendState.resent ? labels.resent : sendState.error ? labels.errors[sendState.error] : ""}
-      </p>
     </div>
   )
 }

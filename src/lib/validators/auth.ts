@@ -9,8 +9,8 @@ export const emailSchema = z
   .toLowerCase()
   .pipe(z.email(msg("emailInvalid")))
 
-/** Código de un solo uso que envía Supabase por email (6 dígitos por defecto, hasta 8). */
-export const otpSchema = z
+/** Mínimo 8 caracteres (igual que en Supabase). 72 es el máximo que admite bcrypt. */
+export const passwordSchema = z
   .string()
-  .trim()
-  .regex(/^\d{6,8}$/, msg("codeInvalid"))
+  .min(8, msg("passwordTooShort"))
+  .max(72, msg("passwordTooLong"))
