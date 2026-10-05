@@ -1,4 +1,8 @@
 import { ChartPie } from "lucide-react"
+import { Suspense } from "react"
+import { z } from "zod"
+
+import { AccountFilter } from "@/components/accounts/account-filter"
 
 import { MonthlyTrendChart } from "@/components/charts/monthly-trend-chart"
 import { CategoryBreakdown } from "@/components/home/category-breakdown"
@@ -32,11 +36,15 @@ export default async function StatsPage({ searchParams }: PageProps<"/estadistic
   const month = resolveMonth(single(params.m), currentMonth)
   const range = monthRange(month)
   const compare = comparisonRange(month, today)
+  const accountParam = single(params.a)
+  const accountId = z.uuid().safeParse(accountParam).success ? accountParam : undefined
+  // Los enlaces de mes conservan la cuenta elegida.
+  const withAccount = (href: string) => (accountId ? `${href}&a=${accountId}` : href)
 
   const [byCategory, previousByCategory, byMonth] = await Promise.all([
-    getSpendingByCategory(range.from, range.to),
-    getSpendingByCategory(compare.from, compare.to),
-    getSpendingByMonth(6),
+    getSpendingByCategory(range.from, range.to, accountId),
+    getSpendingByCategory(compare.from, compare.to, accountId),
+    getSpendingByMonth(6, accountId),
   ])
 
   const total = sum(byCategory)
@@ -72,13 +80,23 @@ export default async function StatsPage({ searchParams }: PageProps<"/estadistic
     <>
       <AppHeader title={labels.title} />
       <div className="flex flex-col gap-7 px-6 pt-4">
+        {/* useSearchParams necesita un límite de Suspense. */}
+        <Suspense>
+          <AccountFilter label={labels.accountFilter} allLabel={labels.allAccounts} />
+        </Suspense>
         <MonthSwitcher
           navLabel={labels.monthNav}
           label={formatMonthName(month)}
-          previous={{ href: `/estadisticas?m=${previousMonth}`, label: labels.previousMonth }}
+          previous={{
+            href: withAccount(`/estadisticas?m=${previousMonth}`),
+            label: labels.previousMonth,
+          }}
           next={
             month < currentMonth
-              ? { href: `/estadisticas?m=${addMonths(month, 1)}`, label: labels.nextMonth }
+              ? {
+                  href: withAccount(`/estadisticas?m=${addMonths(month, 1)}`),
+                  label: labels.nextMonth,
+                }
               : null
           }
         />

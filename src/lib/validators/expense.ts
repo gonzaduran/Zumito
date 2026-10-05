@@ -23,6 +23,8 @@ export const expenseInputSchema = z
     /** Generado en el cliente para el guardado optimista y la sincronización offline. */
     id: z.uuid().optional(),
     categoryId: z.uuid(msg("categoryRequired")),
+    /** Sin cuenta: la principal al crear, la misma al editar. */
+    accountId: z.uuid().optional(),
     amountCents: amountCentsSchema,
     description: optionalText(80),
     note: optionalText(500),

@@ -1,3 +1,4 @@
+import { AccountsCard } from "@/components/home/accounts-card"
 import { BalanceCard } from "@/components/home/balance-card"
 import { BudgetNotice } from "@/components/home/budget-notice"
 import { CategoryBreakdown } from "@/components/home/category-breakdown"
@@ -13,6 +14,7 @@ import { interpolate } from "@/i18n/interpolate"
 import { getBillingConfig } from "@/lib/billing/config"
 import { PREMIUM_PRICES, WELCOME_YEAR_PRICE, welcomeOfferRemainingMs } from "@/lib/billing/plans"
 import { getCategories } from "@/lib/data/categories"
+import { getAccountSummary } from "@/lib/data/accounts"
 import { getIncomeTotal, getRecurringIncomes } from "@/lib/data/incomes"
 import {
   getBudgetStatus,
@@ -51,6 +53,7 @@ export default async function HomePage() {
     entitlement,
     monthIncome,
     recurringIncomes,
+    accountSummary,
   ] = await Promise.all([
     getExpenseSummary(),
     searchExpenses({ limit: 5 }),
@@ -63,6 +66,7 @@ export default async function HomePage() {
     getEntitlement(),
     getIncomeTotal(month.from, month.to),
     getRecurringIncomes(),
+    getAccountSummary(month.from, month.to),
   ])
   // Sin Premium, los presupuestos por categoría quedan en pausa: solo cuenta el total.
   const budgets = entitlement.premium
@@ -118,6 +122,34 @@ export default async function HomePage() {
             cta={dict.home.balanceCta}
           />
         )}
+        {accountSummary.length > 1 ? (
+          <AccountsCard
+            title={dict.home.accountsTitle}
+            items={accountSummary.map((account) => {
+              const left = account.income_cents - account.spent_cents
+              return {
+                id: account.id,
+                name: account.name,
+                emoji: account.emoji,
+                spent: interpolate(dict.home.accountSpent, {
+                  amount: formatCents(account.spent_cents),
+                }),
+                balance:
+                  account.income_cents > 0
+                    ? {
+                        text: interpolate(
+                          left >= 0 ? dict.home.accountLeft : dict.home.accountOver,
+                          {
+                            amount: formatCents(Math.abs(left)),
+                          },
+                        ),
+                        over: left < 0,
+                      }
+                    : null,
+              }
+            })}
+          />
+        ) : null}
         {budgetNotice ? (
           <BudgetNotice tone={budgetNotice.tone} message={budgetNotice.message} />
         ) : null}

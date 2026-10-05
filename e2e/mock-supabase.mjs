@@ -29,8 +29,24 @@ let budgets = []
 let places = []
 let people = []
 let incomes = []
+/** Cuentas: todos empiezan con "Personal" (como el trigger de la base de datos). */
+let accounts = [
+  {
+    id: randomUUID(),
+    name: "Personal",
+    emoji: "💳",
+    position: 0,
+    archived_at: null,
+    created_at: new Date().toISOString(),
+  },
+]
+const activeAccounts = () =>
+  accounts
+    .filter((a) => !a.archived_at)
+    .sort((a, b) => a.position - b.position || a.created_at.localeCompare(b.created_at))
+const defaultAccountId = () => activeAccounts()[0]?.id
 /** Cuentas con contraseña: email → contraseña. */
-const accounts = new Map()
+const credentials = new Map()
 let recurringIncomes = []
 
 /** Busca por nombre (sin mayúsculas) o lo crea, como ensure_place/ensure_person. */
@@ -91,6 +107,7 @@ createServer(async (req, res) => {
       people,
       incomes,
       recurringIncomes,
+      accounts,
     })
   if (url.pathname === "/__profile") {
     for (const [key, value] of url.searchParams)
@@ -114,21 +131,21 @@ createServer(async (req, res) => {
     })
   if (req.method === "POST" && url.pathname === "/auth/v1/signup") {
     const body = await readBody(req)
-    if (accounts.has(body.email))
+    if (credentials.has(body.email))
       return send(res, 422, { error_code: "user_already_exists", msg: "User already registered" })
     if ((body.password ?? "").length < 8)
       return send(res, 422, {
         code: "weak_password",
         msg: "Password should be at least 8 characters",
       })
-    accounts.set(body.email, body.password)
+    credentials.set(body.email, body.password)
     return session()
   }
   if (req.method === "POST" && url.pathname === "/auth/v1/token") {
     const body = await readBody(req)
     if (body.email === "limite@test.es")
       return send(res, 429, { error_code: "over_request_rate_limit", msg: "rate limit" })
-    if (accounts.get(body.email) !== body.password)
+    if (credentials.get(body.email) !== body.password)
       return send(res, 400, { error_code: "invalid_credentials", msg: "Invalid login credentials" })
     return session()
   }
@@ -253,6 +270,7 @@ createServer(async (req, res) => {
       .slice(offset, offset + limit)
       .map((e) => {
         if (select === "category_id") return { category_id: e.category_id }
+        if (select === "account_id") return { account_id: e.account_id }
         const c = categories.find((c) => c.id === e.category_id)
         return {
           id: e.id,
@@ -289,6 +307,7 @@ createServer(async (req, res) => {
     expense.person_ids = [...new Set([...(b.p_person_ids ?? []), ...newIds])].filter(Boolean)
     // Como save_expense: el mismo id actualiza en lugar de duplicar.
     const existing = expenses.find((e) => e.id === expense.id)
+    expense.account_id = b.p_account_id ?? existing?.account_id ?? defaultAccountId()
     if (existing) Object.assign(existing, expense)
     else expenses.push({ ...expense, created_at: new Date().toISOString() })
     return send(res, 204)
@@ -318,6 +337,7 @@ createServer(async (req, res) => {
       .filter(
         ({ e, c, place }) =>
           (!body.p_category_id || e.category_id === body.p_category_id) &&
+          (!body.p_account_id || e.account_id === body.p_account_id) &&
           (!body.p_place_id || e.place_id === body.p_place_id) &&
           (!body.p_person_id || e.person_ids?.includes(body.p_person_id)) &&
           (body.p_min_cents == null || e.amount_cents >= body.p_min_cents) &&
@@ -342,6 +362,7 @@ createServer(async (req, res) => {
         mood: e.mood ?? null,
         people: peopleOf(e),
         day: madridDay(new Date(e.spent_at)),
+        account_id: e.account_id,
       }))
     for (const r of list)
       r.day_total_cents = list
@@ -356,6 +377,7 @@ createServer(async (req, res) => {
     for (const e of expenses) {
       const day = madridDay(new Date(e.spent_at))
       if (day < body.p_from || day >= body.p_to) continue
+      if (body.p_account_id && e.account_id !== body.p_account_id) continue
       const cat = categories.find((c) => c.id === e.category_id)
       const row = totals.get(cat.id) ?? {
         category_id: cat.id,
@@ -386,6 +408,7 @@ createServer(async (req, res) => {
         month: `${month}-01`,
         total_cents: expenses
           .filter((e) => madridDay(new Date(e.spent_at)).startsWith(month))
+          .filter((e) => !body.p_account_id || e.account_id === body.p_account_id)
           .reduce((a, e) => a + e.amount_cents, 0),
       })
     }
@@ -447,6 +470,7 @@ createServer(async (req, res) => {
       starts_on: madridDay(new Date()),
       last_period: null,
       ...body,
+      account_id: body.account_id ?? defaultAccountId(),
     })
     return send(res, 201)
   }
@@ -477,6 +501,7 @@ createServer(async (req, res) => {
         amount_cents: r.amount_cents,
         received_at: new Date(`${day}T07:00:00Z`).toISOString(),
         recurring_id: r.id,
+        account_id: r.account_id,
       })
       r.last_period = period
       created++
@@ -488,7 +513,11 @@ createServer(async (req, res) => {
     const total = incomes
       .filter((i) => {
         const day = madridDay(new Date(i.received_at))
-        return day >= body.p_from && day < body.p_to
+        return (
+          day >= body.p_from &&
+          day < body.p_to &&
+          (!body.p_account_id || i.account_id === body.p_account_id)
+        )
       })
       .reduce((sum, i) => sum + i.amount_cents, 0)
     return send(res, 200, total)
@@ -501,13 +530,77 @@ createServer(async (req, res) => {
     )
   if (req.method === "POST" && url.pathname === "/rest/v1/incomes") {
     const body = await readBody(req)
-    incomes.push({ id: randomUUID(), recurring_id: null, ...body })
+    incomes.push({
+      id: randomUUID(),
+      recurring_id: null,
+      ...body,
+      account_id: body.account_id ?? defaultAccountId(),
+    })
     return send(res, 201)
   }
   if (req.method === "DELETE" && url.pathname === "/rest/v1/incomes") {
     const id = idParam()
     incomes = incomes.filter((i) => i.id !== id)
     return send(res, 204)
+  }
+  // --- Cuentas ---
+  if (url.pathname === "/rest/v1/accounts" && (req.method === "GET" || req.method === "HEAD")) {
+    const onlyActive = url.searchParams.get("archived_at") === "is.null"
+    const list = onlyActive
+      ? activeAccounts()
+      : [...accounts].sort(
+          (a, b) => a.position - b.position || a.created_at.localeCompare(b.created_at),
+        )
+    if (req.method === "HEAD") {
+      res.writeHead(200, { "content-range": `*/${list.length}` })
+      return res.end()
+    }
+    return rows(req, res, list)
+  }
+  if (req.method === "POST" && url.pathname === "/rest/v1/accounts") {
+    const body = await readBody(req)
+    if (activeAccounts().length >= (profile.premium_comp ? 20 : 1))
+      return send(res, 403, { code: "42501", message: "Límite de cuentas alcanzado" })
+    if (activeAccounts().some((a) => a.name.toLowerCase() === body.name.trim().toLowerCase()))
+      return send(res, 409, { code: "23505", message: "duplicate key" })
+    accounts.push({
+      id: randomUUID(),
+      archived_at: null,
+      created_at: new Date().toISOString(),
+      position: 0,
+      ...body,
+    })
+    return send(res, 201)
+  }
+  if (req.method === "PATCH" && url.pathname === "/rest/v1/accounts") {
+    const body = await readBody(req)
+    const account = accounts.find((a) => a.id === idParam())
+    if (account && body.archived_at && activeAccounts().length <= 1)
+      return send(res, 400, { code: "22023", message: "Necesitas al menos una cuenta" })
+    if (account) Object.assign(account, body)
+    return send(res, 204)
+  }
+  if (req.method === "POST" && url.pathname === "/rest/v1/rpc/account_summary") {
+    const body = await readBody(req)
+    const inRange = (iso) => {
+      const day = madridDay(new Date(iso))
+      return day >= body.p_from && day < body.p_to
+    }
+    return send(
+      res,
+      200,
+      activeAccounts().map((a) => ({
+        id: a.id,
+        name: a.name,
+        emoji: a.emoji,
+        spent_cents: expenses
+          .filter((e) => e.account_id === a.id && inRange(e.spent_at))
+          .reduce((sum, e) => sum + e.amount_cents, 0),
+        income_cents: incomes
+          .filter((i) => i.account_id === a.id && inRange(i.received_at))
+          .reduce((sum, i) => sum + i.amount_cents, 0),
+      })),
+    )
   }
   send(res, 404, { message: `sin mock: ${req.method} ${url.pathname}` })
 }).listen(PORT, () => console.log(`mock en ${PORT}`))

@@ -90,7 +90,8 @@ const check = (name, cond, detail) => {
   console.log(cond ? "  ✔" : "  ✘", name, cond ? "" : `→ ${detail}`)
 }
 const path = () => evaluate("location.pathname + location.search")
-const text = async () => (await evaluate("document.body.innerText")).replace(/ /g, " ")
+// Durante una navegación el documento puede no existir todavía: se trata como texto vacío.
+const text = async () => ((await evaluate("document.body?.innerText")) ?? "").replace(/ /g, " ")
 async function waitFor(fn, ms = 8000) {
   const end = Date.now() + ms
   while (Date.now() < end) {
@@ -844,6 +845,154 @@ check(
   "sin excesos, dice cuánto llevas del total",
   await waitFor(async () =>
     (await text()).includes("Vas bien: llevas 14,00 € de 20,00 € este mes"),
+  ),
+  await text(),
+)
+
+console.log("Cuentas")
+const accountChip = (name, group = 0) =>
+  evaluate(
+    `(() => { const groups = [...document.querySelectorAll('[role=group][aria-label="Cuenta"]')]; const b = groups[${group === "last" ? "groups.length - 1" : group}] && [...groups[${group === "last" ? "groups.length - 1" : group}].querySelectorAll('button')].find((b) => b.innerText.includes(${JSON.stringify(name)})); if (!b) return false; b.click(); return true })()`,
+  )
+const pressedAccounts = () =>
+  evaluate(
+    "[...document.querySelectorAll('[aria-label=\"Cuenta\"] [data-pressed]')].map((b) => b.innerText.trim())",
+  )
+await fetch("http://localhost:54329/__profile?premium_comp=false")
+await goto("/ajustes/cuentas")
+check(
+  "todos empiezan con la cuenta Personal, la principal",
+  await waitFor(async () => {
+    const t = await text()
+    return t.includes("Personal") && t.includes("Principal")
+  }),
+  await text(),
+)
+check(
+  "sin Premium, más cuentas con candado",
+  (await text()).includes("Más cuentas con Premium") &&
+    !(await evaluate("Boolean(document.querySelector('#new-account-name'))")),
+  await text(),
+)
+check(
+  "la única cuenta no se puede archivar",
+  !(await evaluate("Boolean(document.querySelector('button[aria-label=\"Archivar Personal\"]'))")),
+)
+await fetch("http://localhost:54329/__profile?premium_comp=true")
+await goto("/ajustes/cuentas")
+await waitFor(async () =>
+  Boolean(await evaluate("Boolean(document.querySelector('#new-account-name'))")),
+)
+await fill("#new-account-name", "Padres")
+await clickText("Añadir cuenta")
+check(
+  "con Premium, crea la cuenta de tus padres",
+  await waitFor(async () =>
+    (await mock()).accounts.some((a) => a.name === "Padres" && a.emoji === "👨‍👩‍👦"),
+  ),
+  JSON.stringify((await mock()).accounts),
+)
+await waitFor(async () => (await text()).includes("Padres"))
+await shot("16c-cuentas")
+await audit("cuentas")
+const padresId = (await mock()).accounts.find((a) => a.name === "Padres").id
+
+await goto("/")
+check(
+  "el inicio muestra tus cuentas",
+  await waitFor(async () => (await text()).includes("Tus cuentas")),
+  await text(),
+)
+await clickSel('button[aria-label="Añadir gasto"]')
+await waitFor(async () => (await text()).includes("Guardar gasto"))
+await sleep(300)
+check(
+  "al apuntar, la cuenta preseleccionada es la del último gasto",
+  JSON.stringify(await pressedAccounts()).includes("Personal"),
+  JSON.stringify(await pressedAccounts()),
+)
+await accountChip("Padres")
+await keypad("8")
+await clickSel("#submit-expense")
+check(
+  "el gasto se guarda en la cuenta elegida",
+  await waitFor(async () =>
+    (await mock()).expenses.some((e) => e.account_id === padresId && e.amount_cents === 800),
+  ),
+  JSON.stringify((await mock()).expenses.map((e) => [e.amount_cents, e.account_id])),
+)
+await goto("/")
+check(
+  "el inicio dice cuánto has gastado en cada cuenta",
+  await waitFor(async () => (await text()).includes("Gastado 8,00 €")),
+  await text(),
+)
+await goto(`/historial?a=${padresId}`)
+check(
+  "el historial filtra por cuenta",
+  await waitFor(
+    async () => (await evaluate("document.querySelectorAll('main li button').length")) === 1,
+  ),
+  String(await evaluate("document.querySelectorAll('main li button').length")),
+)
+await goto(`/estadisticas?a=${padresId}`)
+check(
+  "las estadísticas filtran por cuenta",
+  await waitFor(async () => (await text()).includes("8,00 €")),
+  await text(),
+)
+await shot("16d-estadisticas-cuenta")
+await audit("estadísticas por cuenta")
+
+await goto("/ajustes/dinero")
+await waitFor(async () => (await text()).includes("Añadir un ingreso"))
+await fill("#income-description", "Paga")
+await fill("#income-amount", "50")
+await accountChip("Padres", "last")
+await clickText("Añadir ingreso")
+check(
+  "un ingreso se apunta en la cuenta elegida",
+  await waitFor(async () =>
+    (await mock()).incomes.some((i) => i.account_id === padresId && i.amount_cents === 5000),
+  ),
+  JSON.stringify((await mock()).incomes),
+)
+await goto("/")
+check(
+  "y la cuenta dice cuánto te queda",
+  await waitFor(async () => (await text()).includes("Te quedan 42,00 €")),
+  await text(),
+)
+await shot("16e-inicio-cuentas")
+await audit("inicio con cuentas")
+
+// Se deja todo como estaba para el resto del recorrido.
+await goto("/ajustes/dinero")
+await waitFor(async () => (await text()).includes("Paga"))
+await clickSel('button[aria-label="Borrar Paga"]')
+await waitFor(async () => !(await mock()).incomes.some((i) => i.description === "Paga"))
+await goto(`/historial?a=${padresId}`)
+await waitFor(
+  async () => (await evaluate("document.querySelectorAll('main li button').length")) === 1,
+)
+await clickSel("main li button")
+await waitFor(async () => (await text()).includes("Eliminar gasto"))
+await clickText("Eliminar gasto")
+await waitFor(async () => !(await mock()).expenses.some((e) => e.account_id === padresId))
+await goto("/ajustes/cuentas")
+await waitFor(async () => (await text()).includes("Padres"))
+// Reintenta el clic hasta que la página esté lista (el botón desaparece al archivar).
+await waitFor(async () => {
+  await clickSel('button[aria-label="Archivar Padres"]')
+  await sleep(500)
+  return Boolean((await mock()).accounts.find((a) => a.id === padresId)?.archived_at)
+})
+check(
+  "archivar una cuenta la guarda aparte, sin borrarla",
+  await waitFor(
+    async () =>
+      Boolean((await mock()).accounts.find((a) => a.id === padresId)?.archived_at) &&
+      (await text()).includes("Archivadas"),
   ),
   await text(),
 )

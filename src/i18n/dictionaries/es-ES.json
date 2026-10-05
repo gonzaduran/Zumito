@@ -49,7 +49,11 @@
     "balanceLink": "Mi dinero",
     "balanceCtaTitle": "¿Cuánto te queda este mes?",
     "balanceCtaText": "Añade tu nómina y lo verás aquí cada día.",
-    "balanceCta": "Añadir mi nómina"
+    "balanceCta": "Añadir mi nómina",
+    "accountsTitle": "Tus cuentas",
+    "accountSpent": "Gastado {amount}",
+    "accountLeft": "Te quedan {amount}",
+    "accountOver": "Te has pasado {amount}"
   },
   "history": {
     "title": "Historial",
@@ -76,7 +80,9 @@
     "applyFilter": "Aplicar",
     "clearFilter": "Quitar filtro",
     "noPlaces": "Aún no has apuntado ningún lugar.",
-    "noPeople": "Aún no has apuntado a nadie."
+    "noPeople": "Aún no has apuntado a nadie.",
+    "accountFilter": "Cuenta",
+    "allAccounts": "Todas"
   },
   "stats": {
     "title": "Estadísticas",
@@ -95,7 +101,9 @@
     "monthColumn": "Mes",
     "amountColumn": "Importe",
     "emptyTitle": "Sin gastos en {month}",
-    "emptyDescription": "Cuando apuntes gastos verás aquí en qué se va tu dinero."
+    "emptyDescription": "Cuando apuntes gastos verás aquí en qué se va tu dinero.",
+    "accountFilter": "Cuenta",
+    "allAccounts": "Todas"
   },
   "settings": {
     "title": "Ajustes",
@@ -127,7 +135,9 @@
     "planPremium": "Premium",
     "planFounder": "Fundador · Premium para siempre",
     "money": "Mi dinero",
-    "moneyHint": "Nómina e ingresos del mes"
+    "moneyHint": "Nómina e ingresos del mes",
+    "accounts": "Cuentas",
+    "accountsHint": "Personal, la de tus padres…"
   },
   "addExpense": {
     "title": "Nuevo gasto",
@@ -174,7 +184,8 @@
     "unknownCategory": "No tienes ninguna categoría llamada «{name}»: elige una.",
     "invalidAmount": "El importe del enlace no es válido: escríbelo tú.",
     "backHome": "Volver al inicio",
-    "detailsCountOne": "1 añadido"
+    "detailsCountOne": "1 añadido",
+    "accountLabel": "Cuenta"
   },
   "categoryColors": {
     "rose": "Rosa",
@@ -207,7 +218,9 @@
     "descriptionRequired": "Ponle un concepto",
     "dayInvalid": "Elige un día del 1 al 31",
     "passwordTooShort": "La contraseña debe tener al menos 8 caracteres",
-    "passwordTooLong": "La contraseña puede tener hasta 72 caracteres"
+    "passwordTooLong": "La contraseña puede tener hasta 72 caracteres",
+    "accountNameRequired": "Ponle un nombre a la cuenta",
+    "accountNameTooLong": "El nombre puede tener hasta 30 caracteres"
   },
   "auth": {
     "title": "Entra en Zumito",
@@ -521,6 +534,36 @@
     "saved": "Ingreso guardado",
     "recurringSaved": "Ingreso programado",
     "deleted": "Ingreso borrado",
-    "failed": "No se ha podido guardar. Inténtalo de nuevo."
+    "failed": "No se ha podido guardar. Inténtalo de nuevo.",
+    "accountLabel": "Cuenta"
+  },
+  "accounts": {
+    "title": "Cuentas",
+    "back": "Volver a Ajustes",
+    "intro": "Separa tu dinero (por ejemplo, el tuyo y el que te dan tus padres) y mira cuánto gastas en cada uno.",
+    "active": "Tus cuentas",
+    "archivedTitle": "Archivadas",
+    "main": "Principal",
+    "edit": "Editar {name}",
+    "archive": "Archivar {name}",
+    "restore": "Restaurar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "addTitle": "Nueva cuenta",
+    "nameLabel": "Nombre",
+    "namePlaceholder": "Padres",
+    "emojiLabel": "Emoji",
+    "emojiSuggestions": "Sugerencias de emoji",
+    "add": "Añadir cuenta",
+    "locked": "Más cuentas con Premium",
+    "saved": "Cuenta guardada",
+    "archived": "Cuenta archivada",
+    "restored": "Cuenta restaurada",
+    "errors": {
+      "duplicate": "Ya tienes una cuenta con ese nombre",
+      "premium": "Para tener más de una cuenta necesitas Premium",
+      "lastAccount": "Necesitas al menos una cuenta",
+      "failed": "No se ha podido guardar. Inténtalo de nuevo."
+    }
   }
 }

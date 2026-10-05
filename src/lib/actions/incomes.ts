@@ -40,11 +40,13 @@ export async function addIncome(input: {
   description: string
   amount: string
   receivedOn: string
+  accountId?: string
 }): Promise<IncomeActionResult> {
   const parsed = incomeInputSchema.safeParse({
     description: input.description,
     amountCents: parseEuros(input.amount) ?? Number.NaN,
     receivedOn: input.receivedOn,
+    accountId: input.accountId,
   })
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) }
 
@@ -53,6 +55,7 @@ export async function addIncome(input: {
     description: parsed.data.description,
     amount_cents: parsed.data.amountCents,
     received_at: (await receivedAt(parsed.data.receivedOn)).toISOString(),
+    account_id: parsed.data.accountId,
   })
   return error ? { ok: false, error: "failed" } : done()
 }
@@ -73,11 +76,13 @@ export async function addRecurringIncome(input: {
   description: string
   amount: string
   dayOfMonth: number
+  accountId?: string
 }): Promise<IncomeActionResult> {
   const parsed = recurringIncomeInputSchema.safeParse({
     description: input.description,
     amountCents: parseEuros(input.amount) ?? Number.NaN,
     dayOfMonth: input.dayOfMonth,
+    accountId: input.accountId,
   })
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) }
 
@@ -92,6 +97,7 @@ export async function addRecurringIncome(input: {
     description: parsed.data.description,
     amount_cents: parsed.data.amountCents,
     day_of_month: parsed.data.dayOfMonth,
+    account_id: parsed.data.accountId,
   })
   if (error) return { ok: false, error: "failed" }
   await supabase.rpc("apply_recurring_incomes")

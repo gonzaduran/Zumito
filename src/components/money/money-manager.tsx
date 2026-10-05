@@ -5,6 +5,8 @@ import Link from "next/link"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 
+import { AccountPicker } from "@/components/accounts/account-picker"
+import { useAccounts } from "@/components/accounts/accounts-provider"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -246,10 +248,12 @@ function RecurringForm({
   pending: boolean
   error: React.ReactNode
   onSubmit: (
-    input: { description: string; amount: string; dayOfMonth: number },
+    input: { description: string; amount: string; dayOfMonth: number; accountId?: string },
     reset: () => void,
   ) => void
 }) {
+  const { accounts } = useAccounts()
+  const [accountId, setAccountId] = useState(accounts[0]?.id)
   const [description, setDescription] = useState(labels.recurringPlaceholder)
   const [amount, setAmount] = useState("")
   const [day, setDay] = useState("1")
@@ -260,7 +264,7 @@ function RecurringForm({
         aria-labelledby="add-recurring-title"
         onSubmit={(event) => {
           event.preventDefault()
-          onSubmit({ description, amount, dayOfMonth: Number(day) }, () => setAmount(""))
+          onSubmit({ description, amount, dayOfMonth: Number(day), accountId }, () => setAmount(""))
         }}
       >
         <h3 id="add-recurring-title" className="font-extrabold">
@@ -308,6 +312,12 @@ function RecurringForm({
         <p id="recurring-day-hint" className="text-xs text-muted-foreground">
           {labels.dayHint}
         </p>
+        <AccountPicker
+          label={labels.accountLabel}
+          accounts={accounts}
+          value={accountId}
+          onChange={setAccountId}
+        />
         {error}
         <Button type="submit" disabled={pending}>
           {labels.addRecurring}
@@ -329,10 +339,12 @@ function IncomeForm({
   pending: boolean
   error: React.ReactNode
   onSubmit: (
-    input: { description: string; amount: string; receivedOn: string },
+    input: { description: string; amount: string; receivedOn: string; accountId?: string },
     reset: () => void,
   ) => void
 }) {
+  const { accounts } = useAccounts()
+  const [accountId, setAccountId] = useState(accounts[0]?.id)
   const [description, setDescription] = useState("")
   const [amount, setAmount] = useState("")
   const [date, setDate] = useState(today)
@@ -343,7 +355,7 @@ function IncomeForm({
         aria-labelledby="add-income-title"
         onSubmit={(event) => {
           event.preventDefault()
-          onSubmit({ description, amount, receivedOn: date }, () => {
+          onSubmit({ description, amount, receivedOn: date, accountId }, () => {
             setDescription("")
             setAmount("")
           })
@@ -385,6 +397,12 @@ function IncomeForm({
             />
           </div>
         </div>
+        <AccountPicker
+          label={labels.accountLabel}
+          accounts={accounts}
+          value={accountId}
+          onChange={setAccountId}
+        />
         {error}
         <Button type="submit" disabled={pending}>
           {labels.addIncome}

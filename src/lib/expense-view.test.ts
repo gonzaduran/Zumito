@@ -22,6 +22,7 @@ const row = (overrides: Partial<ExpenseRow>): ExpenseRow => ({
   people: [],
   day: "2026-10-01",
   day_total_cents: 1000,
+  account_id: "a1",
   ...overrides,
 })
 

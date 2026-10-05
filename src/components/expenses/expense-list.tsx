@@ -34,6 +34,7 @@ type ExpenseListProps = {
 const toDraft = (expense: ListedExpense): ExpenseDraft => ({
   id: expense.id,
   categoryId: expense.categoryId,
+  accountId: expense.accountId,
   amountCents: expense.amountCents,
   description: expense.description ?? undefined,
   note: expense.note ?? undefined,

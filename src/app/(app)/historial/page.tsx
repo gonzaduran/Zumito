@@ -36,6 +36,7 @@ function centsParam(value: string | undefined): number | undefined {
 export default async function HistoryPage({ searchParams }: PageProps<"/historial">) {
   const params = await searchParams
   const query = single(params.q)?.trim().slice(0, 80) ?? ""
+  const accountId = uuidOrEmpty(single(params.a))
   const categoryId = uuidOrEmpty(single(params.c))
   const placeId = uuidOrEmpty(single(params.l))
   const personId = uuidOrEmpty(single(params.p))
@@ -51,6 +52,7 @@ export default async function HistoryPage({ searchParams }: PageProps<"/historia
     getPeople(),
     searchExpenses({
       query,
+      accountId,
       categoryId,
       placeId,
       personId,
@@ -61,7 +63,13 @@ export default async function HistoryPage({ searchParams }: PageProps<"/historia
   ])
   const labels = dict.history
   const filtered = Boolean(
-    query || categoryId || placeId || personId || minCents !== undefined || maxCents !== undefined,
+    query ||
+    accountId ||
+    categoryId ||
+    placeId ||
+    personId ||
+    minCents !== undefined ||
+    maxCents !== undefined,
   )
   const groups = groupExpensesByDay(result.rows, {
     labels: dict.common,

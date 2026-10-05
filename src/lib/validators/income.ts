@@ -14,6 +14,8 @@ export const incomeInputSchema = z.object({
   description: descriptionSchema,
   amountCents: amountCentsSchema,
   receivedOn: z.iso.date(msg("dateInvalid")),
+  /** Sin cuenta: la principal. */
+  accountId: z.uuid().optional(),
 })
 
 /** Ingreso programado (la nómina): se apunta solo el día indicado de cada mes. */
@@ -21,6 +23,7 @@ export const recurringIncomeInputSchema = z.object({
   description: descriptionSchema,
   amountCents: amountCentsSchema,
   dayOfMonth: z.int(msg("dayInvalid")).min(1, msg("dayInvalid")).max(31, msg("dayInvalid")),
+  accountId: z.uuid().optional(),
 })
 
 export type IncomeInput = z.infer<typeof incomeInputSchema>

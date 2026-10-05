@@ -4,6 +4,8 @@ import { cn } from "cn"
 import { ChevronDown } from "lucide-react"
 import { useEffect, useId, useState } from "react"
 
+import { AccountPicker } from "@/components/accounts/account-picker"
+import { useAccounts } from "@/components/accounts/accounts-provider"
 import { Button } from "@/components/ui/button"
 import { Chip } from "@/components/ui/chip"
 import { Input } from "@/components/ui/input"
@@ -112,6 +114,10 @@ export function ExpenseForm({
   const [categoryId, setCategoryId] = useState(
     initial?.categoryId ?? prefill?.categoryId ?? defaultCategoryId,
   )
+  const { accounts, lastUsedAccountId, setLastUsedAccountId } = useAccounts()
+  const [accountId, setAccountId] = useState(
+    initial?.accountId ?? accounts.find((a) => a.id === lastUsedAccountId)?.id ?? accounts[0]?.id,
+  )
   const [description, setDescription] = useState(initial?.description ?? prefill?.description ?? "")
   const [dateChoice, setDateChoice] = useState<DateChoice>(startDate.choice)
   const [otherDate, setOtherDate] = useState(startDate.other)
@@ -147,6 +153,7 @@ export function ExpenseForm({
       {
         id: initial?.id ?? crypto.randomUUID(),
         categoryId,
+        accountId,
         amountCents,
         description: description.trim() || undefined,
         note: note.trim() || undefined,
@@ -158,6 +165,7 @@ export function ExpenseForm({
       },
       category,
     )
+    if (!initial && accountId) setLastUsedAccountId(accountId)
   }
 
   // Teclado físico: números, coma o punto, borrar y Enter para guardar.
@@ -211,6 +219,13 @@ export function ExpenseForm({
         categories={categories}
         value={categoryId}
         onChange={setCategoryId}
+      />
+
+      <AccountPicker
+        label={labels.accountLabel}
+        accounts={accounts}
+        value={accountId}
+        onChange={setAccountId}
       />
 
       <Input

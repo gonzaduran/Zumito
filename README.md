@@ -34,7 +34,7 @@ Premium: 1,49 €/mes o 9,99 €/año, con 7 días de prueba (una vez por person
 automática. Oferta de bienvenida: −10 % el primer año del plan anual durante 5 minutos desde
 que se ven los planes por primera vez (lo controla el servidor).
 
-1. Aplica las migraciones `20261002090000_billing.sql` y `20261003090000_incomes.sql` (en orden).
+1. Aplica las migraciones `20261002090000_billing.sql`, `20261003090000_incomes.sql` y `20261006090000_accounts.sql` (en orden).
 2. Con una clave de prueba: `STRIPE_SECRET_KEY=sk_test_… npm run stripe:setup`. Crea
    producto, precios, cupón y portal, e imprime las variables.
 3. Crea el webhook en Stripe hacia `/api/stripe/webhook` (eventos `checkout.session.completed`

@@ -27,6 +27,9 @@ const TWELVE_MONTHS = PREMIUM_PRICES.month * 12
 export const YEARLY_SAVING_CENTS = TWELVE_MONTHS - PREMIUM_PRICES.year
 export const WELCOME_SAVING_CENTS = TWELVE_MONTHS - WELCOME_YEAR_PRICE
 
+/** Cuentas activas (Personal, Padres…): Gratis 1; Premium 20 (tope técnico). Igual en la base de datos. */
+export const ACCOUNT_LIMITS = { free: 1, premium: 20 } as const
+
 /** Estados de Stripe que dan acceso: en prueba, activa y pendiente de cobro (Stripe reintenta). */
 const PREMIUM_STATUSES = new Set(["trialing", "active", "past_due"])
 

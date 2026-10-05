@@ -29,6 +29,7 @@ async function saveExpense(input: ExpenseInput & { id?: string }): Promise<Actio
     p_mood: expense.mood ?? null,
     p_person_ids: expense.personIds ?? [],
     p_new_people: expense.newPeople ?? [],
+    p_account_id: expense.accountId ?? null,
   })
   if (error) return { ok: false }
 

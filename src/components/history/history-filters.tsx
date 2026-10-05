@@ -4,6 +4,7 @@ import { ChevronDown, Euro, MapPin, Search, Users } from "lucide-react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState, useTransition } from "react"
 
+import { AccountFilter } from "@/components/accounts/account-filter"
 import { Button } from "@/components/ui/button"
 import { Chip } from "@/components/ui/chip"
 import { Input } from "@/components/ui/input"
@@ -29,7 +30,7 @@ const SEARCH_DELAY_MS = 300
 
 /**
  * Buscador, categoría y filtros por lugar, persona e importe.
- * El estado vive en la URL: ?q= &c= &l= (lugar) &p= (persona) &min= &max=.
+ * El estado vive en la URL: ?q= &a= (cuenta) &c= &l= (lugar) &p= (persona) &min= &max=.
  */
 export function HistoryFilters({
   labels,
@@ -94,6 +95,8 @@ export function HistoryFilters({
           className="rounded-full pl-11"
         />
       </div>
+
+      <AccountFilter label={labels.accountFilter} allLabel={labels.allAccounts} />
 
       <div
         role="group"

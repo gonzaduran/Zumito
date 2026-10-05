@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import es from "@/i18n/dictionaries/es-ES.json"
 
+import { accountInputSchema } from "./account"
 import { emailSchema, passwordSchema } from "./auth"
 import { budgetInputSchema } from "./budget"
 import { categoryInputSchema } from "./category"
@@ -139,6 +140,8 @@ it("todas las claves de validación tienen texto en es-ES", () => {
     "tooManyPeople",
     "descriptionRequired",
     "dayInvalid",
+    "accountNameRequired",
+    "accountNameTooLong",
   ]
   for (const key of keys) expect(es.validation).toHaveProperty(key)
 })
@@ -189,5 +192,23 @@ describe("ingresos", () => {
         recurringIncomeInputSchema.safeParse({ ...base, amountCents: 0, dayOfMonth: 1 }),
       ),
     ).toBe("amountRequired")
+  })
+})
+
+describe("cuentas", () => {
+  it("una cuenta necesita nombre y un solo emoji", () => {
+    expect(accountInputSchema.parse({ name: " Padres ", emoji: "👨‍👩‍👦" })).toEqual({
+      name: "Padres",
+      emoji: "👨‍👩‍👦",
+    })
+    expect(firstMessage(accountInputSchema.safeParse({ name: " ", emoji: "💳" }))).toBe(
+      "accountNameRequired",
+    )
+    expect(firstMessage(accountInputSchema.safeParse({ name: "x".repeat(31), emoji: "💳" }))).toBe(
+      "accountNameTooLong",
+    )
+    expect(firstMessage(accountInputSchema.safeParse({ name: "Padres", emoji: "💳💶" }))).toBe(
+      "emojiInvalid",
+    )
   })
 })

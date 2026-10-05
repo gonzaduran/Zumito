@@ -12,6 +12,7 @@ export type ListedExpense = {
   id: string
   amountCents: number
   categoryId: string
+  accountId: string
   categoryName: string
   categoryColor: string
   description: string | null
@@ -63,6 +64,7 @@ function toListed(row: ExpenseRow, moment: string): ListedExpense {
     id: row.id,
     amountCents: row.amount_cents,
     categoryId: row.category_id,
+    accountId: row.account_id,
     categoryName: row.category_name,
     categoryColor: row.category_color,
     description: row.description,

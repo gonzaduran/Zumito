@@ -41,6 +41,7 @@ export const getLastUsedCategoryId = cache(async (): Promise<string | null> => {
 
 export type HistoryFilters = {
   query?: string
+  accountId?: string
   categoryId?: string
   placeId?: string
   personId?: string
@@ -51,7 +52,7 @@ export type HistoryFilters = {
 
 /** Historial filtrado. Pide uno más del límite para saber si hay más resultados. */
 export async function searchExpenses(filters: HistoryFilters) {
-  const { query, categoryId, placeId, personId, minCents, maxCents, limit } = filters
+  const { query, accountId, categoryId, placeId, personId, minCents, maxCents, limit } = filters
   const supabase = await createClient()
   const { data, error } = await supabase.rpc("search_expenses", {
     p_query: query || null,
@@ -61,23 +62,31 @@ export async function searchExpenses(filters: HistoryFilters) {
     p_min_cents: minCents ?? null,
     p_max_cents: maxCents ?? null,
     p_limit: limit + 1,
+    p_account_id: accountId || null,
   })
   if (error) throw error
   return { rows: data.slice(0, limit), hasMore: data.length > limit }
 }
 
 /** Gasto por categoría entre dos días locales (from incluido, to excluido). */
-export const getSpendingByCategory = cache(async (from: string, to: string) => {
+export const getSpendingByCategory = cache(async (from: string, to: string, accountId?: string) => {
   const supabase = await createClient()
-  const { data, error } = await supabase.rpc("spending_by_category", { p_from: from, p_to: to })
+  const { data, error } = await supabase.rpc("spending_by_category", {
+    p_from: from,
+    p_to: to,
+    p_account_id: accountId || null,
+  })
   if (error) throw error
   return data
 })
 
 /** Total de cada uno de los últimos meses, incluido el actual. */
-export const getSpendingByMonth = cache(async (months: number = 6) => {
+export const getSpendingByMonth = cache(async (months: number = 6, accountId?: string) => {
   const supabase = await createClient()
-  const { data, error } = await supabase.rpc("spending_by_month", { p_months: months })
+  const { data, error } = await supabase.rpc("spending_by_month", {
+    p_months: months,
+    p_account_id: accountId || null,
+  })
   if (error) throw error
   return data
 })

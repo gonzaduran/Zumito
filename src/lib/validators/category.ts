@@ -7,7 +7,7 @@ import { msg } from "./messages"
 const graphemes = new Intl.Segmenter("es", { granularity: "grapheme" })
 
 /** Un único emoji (admite secuencias compuestas como 👨‍👩‍👧 o banderas). */
-function isSingleEmoji(value: string): boolean {
+export function isSingleEmoji(value: string): boolean {
   return (
     [...graphemes.segment(value)].length === 1 &&
     /\p{Extended_Pictographic}|\p{Regional_Indicator}/u.test(value)

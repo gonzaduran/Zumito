@@ -69,6 +69,16 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - Gratis: ingresos a mano ilimitados y un ingreso programado. Premium: varios (acción de servidor + trigger en la base de datos).
 - Inicio: tarjeta "Te quedan este mes" (ingresos − gastos del mes) o, sin ingresos, invitación a añadir la nómina. Pantalla en `/ajustes/dinero`.
 
+## Cuentas
+
+- Migración `20261006090000_accounts.sql`: tabla `accounts` (nombre, emoji, orden, archivada) con RLS y sin borrado (se archivan). Todos tienen "💳 Personal", creada por `handle_new_user` (y para los usuarios anteriores, en la propia migración).
+- `expenses`, `incomes` y `recurring_incomes` llevan `account_id` (clave compuesta con `user_id`). Si no se indica, el trigger `fill_account_id` pone la principal (`default_account_id`: la primera activa por orden). Así la cola sin conexión sigue funcionando sin cambios.
+- `save_expense(…, p_account_id)`: nula crea en la principal y, al editar, conserva la cuenta.
+- Filtro opcional por cuenta en `search_expenses`, `spending_by_category`, `spending_by_month` e `income_total`. `account_summary(from, to)` da gastado e ingresado por cuenta.
+- Límite: Gratis 1 cuenta activa, Premium 20 (`ACCOUNT_LIMITS` y trigger `accounts_guard`, que también impide archivar la última).
+- Cliente: `AccountsProvider` en el layout de la app comparte las cuentas y la última usada. `AccountPicker` (formulario del gasto y de ingresos) y `AccountFilter` (`?a=` en Historial y Estadísticas) solo aparecen con más de una cuenta.
+- Inicio: tarjeta "Tus cuentas" con lo gastado y lo que queda en cada una (si tiene ingresos). Gestión en `/ajustes/cuentas`.
+
 ## Planes y pagos
 
 - Gratis / Premium (1,49 €/mes, 9,99 €/año) / Amigos (próximamente). Precios en `src/lib/billing/plans.ts`.
@@ -87,7 +97,7 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 
 ## Datos (Supabase)
 
-- Tablas: `profiles` (la crea un trigger al registrarse), `categories`, `expenses` y `budgets` (`category_id` nulo = presupuesto total del mes).
+- Tablas: `profiles` y `accounts` (las crea un trigger al registrarse), `categories`, `expenses`, `budgets` (`category_id` nulo = presupuesto total del mes), `incomes` y `recurring_incomes`.
 - Importes siempre en céntimos (`amount_cents`, entero). Máximo 1.000.000 €.
 - Las categorías con gastos no se borran: se archivan (`archived_at`).
 - Las referencias a categorías usan la clave compuesta `(category_id, user_id)`, así que no se puede apuntar a la categoría de otro usuario.
@@ -210,7 +220,7 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - Categorías sugeridas: 12, una por color (`src/lib/default-categories.ts`), todas marcadas por defecto.
 - El logo (`src/components/brand/logo.tsx`) es **provisional** hasta que Claude Design entregue el definitivo.
 - Decisiones de producto:
-  - Ingresos sí ("Mi dinero"), gastos recurrentes todavía no.
+  - Ingresos sí ("Mi dinero") y varias cuentas (Premium); gastos recurrentes todavía no.
   - Un gasto tiene importe, categoría, concepto, nota y fecha. No se piden "¿con quién?" ni "¿cómo te sientes?", para mantener el registro por debajo de 5 segundos.
 
 ## Plan por fases
