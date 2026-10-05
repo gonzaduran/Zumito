@@ -91,6 +91,7 @@ export type Database = {
           spent_at: string
           place_id: string | null
           mood: string | null
+          account_id: string
           created_at: string
           updated_at: string
         }
@@ -105,9 +106,11 @@ export type Database = {
           place_id?: string | null
           mood?: string | null
           created_at?: string
+          account_id?: string
           updated_at?: string
         }
         Update: {
+          account_id?: string
           id?: string
           user_id?: string
           category_id?: string
@@ -263,6 +266,7 @@ export type Database = {
           active: boolean
           starts_on: string
           last_period: string | null
+          account_id: string
           created_at: string
           updated_at: string
         }
@@ -276,9 +280,11 @@ export type Database = {
           starts_on?: string
           last_period?: string | null
           created_at?: string
+          account_id?: string
           updated_at?: string
         }
         Update: {
+          account_id?: string
           id?: string
           user_id?: string
           description?: string
@@ -301,6 +307,7 @@ export type Database = {
           received_at: string
           recurring_id: string | null
           period: string | null
+          account_id: string
           created_at: string
           updated_at: string
         }
@@ -313,9 +320,11 @@ export type Database = {
           recurring_id?: string | null
           period?: string | null
           created_at?: string
+          account_id?: string
           updated_at?: string
         }
         Update: {
+          account_id?: string
           id?: string
           user_id?: string
           description?: string
@@ -336,6 +345,39 @@ export type Database = {
           },
         ]
       }
+      accounts: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          emoji: string
+          position: number
+          archived_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string
+          name: string
+          emoji: string
+          position?: number
+          archived_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          emoji?: string
+          position?: number
+          archived_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: { [_ in never]: never }
     Functions: {
@@ -343,8 +385,22 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
-      income_total: {
+      account_summary: {
         Args: { p_from: string; p_to: string }
+        Returns: {
+          id: string
+          name: string
+          emoji: string
+          spent_cents: number
+          income_cents: number
+        }[]
+      }
+      default_account_id: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
+      income_total: {
+        Args: { p_from: string; p_to: string; p_account_id?: string | null }
         Returns: number
       }
       complete_onboarding: {
@@ -360,6 +416,7 @@ export type Database = {
           p_min_cents?: number | null
           p_max_cents?: number | null
           p_limit?: number
+          p_account_id?: string | null
         }
         Returns: {
           id: string
@@ -377,6 +434,7 @@ export type Database = {
           people: Json
           day: string
           day_total_cents: number
+          account_id: string
         }[]
       }
       is_premium: {
@@ -399,6 +457,7 @@ export type Database = {
           p_mood?: string | null
           p_person_ids?: string[]
           p_new_people?: string[]
+          p_account_id?: string | null
         }
         Returns: undefined
       }
@@ -411,7 +470,7 @@ export type Database = {
         Returns: { id: string; name: string; uses: number }[]
       }
       spending_by_category: {
-        Args: { p_from: string; p_to: string }
+        Args: { p_from: string; p_to: string; p_account_id?: string | null }
         Returns: {
           category_id: string
           name: string
@@ -422,7 +481,7 @@ export type Database = {
         }[]
       }
       spending_by_month: {
-        Args: { p_months?: number }
+        Args: { p_months?: number; p_account_id?: string | null }
         Returns: { month: string; total_cents: number }[]
       }
       set_budgets: {

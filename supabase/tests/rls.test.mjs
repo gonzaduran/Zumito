@@ -1194,6 +1194,170 @@ assert(
   String(orphan),
 )
 
+console.log("\nCuentas")
+const H = "88888888-8888-8888-8888-888888888888"
+await db.exec(`insert into auth.users (id, email) values ('${H}', 'h@test.es')`)
+const asH = (sql) => as("authenticated", H, () => db.query(sql))
+const hAccounts = (await asH("select id, name, emoji from public.accounts")).rows
+assert(
+  hAccounts.length === 1 && hAccounts[0].name === "Personal" && hAccounts[0].emoji === "💳",
+  "cada usuario nuevo empieza con la cuenta Personal",
+  JSON.stringify(hAccounts),
+)
+const personalH = hAccounts[0].id
+const withoutAccount = (
+  await db.query(
+    "select count(*) as n from public.profiles p where not exists (select 1 from public.accounts a where a.user_id = p.id)",
+  )
+).rows[0].n
+assert(Number(withoutAccount) === 0, "todos los usuarios tienen cuenta (también los de antes)", "")
+const orphanExpenses = (
+  await db.query("select count(*) as n from public.expenses where account_id is null")
+).rows[0].n
+assert(Number(orphanExpenses) === 0, "los gastos de antes pasan a su cuenta principal", "")
+
+await asH(
+  "insert into public.categories (id, name, emoji, color, position) values ('88888888-0000-0000-0000-00000000000c', 'Comida', '🍽️', 'amber', 0)",
+)
+const saveH = (id, account, amount = 1000) =>
+  asH(
+    `select public.save_expense(p_id => '${id}', p_category_id => '88888888-0000-0000-0000-00000000000c', p_amount_cents => ${amount}, p_spent_at => now()${account ? `, p_account_id => '${account}'` : ""})`,
+  )
+await saveH("88888888-0000-0000-0000-0000000000e1", null)
+const firstExpense = (await asH("select account_id from public.expenses")).rows[0]
+assert(
+  firstExpense?.account_id === personalH,
+  "un gasto sin cuenta va a la principal",
+  JSON.stringify(firstExpense),
+)
+await expectError(
+  "sin Premium, solo una cuenta",
+  "authenticated",
+  H,
+  "insert into public.accounts (name, emoji) values ('Padres', '👨‍👩‍👦')",
+  /Límite de cuentas/,
+)
+await db.exec(`update public.profiles set premium_comp = true where id = '${H}'`)
+const parents = (
+  await asH(
+    "insert into public.accounts (name, emoji, position) values ('Padres', '👨‍👩‍👦', 1) returning id",
+  )
+).rows[0].id
+assert(Boolean(parents), "con Premium, varias cuentas", "")
+await expectError(
+  "no se repite el nombre de una cuenta",
+  "authenticated",
+  H,
+  "insert into public.accounts (name, emoji) values ('padres', '💶')",
+  /duplicate key/,
+)
+await saveH("88888888-0000-0000-0000-0000000000e2", parents, 2500)
+await saveH("88888888-0000-0000-0000-0000000000e2", null, 3000)
+const edited = (
+  await asH(
+    "select account_id, amount_cents from public.expenses where id = '88888888-0000-0000-0000-0000000000e2'",
+  )
+).rows[0]
+assert(
+  edited.account_id === parents && Number(edited.amount_cents) === 3000,
+  "un gasto se guarda en la cuenta elegida y al editarlo sin cuenta no cambia",
+  JSON.stringify(edited),
+)
+await asH(
+  `insert into public.incomes (description, amount_cents, account_id) values ('Paga', 10000, '${parents}')`,
+)
+const hSummary = (
+  await asH(
+    "select * from public.account_summary(date_trunc('month', current_date)::date, (date_trunc('month', current_date) + interval '1 month')::date)",
+  )
+).rows
+assert(
+  hSummary.length === 2 &&
+    hSummary[0].name === "Personal" &&
+    Number(hSummary[0].spent_cents) === 1000 &&
+    hSummary[1].name === "Padres" &&
+    Number(hSummary[1].spent_cents) === 3000 &&
+    Number(hSummary[1].income_cents) === 10000,
+  "resumen por cuenta: gastado e ingresado, en su orden",
+  JSON.stringify(hSummary),
+)
+const filtered = (
+  await asH(`select id from public.search_expenses(p_account_id => '${parents}')`)
+).rows
+assert(filtered.length === 1, "el historial filtra por cuenta", JSON.stringify(filtered))
+const hByCategory = (
+  await asH(
+    `select total_cents from public.spending_by_category(date_trunc('month', current_date)::date, (date_trunc('month', current_date) + interval '1 month')::date, '${personalH}')`,
+  )
+).rows
+assert(
+  hByCategory.length === 1 && Number(hByCategory[0].total_cents) === 1000,
+  "las estadísticas filtran por cuenta",
+  JSON.stringify(hByCategory),
+)
+const parentsIncome = (
+  await asH(
+    `select public.income_total(date_trunc('month', current_date)::date, (date_trunc('month', current_date) + interval '1 month')::date, '${personalH}') as t`,
+  )
+).rows[0].t
+assert(Number(parentsIncome) === 0, "los ingresos se cuentan por cuenta", String(parentsIncome))
+await asH(
+  `insert into public.recurring_incomes (description, amount_cents, day_of_month, account_id) values ('Paga semanal', 2000, 1, '${parents}')`,
+)
+await asH("select public.apply_recurring_incomes()")
+const recurringAccount = (
+  await asH("select account_id from public.incomes where description = 'Paga semanal'")
+).rows[0]
+assert(
+  recurringAccount?.account_id === parents,
+  "el ingreso programado se apunta en su cuenta",
+  JSON.stringify(recurringAccount),
+)
+await expectError(
+  "no se puede usar la cuenta de otro usuario",
+  "authenticated",
+  B,
+  `insert into public.incomes (description, amount_cents, account_id) values ('x', 100, '${parents}')`,
+  /foreign key|row-level security/,
+)
+await expectRows("B no ve las cuentas de H", "authenticated", B, `select * from public.accounts where user_id = '${H}'`, 0)
+await expectError(
+  "las cuentas no se borran (se archivan)",
+  "authenticated",
+  H,
+  `delete from public.accounts where id = '${parents}'`,
+  /permission denied/,
+)
+await expectAffected(
+  "se puede archivar una cuenta",
+  "authenticated",
+  H,
+  `update public.accounts set archived_at = now() where id = '${parents}'`,
+  1,
+)
+await expectError(
+  "nunca te quedas sin ninguna cuenta",
+  "authenticated",
+  H,
+  `update public.accounts set archived_at = now() where id = '${personalH}'`,
+  /al menos una cuenta/,
+)
+await db.exec(`update public.profiles set premium_comp = false where id = '${H}'`)
+await expectError(
+  "sin Premium no se puede reactivar una segunda cuenta",
+  "authenticated",
+  H,
+  `update public.accounts set archived_at = null where id = '${parents}'`,
+  /Límite de cuentas/,
+)
+await expectError(
+  "anon no ve cuentas",
+  "anon",
+  null,
+  "select * from public.accounts",
+  /permission denied/,
+)
+
 console.log("\nBorrado de cuenta")
 await db.exec(`delete from auth.users where id = '${A}'`)
 const left = await db.query(`select
