@@ -41,9 +41,11 @@ export default async function SettingsPage() {
   const planHint =
     entitlement.source === "founder"
       ? labels.planFounder
-      : entitlement.premium
-        ? labels.planPremium
-        : labels.planFree
+      : entitlement.source === "beta"
+        ? labels.planBeta
+        : entitlement.premium
+          ? labels.planPremium
+          : labels.planFree
 
   return (
     <>

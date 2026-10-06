@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation"
 
 import { getDictionary, type Dictionary } from "@/i18n/get-dictionary"
+import { getEntitlement } from "@/lib/data/profile"
 import { defaultCategories } from "@/lib/default-categories"
 import { createClient } from "@/lib/supabase/server"
 import { readNext, rememberNext } from "@/lib/next-cookie"
@@ -55,6 +56,7 @@ export async function completeOnboarding(
   // Si venía de un enlace (p. ej. /add?importe=3), vuelve allí.
   const next = await readNext()
   await rememberNext(null)
-  // Sin destino pedido, se presentan los planes (con la opción de seguir gratis).
-  redirect(next ?? "/planes?bienvenida=1")
+  // Sin destino pedido: con Premium (o en la beta), al inicio; si no, se presentan los planes.
+  if (next) redirect(next)
+  redirect((await getEntitlement()).premium ? "/" : "/planes?bienvenida=1")
 }

@@ -44,8 +44,8 @@ export type SubscriptionRow = {
 
 export type Entitlement = {
   premium: boolean
-  /** Por qué es Premium: plan Fundadores concedido a mano o suscripción de Stripe. */
-  source: "founder" | "stripe" | null
+  /** Por qué es Premium: Fundador (a mano), suscripción de Stripe o beta abierta para todos. */
+  source: "founder" | "stripe" | "beta" | null
   status: string | null
   interval: BillingInterval | null
   trialEnd: string | null
@@ -58,13 +58,15 @@ export type Entitlement = {
 export function resolveEntitlement(
   profile: { premium_comp: boolean } | null,
   subscription: SubscriptionRow | null,
+  /** Beta abierta: todos tienen Premium sin pagar (public.app_settings). */
+  betaOpen = false,
 ): Entitlement {
   const fromStripe = Boolean(subscription?.status && PREMIUM_STATUSES.has(subscription.status))
   const founder = Boolean(profile?.premium_comp)
   const interval = subscription?.billing_interval
   return {
-    premium: founder || fromStripe,
-    source: founder ? "founder" : fromStripe ? "stripe" : null,
+    premium: founder || fromStripe || betaOpen,
+    source: founder ? "founder" : fromStripe ? "stripe" : betaOpen ? "beta" : null,
     status: subscription?.status ?? null,
     interval: interval === "month" || interval === "year" ? interval : null,
     trialEnd: subscription?.trial_end ?? null,

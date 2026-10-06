@@ -137,7 +137,8 @@
     "money": "Mi dinero",
     "moneyHint": "Nómina e ingresos del mes",
     "accounts": "Cuentas",
-    "accountsHint": "Personal, la de tus padres…"
+    "accountsHint": "Personal, la de tus padres…",
+    "planBeta": "Beta · Todo gratis"
   },
   "addExpense": {
     "title": "Nuevo gasto",
@@ -502,6 +503,33 @@
       "subscribeCta": "Ver planes",
       "checkoutYear": "{price} al año · ahorras {saving}",
       "checkoutMonth": "{price} al mes"
+    },
+    "beta": {
+      "badge": "Beta",
+      "title": "Zumito es gratis durante la beta",
+      "text": "Tienes todo desbloqueado y no pagas nada. Cuando lleguen los planes te avisaremos antes, y nunca se te cobrará sin que tú lo elijas.",
+      "forever": "Para siempre",
+      "soon": "Próximamente",
+      "duringBeta": "durante la beta",
+      "share": "Compartir Zumito",
+      "shareHint": "¿Te gusta? Pásasela a quien le pueda venir bien.",
+      "shareTitle": "Zumito",
+      "shareText": "Apunta tus gastos en 5 segundos y mira en qué se va tu dinero. Es gratis:",
+      "copied": "Enlace copiado",
+      "faq": [
+        {
+          "q": "¿Tengo que pagar algo?",
+          "a": "No. Durante la beta todo es gratis y no te pedimos tarjeta."
+        },
+        {
+          "q": "¿Qué pasará cuando acabe la beta?",
+          "a": "Lo esencial seguirá siendo gratis para siempre. Premium tendrá precio y te avisaremos antes. Nunca se te cobrará nada sin que tú lo elijas."
+        },
+        {
+          "q": "¿Perderé mis datos?",
+          "a": "No. Todo lo que apuntes se queda guardado, también cuando acabe la beta."
+        }
+      ]
     }
   },
   "money": {

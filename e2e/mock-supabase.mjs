@@ -160,6 +160,8 @@ createServer(async (req, res) => {
   // --- Datos ---
   if (req.method === "GET" && url.pathname === "/rest/v1/profiles") return rows(req, res, [profile])
   if (req.method === "GET" && url.pathname === "/rest/v1/subscriptions") return rows(req, res, [])
+  if (req.method === "GET" && url.pathname === "/rest/v1/app_settings")
+    return rows(req, res, [{ beta_open: Boolean(profile.beta_open) }])
   if (req.method === "POST" && url.pathname === "/rest/v1/rpc/start_welcome_offer") {
     profile.welcome_offer_started_at ??= new Date().toISOString()
     return send(res, 200, profile.welcome_offer_started_at)

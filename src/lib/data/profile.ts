@@ -26,7 +26,7 @@ export const getCurrentProfile = cache(async () => {
 /** Plan del usuario actual, calculado siempre en el servidor (nunca se confía en el cliente). */
 export const getEntitlement = cache(async (): Promise<Entitlement> => {
   const supabase = await createClient()
-  const [{ data: profile }, { data: subscription }] = await Promise.all([
+  const [{ data: profile }, { data: subscription }, { data: settings }] = await Promise.all([
     supabase.from("profiles").select("premium_comp").maybeSingle(),
     supabase
       .from("subscriptions")
@@ -34,6 +34,7 @@ export const getEntitlement = cache(async (): Promise<Entitlement> => {
         "status, billing_interval, trial_end, current_period_end, cancel_at_period_end, trial_used",
       )
       .maybeSingle(),
+    supabase.from("app_settings").select("beta_open").maybeSingle(),
   ])
-  return resolveEntitlement(profile, subscription)
+  return resolveEntitlement(profile, subscription, settings?.beta_open ?? false)
 })

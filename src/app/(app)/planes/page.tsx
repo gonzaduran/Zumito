@@ -1,4 +1,5 @@
 import { AppHeader } from "@/components/layout/app-header"
+import { BetaPlans } from "@/components/plans/beta-plans"
 import { PlansView } from "@/components/plans/plans-view"
 import { defaultTimeZone } from "@/i18n/config"
 import { formatCents, formatLongDate } from "@/i18n/format"
@@ -45,6 +46,18 @@ export default async function PlansPage({ searchParams }: PageProps<"/planes">) 
   const labels = dict.plans
   const timeZone = profile?.timezone ?? defaultTimeZone
   const paymentsEnabled = getBillingConfig() !== null
+
+  // Beta abierta: todo gratis, sin precios, pruebas ni cuenta atrás.
+  if (entitlement.source === "beta") {
+    return (
+      <>
+        <AppHeader title={labels.title} back={{ href: "/ajustes", label: dict.budgets.back }} />
+        <div className="px-6 pt-2 pb-8">
+          <BetaPlans labels={labels} />
+        </div>
+      </>
+    )
+  }
 
   // La oferta de bienvenida empieza la primera vez que se ve esta pantalla (solo una vez).
   let offerRemainingMs = 0

@@ -81,6 +81,8 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 
 ## Planes y pagos
 
+- **Beta abierta (estado actual, decisión del usuario 2026-10-07):** `public.app_settings.beta_open = true` (migración `20261007090000_beta.sql`). Mientras esté activa, `is_premium()` y `getEntitlement` (`source: "beta"`) dan Premium a todos: sin candados, sin barra de compra, sin cuenta atrás ni prueba. `/planes` muestra `BetaPlans`: todo a 0 €, Premium "Próximamente", FAQ de la beta y botón "Compartir Zumito". Tras el onboarding se va al Inicio.
+- Para empezar a cobrar: `update public.app_settings set beta_open = false;` (sin desplegar). Pendiente para ese momento: franja de oferta con cuenta atrás arriba en todas las pantallas (estilo Higgsfield) y segunda oferta para el anual.
 - Gratis / Premium (1,49 €/mes, 9,99 €/año) / Amigos (próximamente). Precios en `src/lib/billing/plans.ts`.
 - Prueba de 7 días con tarjeta y renovación automática (Stripe Checkout). Oferta de bienvenida: −10 % primer año anual, 5 min desde `start_welcome_offer`.
 - Premium se decide siempre en servidor (`getEntitlement`) y en la base de datos (`is_premium`). Lo bloqueado se muestra con candado, no se esconde.

@@ -40,6 +40,15 @@ describe("acceso a Premium", () => {
     },
   )
 
+  it("con la beta abierta todos son Premium (y Fundador y Stripe mandan sobre la beta)", () => {
+    expect(resolveEntitlement({ premium_comp: false }, null, true)).toMatchObject({
+      premium: true,
+      source: "beta",
+    })
+    expect(resolveEntitlement({ premium_comp: true }, null, true).source).toBe("founder")
+    expect(resolveEntitlement({ premium_comp: false }, sub({}), true).source).toBe("stripe")
+  })
+
   it("Fundadores es Premium sin suscripción", () => {
     expect(resolveEntitlement({ premium_comp: true }, null)).toMatchObject({
       premium: true,

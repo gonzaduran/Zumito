@@ -997,6 +997,54 @@ check(
   await text(),
 )
 
+console.log("Beta abierta")
+await fetch("http://localhost:54329/__profile?beta_open=true&premium_comp=false")
+await goto("/planes")
+check(
+  "en beta, los planes dicen que todo es gratis",
+  await waitFor(async () => (await text()).includes("Zumito es gratis durante la beta")),
+  await text(),
+)
+check(
+  "y muestran Premium como próximamente, sin precios, prueba ni cuenta atrás",
+  await (async () => {
+    const t = await text()
+    return (
+      t.includes("Próximamente") &&
+      !t.includes("1,49 €") &&
+      !t.includes("Empezar 7 días gratis") &&
+      !(await evaluate("Boolean(document.querySelector('[role=timer]'))"))
+    )
+  })(),
+  await text(),
+)
+check("se puede compartir la app", (await text()).includes("Compartir Zumito"), await text())
+await shot("05c-planes-beta")
+await audit("planes en beta")
+await goto("/")
+await waitFor(
+  async () => (await text()).includes("Tus cuentas") || (await text()).includes("Categorías"),
+)
+check(
+  "en beta no hay barra de compra",
+  !(await evaluate("Boolean(document.querySelector('aside[aria-label=Premium]'))")),
+)
+await goto("/ajustes")
+check(
+  "Ajustes dice que estás en la beta",
+  await waitFor(async () => (await text()).includes("Beta · Todo gratis")),
+  await text(),
+)
+await goto("/ajustes/cuentas")
+check(
+  "en beta se pueden crear más cuentas sin pagar",
+  await waitFor(async () =>
+    Boolean(await evaluate("Boolean(document.querySelector('#new-account-name'))")),
+  ),
+  await text(),
+)
+await fetch("http://localhost:54329/__profile?beta_open=false&premium_comp=true")
+
 console.log("Categorías")
 await goto("/ajustes")
 await evaluate(
