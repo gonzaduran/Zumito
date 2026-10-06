@@ -3,6 +3,7 @@ import {
   CreditCard,
   PiggyBank,
   Pencil,
+  Percent,
   Plus,
   ShieldCheck,
   Smartphone,
@@ -11,8 +12,11 @@ import {
   type LucideIcon,
 } from "lucide-react"
 
+import Link from "next/link"
+
 import { AppHeader } from "@/components/layout/app-header"
 import { ShareButton } from "@/components/plans/share-button"
+import { buttonVariants } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { getDictionary } from "@/i18n/get-dictionary"
 
@@ -23,6 +27,7 @@ const icons: Record<string, LucideIcon> = {
   stats: ChartPie,
   money: Wallet,
   accounts: CreditCard,
+  split: Percent,
   budgets: PiggyBank,
   install: Smartphone,
   data: ShieldCheck,
@@ -72,6 +77,9 @@ export default async function HelpPage() {
             text={share.shareText}
             copiedLabel={share.copied}
           />
+          <Link href="/ajustes/sugerencias" className={buttonVariants({ variant: "outline" })}>
+            {dict.community.feedback}
+          </Link>
         </section>
       </div>
     </>

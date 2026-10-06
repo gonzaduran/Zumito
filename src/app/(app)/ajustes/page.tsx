@@ -1,6 +1,16 @@
-import { CircleHelp, CreditCard, Crown, Download, PiggyBank, Tags, Wallet } from "lucide-react"
+import {
+  CircleHelp,
+  CreditCard,
+  Crown,
+  Download,
+  MessageSquareHeart,
+  PiggyBank,
+  Tags,
+  Wallet,
+} from "lucide-react"
 
 import { Logo } from "@/components/brand/logo"
+import { CommunityCard } from "@/components/community/community-card"
 import { AppHeader } from "@/components/layout/app-header"
 import { InstallAppCard } from "@/components/layout/install-app-card"
 import { DeleteAccount } from "@/components/settings/delete-account"
@@ -54,10 +64,23 @@ export default async function SettingsPage() {
         <div className="flex items-center gap-4">
           <Logo size={56} className="text-foreground" />
           <div>
-            <p className="text-lg font-extrabold">{dict.app.name}</p>
+            <p className="flex items-center gap-2 text-lg font-extrabold">
+              {dict.app.name}
+              {entitlement.source === "beta" ? (
+                <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-extrabold text-primary-foreground">
+                  {labels.betaBadge}
+                </span>
+              ) : null}
+            </p>
             <p className="text-sm text-muted-foreground">{dict.app.description}</p>
           </div>
         </div>
+
+        <CommunityCard
+          labels={dict.community}
+          share={dict.plans.beta}
+          beta={entitlement.source === "beta"}
+        />
 
         <InstallAppCard labels={dict.install} />
 
@@ -67,6 +90,12 @@ export default async function SettingsPage() {
             icon={CircleHelp}
             title={labels.help}
             hint={labels.helpHint}
+          />
+          <SettingsLink
+            href="/ajustes/sugerencias"
+            icon={MessageSquareHeart}
+            title={labels.feedback}
+            hint={labels.feedbackHint}
           />
           <SettingsLink href="/planes" icon={Crown} title={labels.plan} hint={planHint} />
           <SettingsLink

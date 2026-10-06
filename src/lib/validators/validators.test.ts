@@ -8,7 +8,9 @@ import { budgetInputSchema } from "./budget"
 import { categoryInputSchema } from "./category"
 import { expenseInputSchema } from "./expense"
 import { incomeInputSchema, recurringIncomeInputSchema } from "./income"
+import { feedbackInputSchema } from "./feedback"
 import { onboardingInputSchema } from "./onboarding"
+import { splitInputSchema } from "./split"
 
 const uuid = "8f14e45f-ceea-467a-9575-6c2a1c8e2b3d"
 const firstMessage = (result: { error?: { issues: { message: string }[] } }) =>
@@ -142,6 +144,13 @@ it("todas las claves de validación tienen texto en es-ES", () => {
     "dayInvalid",
     "accountNameRequired",
     "accountNameTooLong",
+    "feedbackTooShort",
+    "feedbackTooLong",
+    "splitNameRequired",
+    "splitNameTooLong",
+    "splitPercentInvalid",
+    "splitOver",
+    "splitCategoryTwice",
   ]
   for (const key of keys) expect(es.validation).toHaveProperty(key)
 })
@@ -209,6 +218,36 @@ describe("cuentas", () => {
     )
     expect(firstMessage(accountInputSchema.safeParse({ name: "Padres", emoji: "💳💶" }))).toBe(
       "emojiInvalid",
+    )
+  })
+})
+
+describe("reparto y sugerencias", () => {
+  const bucket = (percent: number, categoryIds: string[] = []) => ({
+    name: "Parte",
+    emoji: "🏠",
+    percent,
+    categoryIds,
+  })
+
+  it("el reparto no pasa del 100 % ni repite categorías", () => {
+    expect(splitInputSchema.safeParse([bucket(50), bucket(30), bucket(20)]).success).toBe(true)
+    expect(firstMessage(splitInputSchema.safeParse([bucket(60), bucket(50)]))).toBe("splitOver")
+    expect(firstMessage(splitInputSchema.safeParse([bucket(10, [uuid]), bucket(10, [uuid])]))).toBe(
+      "splitCategoryTwice",
+    )
+    expect(firstMessage(splitInputSchema.safeParse([bucket(0)]))).toBe("splitPercentInvalid")
+  })
+
+  it("un fallo o idea necesita un mensaje", () => {
+    expect(
+      feedbackInputSchema.safeParse({ kind: "bug", message: " No guarda " }).data?.message,
+    ).toBe("No guarda")
+    expect(firstMessage(feedbackInputSchema.safeParse({ kind: "idea", message: "ok" }))).toBe(
+      "feedbackTooShort",
+    )
+    expect(feedbackInputSchema.safeParse({ kind: "spam", message: "Hola hola" }).success).toBe(
+      false,
     )
   })
 })

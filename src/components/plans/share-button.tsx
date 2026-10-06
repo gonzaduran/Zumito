@@ -7,13 +7,22 @@ import { Button } from "@/components/ui/button"
 
 type ShareButtonProps = {
   label: string
+  size?: "md" | "lg"
+  variant?: "primary" | "secondary"
   title: string
   text: string
   copiedLabel: string
 }
 
 /** Comparte la app con el menú nativo del móvil; si no existe, copia el enlace. */
-export function ShareButton({ label, title, text, copiedLabel }: ShareButtonProps) {
+export function ShareButton({
+  label,
+  title,
+  text,
+  copiedLabel,
+  size = "lg",
+  variant = "secondary",
+}: ShareButtonProps) {
   const share = async () => {
     const url = window.location.origin
     if (navigator.share) {
@@ -33,7 +42,7 @@ export function ShareButton({ label, title, text, copiedLabel }: ShareButtonProp
   }
 
   return (
-    <Button type="button" variant="secondary" size="lg" onClick={share}>
+    <Button type="button" variant={variant} size={size} onClick={share}>
       <Share2 aria-hidden="true" />
       {label}
     </Button>

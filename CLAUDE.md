@@ -79,6 +79,23 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - Cliente: `AccountsProvider` en el layout de la app comparte las cuentas y la última usada. `AccountPicker` (formulario del gasto y de ingresos) y `AccountFilter` (`?a=` en Historial y Estadísticas) solo aparecen con más de una cuenta.
 - Inicio: tarjeta "Tus cuentas" con lo gastado y lo que queda en cada una (si tiene ingresos). Gestión en `/ajustes/cuentas`.
 
+## Reparto de la nómina
+
+- Migración `20261009090000_income_split.sql`: `split_buckets` (nombre, emoji, porcentaje 1-100, orden) de un ingreso programado y `split_bucket_categories` (una categoría solo en una parte de cada reparto). RLS en ambas.
+- `save_split(recurring, buckets)` sustituye el reparto entero (todo o nada; máximo 10 partes, suma ≤ 100 %, Premium). `split_status(recurring, from, to)`: lo que toca a cada parte (porcentaje del importe del ingreso) y lo gastado en sus categorías en la cuenta del ingreso.
+- Editor en `/ajustes/dinero/reparto/[id]` con plantillas 50/30/20 y 70/20/10 (diccionario `split.templates`). Una parte sin categorías es "para apartar". Tarjeta en el Inicio con el reparto del primer ingreso que lo tenga.
+
+## Comunidad: compartir y sugerencias
+
+- `CommunityCard` (Inicio y Ajustes): "Zumito está en beta y es gratis", "Compartir Zumito" (`ShareButton`: menú nativo o copiar enlace) y "Enviar un fallo o una idea".
+- `/ajustes/sugerencias`: fallo, idea u otra cosa. Se guarda en la tabla `feedback` (migración `20261008090000_feedback.sql`): solo se puede insertar (máximo 20 al día), no leer; se lee en Supabase → Table Editor → feedback.
+- La pantalla de entrada muestra "Beta · Gratis" (`app_settings` es legible sin sesión).
+
+## Emojis y categorías
+
+- `src/lib/emoji-catalog.ts`: más de 200 emojis en 12 grupos con palabras clave en español (`searchEmojis`, `suggestEmojis`). `EmojiPicker` (categorías y cuentas): buscador, pestañas por grupo y "Para «nombre»". Al crear una categoría, el emoji sigue al nombre hasta que se elige uno.
+- Ideas de categorías (`categories.ideas` en el diccionario, unas 50) al crear una nueva.
+
 ## Planes y pagos
 
 - **Beta abierta (estado actual, decisión del usuario 2026-10-07):** `public.app_settings.beta_open = true` (migración `20261007090000_beta.sql`). Mientras esté activa, `is_premium()` y `getEntitlement` (`source: "beta"`) dan Premium a todos: sin candados, sin barra de compra, sin cuenta atrás ni prueba. `/planes` muestra `BetaPlans`: todo a 0 €, Premium "Próximamente", FAQ de la beta y botón "Compartir Zumito". Tras el onboarding se va al Inicio.

@@ -140,7 +140,10 @@
     "accountsHint": "Personal, la de tus padres…",
     "planBeta": "Beta · Todo gratis",
     "help": "Cómo funciona",
-    "helpHint": "Guía rápida de Zumito"
+    "helpHint": "Guía rápida de Zumito",
+    "betaBadge": "Beta",
+    "feedback": "Fallos e ideas",
+    "feedbackHint": "Cuéntanos qué mejorar"
   },
   "addExpense": {
     "title": "Nuevo gasto",
@@ -223,7 +226,14 @@
     "passwordTooShort": "La contraseña debe tener al menos 8 caracteres",
     "passwordTooLong": "La contraseña puede tener hasta 72 caracteres",
     "accountNameRequired": "Ponle un nombre a la cuenta",
-    "accountNameTooLong": "El nombre puede tener hasta 30 caracteres"
+    "accountNameTooLong": "El nombre puede tener hasta 30 caracteres",
+    "feedbackTooShort": "Cuéntanos un poco más",
+    "feedbackTooLong": "El mensaje puede tener hasta 2000 caracteres",
+    "splitNameRequired": "Ponle nombre a cada parte",
+    "splitNameTooLong": "El nombre puede tener hasta 30 caracteres",
+    "splitPercentInvalid": "Cada parte necesita un porcentaje del 1 al 100",
+    "splitOver": "El reparto pasa del 100 %",
+    "splitCategoryTwice": "Una categoría solo puede estar en una parte"
   },
   "auth": {
     "title": "Entra en Zumito",
@@ -250,7 +260,9 @@
       "tooManyRequests": "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
       "signUpFailed": "No hemos podido crear la cuenta. Inténtalo de nuevo.",
       "linkFailed": "El enlace no es válido o ha caducado. Entra con tu email y contraseña."
-    }
+    },
+    "betaBadge": "Beta · Gratis",
+    "betaText": "Gratis durante la beta, sin tarjeta."
   },
   "onboarding": {
     "stepLabel": "Paso {current} de {total}",
@@ -767,7 +779,8 @@
     "recurringSaved": "Ingreso programado",
     "deleted": "Ingreso borrado",
     "failed": "No se ha podido guardar. Inténtalo de nuevo.",
-    "accountLabel": "Cuenta"
+    "accountLabel": "Cuenta",
+    "split": "Repartir"
   },
   "accounts": {
     "title": "Cuentas",
@@ -844,6 +857,15 @@
         ]
       },
       {
+        "key": "split",
+        "title": "Repartir la nómina",
+        "steps": [
+          "En Mi dinero, toca «Repartir» en tu nómina.",
+          "Elige una plantilla (por ejemplo 50/30/20) o crea tus partes con su porcentaje.",
+          "Asigna categorías a cada parte: verás cuánto llevas gastado de cada una este mes."
+        ]
+      },
+      {
         "key": "accounts",
         "title": "Separar tu dinero",
         "steps": [
@@ -901,5 +923,117 @@
       "travel": "Viajes",
       "other": "Otros"
     }
+  },
+  "feedback": {
+    "title": "Fallos e ideas",
+    "back": "Volver a Ajustes",
+    "intro": "¿Algo no funciona o se te ocurre una mejora? Cuéntanoslo: leemos todos los mensajes y así Zumito va a mejor.",
+    "kindLabel": "¿Qué nos cuentas?",
+    "kinds": {
+      "bug": {
+        "emoji": "🐞",
+        "label": "Un fallo"
+      },
+      "idea": {
+        "emoji": "💡",
+        "label": "Una idea"
+      },
+      "other": {
+        "emoji": "💬",
+        "label": "Otra cosa"
+      }
+    },
+    "messageLabel": "Mensaje",
+    "placeholders": {
+      "bug": "Qué ha pasado, en qué pantalla y qué estabas haciendo…",
+      "idea": "Me gustaría que Zumito…",
+      "other": "Escribe aquí…"
+    },
+    "send": "Enviar",
+    "sending": "Enviando…",
+    "sent": "¡Gracias! Lo leeremos todo.",
+    "failed": "No se ha podido enviar. Inténtalo de nuevo.",
+    "tooMany": "Has enviado muchos mensajes hoy. Prueba mañana."
+  },
+  "community": {
+    "betaTitle": "Zumito está en beta y es gratis",
+    "title": "¿Te gusta Zumito?",
+    "text": "Si te está sirviendo, pásasela a tus amigos. Y si ves un fallo o se te ocurre una mejora, cuéntanoslo.",
+    "feedback": "Enviar un fallo o una idea"
+  },
+  "split": {
+    "title": "Reparto",
+    "back": "Volver a Mi dinero",
+    "intro": "Decide qué parte de tu {name} ({amount}) va a cada cosa y mira cuánto llevas gastado de cada una.",
+    "templatesLabel": "Empieza con una plantilla",
+    "templates": [
+      {
+        "label": "50/30/20",
+        "buckets": [
+          {
+            "name": "Necesidades",
+            "emoji": "🏠",
+            "percent": 50
+          },
+          {
+            "name": "Caprichos",
+            "emoji": "🎉",
+            "percent": 30
+          },
+          {
+            "name": "Ahorro",
+            "emoji": "🐷",
+            "percent": 20
+          }
+        ]
+      },
+      {
+        "label": "70/20/10",
+        "buckets": [
+          {
+            "name": "Gastos",
+            "emoji": "🧾",
+            "percent": 70
+          },
+          {
+            "name": "Ahorro",
+            "emoji": "🐷",
+            "percent": 20
+          },
+          {
+            "name": "Caprichos",
+            "emoji": "🎉",
+            "percent": 10
+          }
+        ]
+      }
+    ],
+    "bucketLabel": "Parte {number}",
+    "nameLabel": "Nombre",
+    "emojiLabel": "Emoji",
+    "percentLabel": "Porcentaje",
+    "amountPerMonth": "{amount} al mes",
+    "categoriesLabel": "Categorías que cuentan aquí",
+    "categoriesHint": "Lo que gastes en ellas se resta de esta parte. Sin categorías, es lo que te toca apartar.",
+    "removeBucket": "Quitar {name}",
+    "addBucket": "Añadir parte",
+    "newBucketName": "Nueva parte",
+    "total": "Repartido: {percent} %",
+    "unassigned": "Sin repartir: {amount}",
+    "save": "Guardar reparto",
+    "saving": "Guardando…",
+    "saved": "Reparto guardado",
+    "clear": "Quitar el reparto",
+    "cleared": "Reparto quitado",
+    "failed": "No se ha podido guardar. Inténtalo de nuevo.",
+    "premium": "El reparto de la nómina es de Premium",
+    "open": "Repartir {name}",
+    "badge": "Repartida",
+    "homeTitle": "Reparto de tu {name}",
+    "homeSpent": "Llevas {spent} de {target}",
+    "homeOver": "Te has pasado {amount}",
+    "homeSave": "Para apartar: {amount}",
+    "homeEdit": "Editar reparto",
+    "emptyHint": "Reparte tu nómina (por ejemplo, 50 % necesidades, 30 % caprichos y 20 % ahorro) y mira cómo vas en cada parte."
   }
 }

@@ -53,7 +53,7 @@ export default async function PlansPage({ searchParams }: PageProps<"/planes">) 
       <>
         <AppHeader title={labels.title} back={{ href: "/ajustes", label: dict.budgets.back }} />
         <div className="px-6 pt-2 pb-8">
-          <BetaPlans labels={labels} />
+          <BetaPlans labels={labels} feedbackLabel={dict.community.feedback} />
         </div>
       </>
     )

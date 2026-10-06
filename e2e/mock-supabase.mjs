@@ -29,6 +29,9 @@ let budgets = []
 let places = []
 let people = []
 let incomes = []
+let feedback = []
+/** Reparto: partes por ingreso programado. */
+let splitBuckets = []
 /** Cuentas: todos empiezan con "Personal" (como el trigger de la base de datos). */
 let accounts = [
   {
@@ -108,6 +111,8 @@ createServer(async (req, res) => {
       incomes,
       recurringIncomes,
       accounts,
+      feedback,
+      splitBuckets,
     })
   if (url.pathname === "/__profile") {
     for (const [key, value] of url.searchParams)
@@ -154,14 +159,14 @@ createServer(async (req, res) => {
   }
   if (req.method === "POST" && url.pathname === "/auth/v1/logout") return send(res, 204)
 
+  if (req.method === "GET" && url.pathname === "/rest/v1/app_settings")
+    return rows(req, res, [{ beta_open: Boolean(profile.beta_open) }])
   if (url.pathname.startsWith("/rest/v1/") && !logged)
     return send(res, 401, { message: "JWT expected" })
 
   // --- Datos ---
   if (req.method === "GET" && url.pathname === "/rest/v1/profiles") return rows(req, res, [profile])
   if (req.method === "GET" && url.pathname === "/rest/v1/subscriptions") return rows(req, res, [])
-  if (req.method === "GET" && url.pathname === "/rest/v1/app_settings")
-    return rows(req, res, [{ beta_open: Boolean(profile.beta_open) }])
   if (req.method === "POST" && url.pathname === "/rest/v1/rpc/start_welcome_offer") {
     profile.welcome_offer_started_at ??= new Date().toISOString()
     return send(res, 200, profile.welcome_offer_started_at)
@@ -545,6 +550,67 @@ createServer(async (req, res) => {
     incomes = incomes.filter((i) => i.id !== id)
     return send(res, 204)
   }
+  // --- Fallos e ideas ---
+  if (req.method === "POST" && url.pathname === "/rest/v1/feedback") {
+    const body = await readBody(req)
+    feedback.push({ ...body, created_at: new Date().toISOString() })
+    return send(res, 201)
+  }
+
+  // --- Reparto de la nómina ---
+  if (req.method === "GET" && url.pathname === "/rest/v1/split_buckets")
+    return rows(
+      req,
+      res,
+      splitBuckets.map((b) => ({ recurring_id: b.recurring_id })),
+    )
+  if (req.method === "POST" && url.pathname === "/rest/v1/rpc/save_split") {
+    const body = await readBody(req)
+    if (body.p_buckets.reduce((sum, b) => sum + b.percent, 0) > 100)
+      return send(res, 400, { code: "22023", message: "El reparto pasa del 100 %" })
+    splitBuckets = [
+      ...splitBuckets.filter((b) => b.recurring_id !== body.p_recurring_id),
+      ...body.p_buckets.map((b, i) => ({
+        id: randomUUID(),
+        recurring_id: body.p_recurring_id,
+        position: i,
+        ...b,
+      })),
+    ]
+    return send(res, 204)
+  }
+  if (req.method === "POST" && url.pathname === "/rest/v1/rpc/split_status") {
+    const body = await readBody(req)
+    const recurring = recurringIncomes.find((r) => r.id === body.p_recurring_id)
+    const inRange = (iso) => {
+      const day = madridDay(new Date(iso))
+      return day >= body.p_from && day < body.p_to
+    }
+    return send(
+      res,
+      200,
+      splitBuckets
+        .filter((b) => b.recurring_id === body.p_recurring_id)
+        .sort((a, b) => a.position - b.position)
+        .map((b) => ({
+          id: b.id,
+          name: b.name,
+          emoji: b.emoji,
+          percent: b.percent,
+          target_cents: Math.round(((recurring?.amount_cents ?? 0) * b.percent) / 100),
+          spent_cents: expenses
+            .filter(
+              (e) =>
+                b.category_ids.includes(e.category_id) &&
+                e.account_id === recurring?.account_id &&
+                inRange(e.spent_at),
+            )
+            .reduce((sum, e) => sum + e.amount_cents, 0),
+          category_ids: b.category_ids,
+        })),
+    )
+  }
+
   // --- Cuentas ---
   if (url.pathname === "/rest/v1/accounts" && (req.method === "GET" || req.method === "HEAD")) {
     const onlyActive = url.searchParams.get("archived_at") === "is.null"

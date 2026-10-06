@@ -49,3 +49,23 @@ export const getRecurringIncomes = cache(async () => {
   if (error) throw error
   return data
 })
+
+/** Ingresos programados que tienen reparto (para marcarlos y mostrarlo en el Inicio). */
+export const getSplitRecurringIds = cache(async (): Promise<string[]> => {
+  const supabase = await createClient()
+  const { data, error } = await supabase.from("split_buckets").select("recurring_id")
+  if (error) throw error
+  return [...new Set(data.map((row) => row.recurring_id))]
+})
+
+/** Partes del reparto con lo que les toca y lo gastado en sus categorías (`to` excluido). */
+export const getSplitStatus = cache(async (recurringId: string, from: string, to: string) => {
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc("split_status", {
+    p_recurring_id: recurringId,
+    p_from: from,
+    p_to: to,
+  })
+  if (error) throw error
+  return data
+})

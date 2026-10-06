@@ -3,7 +3,7 @@ import { MoneyManager } from "@/components/money/money-manager"
 import { defaultTimeZone } from "@/i18n/config"
 import { calendarDay, formatCents, formatDate } from "@/i18n/format"
 import { getDictionary } from "@/i18n/get-dictionary"
-import { getIncomesAround, getRecurringIncomes } from "@/lib/data/incomes"
+import { getIncomesAround, getRecurringIncomes, getSplitRecurringIds } from "@/lib/data/incomes"
 import { getCurrentProfile, getEntitlement } from "@/lib/data/profile"
 import { monthRange } from "@/lib/periods"
 
@@ -17,9 +17,10 @@ export default async function MoneyPage() {
   const timeZone = profile?.timezone ?? defaultTimeZone
   const today = calendarDay(new Date(), timeZone)
   const month = monthRange(today.slice(0, 7))
-  const [recurring, incomes] = await Promise.all([
+  const [recurring, incomes, splitIds] = await Promise.all([
     getRecurringIncomes(),
     getIncomesAround(month.from, month.to),
+    getSplitRecurringIds(),
   ])
 
   const monthIncomes = incomes.filter((income) => {
@@ -38,6 +39,9 @@ export default async function MoneyPage() {
           plans={dict.plans}
           today={today}
           canAddRecurring={entitlement.premium || recurring.length === 0}
+          splitLabels={dict.split}
+          splitIds={splitIds}
+          canSplit={entitlement.premium}
           recurring={recurring.map((row) => ({
             id: row.id,
             description: row.description,

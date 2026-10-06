@@ -1,5 +1,8 @@
 import { Check, Sparkles } from "lucide-react"
 
+import Link from "next/link"
+
+import { buttonVariants } from "@/components/ui/button"
 import type { Dictionary } from "@/i18n/get-dictionary"
 
 import { ShareButton } from "./share-button"
@@ -21,7 +24,13 @@ function Features({ items }: { items: string[] }) {
  * Planes durante la beta: todo gratis y desbloqueado. Se enseñan los planes como
  * "Próximamente" para que se sepa lo que vendrá, sin precios ni pruebas.
  */
-export function BetaPlans({ labels }: { labels: Dictionary["plans"] }) {
+export function BetaPlans({
+  labels,
+  feedbackLabel,
+}: {
+  labels: Dictionary["plans"]
+  feedbackLabel: string
+}) {
   const beta = labels.beta
   return (
     <div className="flex flex-col gap-6">
@@ -41,6 +50,9 @@ export function BetaPlans({ labels }: { labels: Dictionary["plans"] }) {
           text={beta.shareText}
           copiedLabel={beta.copied}
         />
+        <Link href="/ajustes/sugerencias" className={buttonVariants({ variant: "outline" })}>
+          {feedbackLabel}
+        </Link>
         <p className="text-center text-xs text-muted-foreground">{beta.shareHint}</p>
       </div>
 

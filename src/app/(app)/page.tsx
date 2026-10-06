@@ -1,4 +1,6 @@
+import { CommunityCard } from "@/components/community/community-card"
 import { AccountsCard } from "@/components/home/accounts-card"
+import { SplitCard } from "@/components/home/split-card"
 import { BalanceCard } from "@/components/home/balance-card"
 import { BudgetNotice } from "@/components/home/budget-notice"
 import { CategoryBreakdown } from "@/components/home/category-breakdown"
@@ -15,7 +17,12 @@ import { getBillingConfig } from "@/lib/billing/config"
 import { PREMIUM_PRICES, WELCOME_YEAR_PRICE, welcomeOfferRemainingMs } from "@/lib/billing/plans"
 import { getCategories } from "@/lib/data/categories"
 import { getAccountSummary } from "@/lib/data/accounts"
-import { getIncomeTotal, getRecurringIncomes } from "@/lib/data/incomes"
+import {
+  getIncomeTotal,
+  getRecurringIncomes,
+  getSplitRecurringIds,
+  getSplitStatus,
+} from "@/lib/data/incomes"
 import {
   getBudgetStatus,
   getExpenseSummary,
@@ -54,6 +61,7 @@ export default async function HomePage() {
     monthIncome,
     recurringIncomes,
     accountSummary,
+    splitIds,
   ] = await Promise.all([
     getExpenseSummary(),
     searchExpenses({ limit: 5 }),
@@ -67,7 +75,11 @@ export default async function HomePage() {
     getIncomeTotal(month.from, month.to),
     getRecurringIncomes(),
     getAccountSummary(month.from, month.to),
+    getSplitRecurringIds(),
   ])
+  // Reparto de la nómina: el del primer ingreso programado que lo tenga.
+  const splitIncome = recurringIncomes.find((row) => splitIds.includes(row.id))
+  const splitBuckets = splitIncome ? await getSplitStatus(splitIncome.id, month.from, month.to) : []
   // Sin Premium, los presupuestos por categoría quedan en pausa: solo cuenta el total.
   const budgets = entitlement.premium
     ? allBudgets
@@ -150,6 +162,38 @@ export default async function HomePage() {
             })}
           />
         ) : null}
+        {splitIncome && splitBuckets.length > 0 ? (
+          <SplitCard
+            title={interpolate(dict.split.homeTitle, {
+              name: splitIncome.description.toLowerCase(),
+            })}
+            editLabel={dict.split.homeEdit}
+            editHref={`/ajustes/dinero/reparto/${splitIncome.id}`}
+            items={splitBuckets.map((bucket) => {
+              const tracked = bucket.category_ids.length > 0
+              const over = bucket.spent_cents - bucket.target_cents
+              return {
+                id: bucket.id,
+                name: bucket.name,
+                emoji: bucket.emoji,
+                ratio:
+                  tracked && bucket.target_cents > 0
+                    ? bucket.spent_cents / bucket.target_cents
+                    : tracked
+                      ? 1
+                      : null,
+                status: !tracked
+                  ? interpolate(dict.split.homeSave, { amount: formatCents(bucket.target_cents) })
+                  : over > 0
+                    ? interpolate(dict.split.homeOver, { amount: formatCents(over) })
+                    : interpolate(dict.split.homeSpent, {
+                        spent: formatCents(bucket.spent_cents),
+                        target: formatCents(bucket.target_cents),
+                      }),
+              }
+            })}
+          />
+        ) : null}
         {budgetNotice ? (
           <BudgetNotice tone={budgetNotice.tone} message={budgetNotice.message} />
         ) : null}
@@ -176,6 +220,11 @@ export default async function HomePage() {
             dayTotal: dict.history.dayTotal,
             close: dict.common.close,
           }}
+        />
+        <CommunityCard
+          labels={dict.community}
+          share={dict.plans.beta}
+          beta={entitlement.source === "beta"}
         />
       </div>
       {/* Sin Premium, la oferta o la prueba gratis siempre a mano. */}

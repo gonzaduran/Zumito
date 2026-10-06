@@ -39,7 +39,7 @@ export function AccountsCard({ title, items }: { title: string; items: AccountSu
                 <span
                   className={cn(
                     "text-right num text-sm font-extrabold",
-                    item.balance.over && "text-destructive",
+                    item.balance.over && "text-destructive-text",
                   )}
                 >
                   {item.balance.text}

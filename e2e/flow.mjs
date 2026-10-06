@@ -1043,6 +1043,157 @@ check(
   ),
   await text(),
 )
+console.log("Comunidad, sugerencias, emojis y reparto")
+const loginHtml = await (await fetch(`${BASE}/login`)).text()
+check(
+  "la entrada dice que es gratis durante la beta",
+  loginHtml.includes("Beta · Gratis"),
+  loginHtml.slice(0, 200),
+)
+await goto("/")
+check(
+  "el inicio invita a compartir y a contar fallos o ideas",
+  await waitFor(async () => {
+    const t = await text()
+    return (
+      t.includes("Zumito está en beta y es gratis") &&
+      t.includes("Enviar un fallo o una idea") &&
+      t.includes("Compartir Zumito")
+    )
+  }),
+  await text(),
+)
+await evaluate(
+  "[...document.querySelectorAll('a')].find((a) => a.innerText.includes('Enviar un fallo o una idea')).click()",
+)
+check(
+  "lleva a Fallos e ideas",
+  await waitFor(async () => (await path()) === "/ajustes/sugerencias"),
+  await path(),
+)
+await waitFor(async () => (await text()).includes("¿Qué nos cuentas?"))
+const fillTextarea = (sel, value) =>
+  evaluate(
+    `(() => { const el = document.querySelector(${JSON.stringify(sel)}); const set = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set; set.call(el, ${JSON.stringify(value)}); el.dispatchEvent(new Event('input', { bubbles: true })); return true })()`,
+  )
+await clickText("Un fallo")
+await fillTextarea("#feedback-message", "ok")
+await clickSel("form button[type=submit]")
+check(
+  "un mensaje demasiado corto avisa",
+  await waitFor(async () => (await text()).includes("Cuéntanos un poco más")),
+  await text(),
+)
+await fillTextarea("#feedback-message", "El botón de guardar no responde a veces")
+await clickSel("form button[type=submit]")
+check(
+  "envía el fallo con su tipo",
+  await waitFor(async () =>
+    (await mock()).feedback.some(
+      (f) => f.kind === "bug" && f.message === "El botón de guardar no responde a veces",
+    ),
+  ),
+  JSON.stringify((await mock()).feedback),
+)
+await shot("16g-sugerencias")
+await audit("fallos e ideas")
+
+await goto("/ajustes/categorias")
+await clickText("Nueva categoría")
+check(
+  "al crear una categoría hay ideas para empezar",
+  await waitFor(async () => (await text()).includes("Ideas para empezar")),
+  await text(),
+)
+await fill("#category-name", "Supermercado")
+check(
+  "al escribir el nombre propone el emoji (Supermercado → 🛒)",
+  await waitFor(
+    async () => (await evaluate("document.querySelector('#category-emoji').value")) === "🛒",
+  ),
+  await evaluate("document.querySelector('#category-emoji').value"),
+)
+await fill('input[aria-label="Buscar emoji"]', "gaso")
+check(
+  "el buscador de emojis encuentra por palabras en español",
+  await waitFor(async () =>
+    Boolean(
+      await evaluate(
+        "[...document.querySelectorAll('[aria-label=\"Emojis\"] button')].some((b) => b.innerText.includes('⛽'))",
+      ),
+    ),
+  ),
+)
+await shot("16h-emojis")
+await audit("emojis de categoría")
+await keyboard("Escape")
+
+await goto("/ajustes/dinero")
+await waitFor(async () => (await text()).includes("Repartir nómina"))
+await evaluate(
+  "[...document.querySelectorAll('a')].find((a) => a.innerText.includes('Repartir nómina')).click()",
+)
+check(
+  "Mi dinero lleva al reparto de la nómina",
+  await waitFor(async () => (await path()).startsWith("/ajustes/dinero/reparto/")),
+  await path(),
+)
+await waitFor(async () => (await text()).includes("Empieza con una plantilla"))
+await clickText("50/30/20")
+await waitFor(async () => (await text()).includes("Caprichos"))
+const cafesForSplit = (await mock()).categories.find((c) => c.name === "Cafés").id
+await evaluate(
+  "(() => { const groups = [...document.querySelectorAll('[role=group][aria-labelledby$=\"-categories\"]')]; const b = [...groups[1].querySelectorAll('button')].find((b) => b.innerText.includes('Cafés')); b.click(); return true })()",
+)
+check(
+  "la plantilla 50/30/20 reparte la nómina en euros",
+  await waitFor(async () => {
+    const t = await text()
+    return (
+      t.includes("725,00 € al mes") &&
+      t.includes("435,00 € al mes") &&
+      t.includes("290,00 € al mes")
+    )
+  }),
+  await text(),
+)
+await shot("16i-reparto")
+await audit("reparto de la nómina")
+await clickText("Guardar reparto")
+check(
+  "guarda el reparto con sus categorías",
+  await waitFor(async () => {
+    const buckets = (await mock()).splitBuckets
+    return (
+      buckets.length === 3 &&
+      buckets.find((b) => b.name === "Caprichos")?.category_ids.includes(cafesForSplit)
+    )
+  }),
+  JSON.stringify((await mock()).splitBuckets),
+)
+check(
+  "y vuelve a Mi dinero con la nómina marcada como repartida",
+  await waitFor(
+    async () => (await path()) === "/ajustes/dinero" && (await text()).includes("Repartida"),
+  ),
+  await path(),
+)
+await goto("/")
+check(
+  "el inicio enseña cómo va cada parte del reparto",
+  await waitFor(async () => {
+    const t = await text()
+    return (
+      t.includes("Reparto de tu nómina") &&
+      t.includes("Para apartar: 290,00 €") &&
+      t.includes("435,00 €")
+    )
+  }),
+  await text(),
+)
+await shot("16j-inicio-reparto")
+await audit("inicio con reparto")
+
 await fetch("http://localhost:54329/__profile?beta_open=false&premium_comp=true")
 
 console.log("Cómo funciona")
@@ -1095,7 +1246,7 @@ check(
 )
 await fill("#category-name", "Gimnasio")
 await evaluate(
-  "[...document.querySelectorAll('[aria-label=Sugerencias] button')].find((b) => b.innerText.includes('🏋')).click()",
+  "[...document.querySelectorAll('[aria-label=Emojis] button')].find((b) => b.innerText.includes('🏋')).click()",
 )
 await clickSel('[role=radio][aria-label="Océano"]')
 await sleep(200)

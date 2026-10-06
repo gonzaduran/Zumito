@@ -1,6 +1,6 @@
 "use client"
 
-import { Lock, Pause, Play, Repeat, Trash2 } from "lucide-react"
+import { Lock, Pause, Percent, Play, Repeat, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -42,6 +42,11 @@ type MoneyManagerProps = {
   labels: Dictionary["money"]
   validation: Dictionary["validation"]
   plans: Pick<Dictionary["plans"], "locked">
+  splitLabels: Pick<Dictionary["split"], "open" | "badge">
+  /** Ingresos programados que ya tienen reparto. */
+  splitIds: string[]
+  /** El reparto es de Premium: sin él, el enlace lleva a los planes. */
+  canSplit: boolean
   recurring: RecurringRow[]
   incomes: IncomeRow[]
   /** Sin Premium solo cabe un ingreso programado. */
@@ -122,48 +127,63 @@ export function MoneyManager(props: MoneyManagerProps) {
           <Card className="p-0">
             <ul>
               {props.recurring.map((row) => (
-                <li
-                  key={row.id}
-                  className="flex items-center gap-3 border-b border-border px-4 py-3 last:border-b-0"
-                >
-                  <Repeat aria-hidden="true" className="size-5 shrink-0 text-primary-text" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-bold">{row.description}</p>
-                    <p className="text-[13px] text-muted-foreground">
-                      {row.active
-                        ? interpolate(labels.everyMonth, { day: String(row.day) })
-                        : labels.paused}
-                    </p>
+                <li key={row.id} className="border-b border-border px-4 py-3 last:border-b-0">
+                  <div className="flex items-center gap-3">
+                    <Repeat aria-hidden="true" className="size-5 shrink-0 text-primary-text" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-bold">{row.description}</p>
+                      <p className="text-[13px] text-muted-foreground">
+                        {row.active
+                          ? interpolate(labels.everyMonth, { day: String(row.day) })
+                          : labels.paused}
+                      </p>
+                    </div>
+                    <p className="num font-extrabold">{row.amount}</p>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={pending}
+                      aria-label={`${row.active ? labels.pause : labels.resume} ${row.description}`}
+                      onClick={() =>
+                        run(
+                          null,
+                          () => setRecurringIncomeActive(row.id, !row.active),
+                          row.active ? labels.paused : labels.recurringSaved,
+                        )
+                      }
+                    >
+                      {row.active ? (
+                        <Pause aria-hidden="true" className="size-5" />
+                      ) : (
+                        <Play aria-hidden="true" className="size-5" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={pending}
+                      aria-label={interpolate(labels.deleteLabel, { name: row.description })}
+                      onClick={() => run(null, () => deleteRecurringIncome(row.id), labels.deleted)}
+                    >
+                      <Trash2 aria-hidden="true" className="size-5" />
+                    </Button>
                   </div>
-                  <p className="num font-extrabold">{row.amount}</p>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    disabled={pending}
-                    aria-label={`${row.active ? labels.pause : labels.resume} ${row.description}`}
-                    onClick={() =>
-                      run(
-                        null,
-                        () => setRecurringIncomeActive(row.id, !row.active),
-                        row.active ? labels.paused : labels.recurringSaved,
-                      )
-                    }
+                  <Link
+                    href={props.canSplit ? `/ajustes/dinero/reparto/${row.id}` : "/planes"}
+                    className="mt-2 ml-8 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-primary-text outline-none focus-visible:rounded-md focus-visible:ring-3 focus-visible:ring-ring/50"
                   >
-                    {row.active ? (
-                      <Pause aria-hidden="true" className="size-5" />
+                    {props.canSplit ? (
+                      <Percent aria-hidden="true" className="size-4" />
                     ) : (
-                      <Play aria-hidden="true" className="size-5" />
+                      <Lock aria-hidden="true" className="size-4" />
                     )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    disabled={pending}
-                    aria-label={interpolate(labels.deleteLabel, { name: row.description })}
-                    onClick={() => run(null, () => deleteRecurringIncome(row.id), labels.deleted)}
-                  >
-                    <Trash2 aria-hidden="true" className="size-5" />
-                  </Button>
+                    {interpolate(props.splitLabels.open, { name: row.description.toLowerCase() })}
+                    {props.splitIds.includes(row.id) ? (
+                      <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-foreground">
+                        {props.splitLabels.badge}
+                      </span>
+                    ) : null}
+                  </Link>
                 </li>
               ))}
             </ul>
