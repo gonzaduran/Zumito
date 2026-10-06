@@ -26,6 +26,7 @@ import type { CategoryInput } from "@/lib/validators/category"
 type CategoryManagerProps = {
   categories: ManagedCategory[]
   labels: Dictionary["categories"]
+  emojiLabels: Dictionary["emojiPicker"]
   colorNames: Dictionary["categoryColors"]
   validation: Dictionary["validation"]
   closeLabel: string
@@ -37,6 +38,7 @@ type Editing = { mode: "new" } | { mode: "edit"; category: ManagedCategory } | n
 export function CategoryManager({
   categories,
   labels,
+  emojiLabels,
   colorNames,
   validation,
   closeLabel,
@@ -193,6 +195,8 @@ export function CategoryManager({
             <CategoryForm
               key={editing.mode === "edit" ? editing.category.id : "new"}
               labels={labels}
+              emojiLabels={emojiLabels}
+              existingNames={categories.map((category) => category.name)}
               colorNames={colorNames}
               validation={validation}
               initial={editing.mode === "edit" ? editing.category : undefined}

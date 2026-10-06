@@ -22,6 +22,7 @@ export default async function AccountsPage() {
         <p className="text-sm text-muted-foreground">{labels.intro}</p>
         <AccountManager
           labels={labels}
+          emojiLabels={dict.emojiPicker}
           validation={dict.validation}
           accounts={accounts}
           canAdd={activeCount < limit}

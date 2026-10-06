@@ -15,6 +15,7 @@ export default async function CategoriesPage() {
         <CategoryManager
           categories={categories}
           labels={labels}
+          emojiLabels={dict.emojiPicker}
           colorNames={dict.categoryColors}
           validation={dict.validation}
           closeLabel={dict.common.close}

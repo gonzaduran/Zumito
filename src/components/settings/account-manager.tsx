@@ -7,7 +7,7 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Chip } from "@/components/ui/chip"
+import { EmojiPicker } from "@/components/ui/emoji-picker"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { Dictionary } from "@/i18n/get-dictionary"
@@ -23,18 +23,18 @@ import { haptics } from "@/lib/haptics"
 
 type AccountManagerProps = {
   labels: Dictionary["accounts"]
+  emojiLabels: Dictionary["emojiPicker"]
   validation: Dictionary["validation"]
   accounts: ManagedAccount[]
   /** ¿Cabe otra cuenta activa? (Gratis 1, Premium más). */
   canAdd: boolean
 }
 
-const EMOJI_SUGGESTIONS = ["💳", "👨‍👩‍👦", "🏦", "💶", "🐷", "💼", "🎓", "🏠"]
-
 /** Formulario de nombre y emoji (crear o editar una cuenta). */
 function AccountFields({
   idPrefix,
   labels,
+  emojiLabels,
   initial,
   pending,
   submitLabel,
@@ -43,6 +43,7 @@ function AccountFields({
 }: {
   idPrefix: string
   labels: Dictionary["accounts"]
+  emojiLabels: Dictionary["emojiPicker"]
   initial: { name: string; emoji: string }
   pending: boolean
   submitLabel: string
@@ -62,42 +63,26 @@ function AccountFields({
         })
       }}
     >
-      <div className="flex gap-3">
-        <div className="w-20">
-          <Label htmlFor={`${idPrefix}-emoji`}>{labels.emojiLabel}</Label>
-          <Input
-            id={`${idPrefix}-emoji`}
-            value={emoji}
-            maxLength={16}
-            onChange={(event) => setEmoji(event.target.value)}
-            className="text-center text-xl"
-          />
-        </div>
-        <div className="flex-1">
-          <Label htmlFor={`${idPrefix}-name`}>{labels.nameLabel}</Label>
-          <Input
-            id={`${idPrefix}-name`}
-            value={name}
-            maxLength={30}
-            placeholder={labels.namePlaceholder}
-            onChange={(event) => setName(event.target.value)}
-          />
-        </div>
+      <div>
+        <Label htmlFor={`${idPrefix}-name`}>{labels.nameLabel}</Label>
+        <Input
+          id={`${idPrefix}-name`}
+          value={name}
+          maxLength={30}
+          placeholder={labels.namePlaceholder}
+          onChange={(event) => setName(event.target.value)}
+        />
       </div>
-      <div
-        role="group"
-        aria-label={labels.emojiSuggestions}
-        className="flex [scrollbar-width:none] gap-2 overflow-x-auto pb-1"
-      >
-        {EMOJI_SUGGESTIONS.map((suggestion) => (
-          <Chip
-            key={suggestion}
-            pressed={emoji === suggestion}
-            onPressedChange={() => setEmoji(suggestion)}
-          >
-            <span className="text-base">{suggestion}</span>
-          </Chip>
-        ))}
+      <div>
+        <p className="mb-2 text-[13px] font-extrabold text-muted-foreground">{labels.emojiLabel}</p>
+        <EmojiPicker
+          labels={emojiLabels}
+          inputLabel={labels.emojiLabel}
+          inputId={`${idPrefix}-emoji`}
+          value={emoji}
+          onChange={setEmoji}
+          name={name}
+        />
       </div>
       <div className="flex gap-2">
         <Button type="submit" disabled={pending} className="flex-1">
@@ -114,7 +99,13 @@ function AccountFields({
 }
 
 /** Crear, renombrar, archivar y restaurar cuentas. */
-export function AccountManager({ labels, validation, accounts, canAdd }: AccountManagerProps) {
+export function AccountManager({
+  labels,
+  emojiLabels,
+  validation,
+  accounts,
+  canAdd,
+}: AccountManagerProps) {
   const [pending, startTransition] = useTransition()
   const [editingId, setEditingId] = useState<string | null>(null)
   const active = accounts.filter((account) => !account.archived)
@@ -159,6 +150,7 @@ export function AccountManager({ labels, validation, accounts, canAdd }: Account
                   <AccountFields
                     idPrefix={`edit-${account.id}`}
                     labels={labels}
+                    emojiLabels={emojiLabels}
                     initial={account}
                     pending={pending}
                     submitLabel={labels.save}
@@ -223,6 +215,7 @@ export function AccountManager({ labels, validation, accounts, canAdd }: Account
             <AccountFields
               idPrefix="new-account"
               labels={labels}
+              emojiLabels={emojiLabels}
               initial={{ name: "", emoji: "👨‍👩‍👦" }}
               pending={pending}
               submitLabel={labels.add}

@@ -342,7 +342,6 @@
     "nameLabel": "Nombre",
     "namePlaceholder": "Por ejemplo, Gimnasio",
     "emojiLabel": "Emoji",
-    "emojiSuggestions": "Sugerencias",
     "colorLabel": "Color",
     "create": "Crear categoría",
     "save": "Guardar cambios",
@@ -358,7 +357,210 @@
     "archived": "Categoría archivada",
     "restored": "Categoría restaurada",
     "duplicate": "Ya tienes una categoría con ese nombre",
-    "failed": "No se ha podido guardar. Inténtalo de nuevo."
+    "failed": "No se ha podido guardar. Inténtalo de nuevo.",
+    "ideasLabel": "Ideas para empezar",
+    "ideas": [
+      {
+        "name": "Supermercado",
+        "emoji": "🛒"
+      },
+      {
+        "name": "Restaurantes",
+        "emoji": "🍽️"
+      },
+      {
+        "name": "Cafés",
+        "emoji": "☕"
+      },
+      {
+        "name": "Bares y copas",
+        "emoji": "🍻"
+      },
+      {
+        "name": "Comida a domicilio",
+        "emoji": "🥡"
+      },
+      {
+        "name": "Gasolina",
+        "emoji": "⛽"
+      },
+      {
+        "name": "Transporte público",
+        "emoji": "🚌"
+      },
+      {
+        "name": "Taxi y VTC",
+        "emoji": "🚕"
+      },
+      {
+        "name": "Parking",
+        "emoji": "🅿️"
+      },
+      {
+        "name": "Coche",
+        "emoji": "🚗"
+      },
+      {
+        "name": "Alquiler",
+        "emoji": "🔑"
+      },
+      {
+        "name": "Luz",
+        "emoji": "💡"
+      },
+      {
+        "name": "Agua",
+        "emoji": "💧"
+      },
+      {
+        "name": "Gas",
+        "emoji": "🔥"
+      },
+      {
+        "name": "Internet y móvil",
+        "emoji": "🌐"
+      },
+      {
+        "name": "Suscripciones",
+        "emoji": "🔁"
+      },
+      {
+        "name": "Streaming",
+        "emoji": "📺"
+      },
+      {
+        "name": "Gimnasio",
+        "emoji": "🏋️"
+      },
+      {
+        "name": "Deporte",
+        "emoji": "⚽"
+      },
+      {
+        "name": "Farmacia",
+        "emoji": "💊"
+      },
+      {
+        "name": "Médico",
+        "emoji": "🩺"
+      },
+      {
+        "name": "Dentista",
+        "emoji": "🦷"
+      },
+      {
+        "name": "Peluquería",
+        "emoji": "💇"
+      },
+      {
+        "name": "Belleza",
+        "emoji": "💄"
+      },
+      {
+        "name": "Ropa",
+        "emoji": "👕"
+      },
+      {
+        "name": "Calzado",
+        "emoji": "👟"
+      },
+      {
+        "name": "Compras online",
+        "emoji": "📦"
+      },
+      {
+        "name": "Tecnología",
+        "emoji": "💻"
+      },
+      {
+        "name": "Hogar",
+        "emoji": "🏠"
+      },
+      {
+        "name": "Muebles y decoración",
+        "emoji": "🛋️"
+      },
+      {
+        "name": "Limpieza",
+        "emoji": "🧹"
+      },
+      {
+        "name": "Regalos",
+        "emoji": "🎁"
+      },
+      {
+        "name": "Ocio",
+        "emoji": "🎉"
+      },
+      {
+        "name": "Cine",
+        "emoji": "🎬"
+      },
+      {
+        "name": "Conciertos",
+        "emoji": "🎵"
+      },
+      {
+        "name": "Videojuegos",
+        "emoji": "🎮"
+      },
+      {
+        "name": "Libros",
+        "emoji": "📚"
+      },
+      {
+        "name": "Viajes",
+        "emoji": "✈️"
+      },
+      {
+        "name": "Hoteles",
+        "emoji": "🏨"
+      },
+      {
+        "name": "Mascotas",
+        "emoji": "🐶"
+      },
+      {
+        "name": "Niños",
+        "emoji": "🧒"
+      },
+      {
+        "name": "Educación",
+        "emoji": "🎓"
+      },
+      {
+        "name": "Seguros",
+        "emoji": "🛡️"
+      },
+      {
+        "name": "Impuestos",
+        "emoji": "🧾"
+      },
+      {
+        "name": "Banco",
+        "emoji": "🏦"
+      },
+      {
+        "name": "Ahorro",
+        "emoji": "🐷"
+      },
+      {
+        "name": "Donaciones",
+        "emoji": "🎗️"
+      },
+      {
+        "name": "Tabaco",
+        "emoji": "🚬"
+      },
+      {
+        "name": "Lotería",
+        "emoji": "🍀"
+      },
+      {
+        "name": "Imprevistos",
+        "emoji": "⚠️"
+      }
+    ]
   },
   "export": {
     "date": "Fecha",
@@ -583,7 +785,6 @@
     "nameLabel": "Nombre",
     "namePlaceholder": "Padres",
     "emojiLabel": "Emoji",
-    "emojiSuggestions": "Sugerencias de emoji",
     "add": "Añadir cuenta",
     "locked": "Más cuentas con Premium",
     "saved": "Cuenta guardada",
@@ -678,5 +879,27 @@
     ],
     "shareTitle": "¿Te gusta?",
     "shareText": "Pásasela a quien le pueda venir bien."
+  },
+  "emojiPicker": {
+    "searchLabel": "Buscar emoji",
+    "searchPlaceholder": "Busca: súper, gasolina, gym…",
+    "groupsLabel": "Grupos de emojis",
+    "gridLabel": "Emojis",
+    "suggestedFor": "Para «{name}»",
+    "noResults": "No hay resultados. También puedes escribir cualquier emoji en el recuadro.",
+    "groups": {
+      "food": "Comida",
+      "drinks": "Bebidas",
+      "shopping": "Compras",
+      "home": "Casa",
+      "transport": "Transporte",
+      "leisure": "Ocio",
+      "health": "Salud y deporte",
+      "family": "Familia",
+      "pets": "Mascotas",
+      "work": "Trabajo y dinero",
+      "travel": "Viajes",
+      "other": "Otros"
+    }
   }
 }
