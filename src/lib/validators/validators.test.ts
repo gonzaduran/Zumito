@@ -10,6 +10,7 @@ import { expenseInputSchema } from "./expense"
 import { incomeInputSchema, recurringIncomeInputSchema } from "./income"
 import { feedbackInputSchema } from "./feedback"
 import { onboardingInputSchema } from "./onboarding"
+import { sharedExpenseInputSchema, usernameSchema } from "./social"
 import { splitInputSchema } from "./split"
 
 const uuid = "8f14e45f-ceea-467a-9575-6c2a1c8e2b3d"
@@ -151,6 +152,8 @@ it("todas las claves de validación tienen texto en es-ES", () => {
     "splitPercentInvalid",
     "splitOver",
     "splitCategoryTwice",
+    "usernameInvalid",
+    "sharesMismatch",
   ]
   for (const key of keys) expect(es.validation).toHaveProperty(key)
 })
@@ -249,5 +252,49 @@ describe("reparto y sugerencias", () => {
     expect(feedbackInputSchema.safeParse({ kind: "spam", message: "Hola hola" }).success).toBe(
       false,
     )
+  })
+})
+
+describe("amigos y gastos compartidos", () => {
+  const me = "11111111-1111-4111-8111-111111111111"
+  const juan = "22222222-2222-4222-8222-222222222222"
+  const base = {
+    id: uuid,
+    categoryId: uuid,
+    amountCents: 1000,
+    spentAt: new Date(),
+    payerId: me,
+  }
+
+  it("el usuario se normaliza y se valida", () => {
+    expect(usernameSchema.parse(" @Juan_Perez ")).toBe("juan_perez")
+    expect(firstMessage(usernameSchema.safeParse("ju"))).toBe("usernameInvalid")
+    expect(firstMessage(usernameSchema.safeParse("juan pérez"))).toBe("usernameInvalid")
+  })
+
+  it("las partes de un gasto compartido suman el total y quien paga participa", () => {
+    const shares = [
+      { userId: me, shareCents: 700 },
+      { userId: juan, shareCents: 300 },
+    ]
+    expect(sharedExpenseInputSchema.safeParse({ ...base, shares }).success).toBe(true)
+    expect(
+      firstMessage(
+        sharedExpenseInputSchema.safeParse({
+          ...base,
+          shares: [
+            { userId: me, shareCents: 700 },
+            { userId: juan, shareCents: 200 },
+          ],
+        }),
+      ),
+    ).toBe("sharesMismatch")
+    expect(sharedExpenseInputSchema.safeParse({ ...base, payerId: uuid, shares }).success).toBe(
+      false,
+    )
+    expect(
+      sharedExpenseInputSchema.safeParse({ ...base, shares: [{ userId: me, shareCents: 1000 }] })
+        .success,
+    ).toBe(false)
   })
 })

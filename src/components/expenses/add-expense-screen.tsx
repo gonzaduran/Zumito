@@ -4,6 +4,7 @@ import { TriangleAlert } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { useExpenseSaver } from "@/hooks/use-expense-saver"
+import { useSharedSaver } from "@/hooks/use-shared-saver"
 import type { Dictionary } from "@/i18n/get-dictionary"
 import type { Category } from "@/lib/data/categories"
 import type { NamedOption } from "@/lib/suggestions"
@@ -35,6 +36,7 @@ export function AddExpenseScreen({
 }: AddExpenseScreenProps) {
   const router = useRouter()
   const save = useExpenseSaver(labels, offlineLabels)
+  const saveShared = useSharedSaver(labels)
 
   return (
     <div className="flex flex-col gap-4 pb-6">
@@ -56,8 +58,10 @@ export function AddExpenseScreen({
         people={people}
         prefill={prefill}
         defaultCategoryId={defaultCategoryId}
-        onSubmit={(expense, category) => {
-          save(expense, category.name)
+        allowSplit
+        onSubmit={(expense, category, split) => {
+          if (split) saveShared(expense, split)
+          else save(expense, category.name)
           router.replace("/")
         }}
       />

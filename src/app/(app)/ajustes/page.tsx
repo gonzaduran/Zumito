@@ -6,6 +6,7 @@ import {
   MessageSquareHeart,
   PiggyBank,
   Tags,
+  Users,
   Wallet,
 } from "lucide-react"
 
@@ -15,10 +16,13 @@ import { AppHeader } from "@/components/layout/app-header"
 import { InstallAppCard } from "@/components/layout/install-app-card"
 import { DeleteAccount } from "@/components/settings/delete-account"
 import { ProfileNameForm } from "@/components/settings/profile-name-form"
+import { AvatarUpload } from "@/components/social/avatar-upload"
+import { UsernameForm } from "@/components/social/username-form"
 import { SettingsLink } from "@/components/settings/settings-link"
 import { SignOutButton } from "@/components/settings/sign-out-button"
 import { Card } from "@/components/ui/card"
 import { getDictionary } from "@/i18n/get-dictionary"
+import { avatarUrl, personName } from "@/lib/avatar"
 import { getCurrentProfile, getCurrentUser, getEntitlement } from "@/lib/data/profile"
 
 function Section({
@@ -97,6 +101,12 @@ export default async function SettingsPage() {
             title={labels.feedback}
             hint={labels.feedbackHint}
           />
+          <SettingsLink
+            href="/amigos"
+            icon={Users}
+            title={labels.friends}
+            hint={labels.friendsHint}
+          />
           <SettingsLink href="/planes" icon={Crown} title={labels.plan} hint={planHint} />
           <SettingsLink
             href="/ajustes/dinero"
@@ -125,8 +135,22 @@ export default async function SettingsPage() {
         </Card>
 
         <Section id="profile-title" title={labels.profile}>
-          <Card>
+          <Card className="flex flex-col gap-5">
+            {user && profile ? (
+              <AvatarUpload
+                labels={labels}
+                userId={user.sub}
+                name={personName(profile)}
+                currentPath={profile.avatar_path}
+                currentUrl={avatarUrl(profile.avatar_path)}
+              />
+            ) : null}
             <ProfileNameForm labels={labels} initialName={profile?.display_name ?? ""} />
+            <UsernameForm
+              labels={labels}
+              invalidLabel={dict.validation.usernameInvalid}
+              initial={profile?.username ?? null}
+            />
           </Card>
         </Section>
 

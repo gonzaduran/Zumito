@@ -21,6 +21,10 @@ export type ListedExpense = {
   placeName: string | null
   mood: Mood | null
   people: PersonRef[]
+  /** Gasto dividido con amigos: id, si lo creé yo y con quién. */
+  sharedExpenseId: string | null
+  sharedMine: boolean
+  sharedWith: string | null
   emoji: string
   title: string
   subtitle: string
@@ -30,7 +34,7 @@ export type ListedExpense = {
 export type ExpenseGroup = { key: string; label?: string; total?: string; items: ListedExpense[] }
 
 type ViewOptions = {
-  labels: { today: string; yesterday: string }
+  labels: { today: string; yesterday: string; sharedWith?: string }
   timeZone?: string
   now?: Date
 }
@@ -52,11 +56,12 @@ function parsePeople(value: unknown): PersonRef[] {
  * Título: el concepto, o el lugar, o la categoría. El subtítulo añade lo que no esté
  * ya en el título (categoría y lugar) y el momento.
  */
-function toListed(row: ExpenseRow, moment: string): ListedExpense {
+function toListed(row: ExpenseRow, moment: string, sharedLabel?: string): ListedExpense {
   const title = row.description ?? row.place_name ?? row.category_name
   const details = [
     title !== row.category_name ? row.category_name : null,
     row.place_name && title !== row.place_name ? row.place_name : null,
+    row.shared_with && sharedLabel ? sharedLabel.replace("{names}", row.shared_with) : null,
     moment,
   ].filter(Boolean)
 
@@ -73,6 +78,9 @@ function toListed(row: ExpenseRow, moment: string): ListedExpense {
     placeName: row.place_name,
     mood: isMood(row.mood) ? row.mood : null,
     people: parsePeople(row.people),
+    sharedExpenseId: row.shared_expense_id,
+    sharedMine: row.shared_mine,
+    sharedWith: row.shared_with,
     emoji: row.category_emoji,
     title,
     subtitle: details.join(" · "),
@@ -83,7 +91,11 @@ function toListed(row: ExpenseRow, moment: string): ListedExpense {
 /** Lista plana (Inicio): "Hoy · 14:32". */
 export function toRecentExpenses(rows: ExpenseRow[], { labels, timeZone, now }: ViewOptions) {
   return rows.map((row) =>
-    toListed(row, formatMoment(new Date(row.spent_at), labels, { timeZone, now })),
+    toListed(
+      row,
+      formatMoment(new Date(row.spent_at), labels, { timeZone, now }),
+      labels.sharedWith,
+    ),
   )
 }
 
@@ -104,7 +116,9 @@ export function groupExpensesByDay(
       }
       groups.push(group)
     }
-    group.items.push(toListed(row, formatTime(new Date(row.spent_at), { timeZone })))
+    group.items.push(
+      toListed(row, formatTime(new Date(row.spent_at), { timeZone }), labels.sharedWith),
+    )
   }
   return groups
 }

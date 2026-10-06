@@ -2,6 +2,7 @@ import { CommunityCard } from "@/components/community/community-card"
 import { AccountsCard } from "@/components/home/accounts-card"
 import { SplitCard } from "@/components/home/split-card"
 import { BalanceCard } from "@/components/home/balance-card"
+import { FriendsCard } from "@/components/home/friends-card"
 import { BudgetNotice } from "@/components/home/budget-notice"
 import { CategoryBreakdown } from "@/components/home/category-breakdown"
 import { RecentExpenses } from "@/components/home/recent-expenses"
@@ -15,6 +16,8 @@ import { getDictionary } from "@/i18n/get-dictionary"
 import { interpolate } from "@/i18n/interpolate"
 import { getBillingConfig } from "@/lib/billing/config"
 import { PREMIUM_PRICES, WELCOME_YEAR_PRICE, welcomeOfferRemainingMs } from "@/lib/billing/plans"
+import { avatarUrl, personName } from "@/lib/avatar"
+import { getMyFriends } from "@/lib/data/social"
 import { getCategories } from "@/lib/data/categories"
 import { getAccountSummary } from "@/lib/data/accounts"
 import {
@@ -62,6 +65,7 @@ export default async function HomePage() {
     recurringIncomes,
     accountSummary,
     splitIds,
+    friendships,
   ] = await Promise.all([
     getExpenseSummary(),
     searchExpenses({ limit: 5 }),
@@ -76,7 +80,13 @@ export default async function HomePage() {
     getRecurringIncomes(),
     getAccountSummary(month.from, month.to),
     getSplitRecurringIds(),
+    getMyFriends(),
   ])
+  // Solo los amigos con saldo pendiente, los mayores primero.
+  const pendingBalances = friendships
+    .filter((friend) => friend.relation === "friend" && friend.balance_cents !== 0)
+    .sort((a, b) => Math.abs(b.balance_cents) - Math.abs(a.balance_cents))
+    .slice(0, 3)
   // Reparto de la nómina: el del primer ingreso programado que lo tenga.
   const splitIncome = recurringIncomes.find((row) => splitIds.includes(row.id))
   const splitBuckets = splitIncome ? await getSplitStatus(splitIncome.id, month.from, month.to) : []
@@ -99,7 +109,13 @@ export default async function HomePage() {
       <AppHeader
         eyebrow={name ? interpolate(dict.common.greetingWithName, { name }) : dict.common.greeting}
         title={formatMonth(now, { timeZone })}
-        action={<ProfileButton label={dict.common.profile} />}
+        action={
+          <ProfileButton
+            label={dict.common.profile}
+            avatarUrl={avatarUrl(profile?.avatar_path)}
+            name={profile?.display_name ?? profile?.username}
+          />
+        }
       />
       <div className="flex flex-col gap-7 px-6 pt-4">
         <SpendingHeroCard
@@ -160,6 +176,24 @@ export default async function HomePage() {
                     : null,
               }
             })}
+          />
+        ) : null}
+        {pendingBalances.length > 0 ? (
+          <FriendsCard
+            title={dict.friends.homeTitle}
+            seeAll={{ href: "/amigos", label: dict.friends.homeSeeAll }}
+            items={pendingBalances.map((friend) => ({
+              id: friend.id,
+              name: personName(friend),
+              avatarUrl: avatarUrl(friend.avatar_path),
+              owesMe: friend.balance_cents > 0,
+              balance:
+                friend.balance_cents > 0
+                  ? interpolate(dict.friends.owesYou, { amount: formatCents(friend.balance_cents) })
+                  : interpolate(dict.friends.youOwe, {
+                      amount: formatCents(-friend.balance_cents),
+                    }),
+            }))}
           />
         ) : null}
         {splitIncome && splitBuckets.length > 0 ? (

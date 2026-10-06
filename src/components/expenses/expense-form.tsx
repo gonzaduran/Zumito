@@ -6,6 +6,7 @@ import { useEffect, useId, useState } from "react"
 
 import { AccountPicker } from "@/components/accounts/account-picker"
 import { useAccounts } from "@/components/accounts/accounts-provider"
+import { useSocial } from "@/components/social/social-provider"
 import { Button } from "@/components/ui/button"
 import { Chip } from "@/components/ui/chip"
 import { Input } from "@/components/ui/input"
@@ -29,8 +30,17 @@ import { CategoryPicker } from "./category-picker"
 import { MoodPicker } from "./mood-picker"
 import { PeoplePicker } from "./people-picker"
 import { PlaceCombobox } from "./place-combobox"
+import {
+  computeShares,
+  SplitWithFriends,
+  type SplitShare,
+  type SplitState,
+} from "./split-with-friends"
 
 export type ExpenseDraft = ExpenseInput & { id: string }
+
+/** Gasto dividido con amigos: quién pagó y la parte de cada uno (tú incluido). */
+export type ExpenseSplit = { payerId: string; shares: SplitShare[]; names: string }
 
 /** Valores iniciales de un gasto nuevo (p. ej. desde /add?importe=…). */
 export type ExpensePrefill = {
@@ -50,7 +60,11 @@ type ExpenseFormProps = {
   initial?: ExpenseDraft
   prefill?: ExpensePrefill
   defaultCategoryId: string
-  onSubmit: (expense: ExpenseDraft, category: Category) => void
+  onSubmit: (expense: ExpenseDraft, category: Category, split: ExpenseSplit | null) => void
+  /** Se puede dividir con amigos (al crear; al editar no). */
+  allowSplit?: boolean
+  /** Gasto compartido que se edita: el importe no se cambia aquí. */
+  shared?: { with: string }
   /** Acciones extra bajo el botón principal (p. ej. eliminar). */
   footer?: React.ReactNode
 }
@@ -102,6 +116,8 @@ export function ExpenseForm({
   prefill,
   defaultCategoryId,
   onSubmit,
+  allowSplit = false,
+  shared,
   footer,
 }: ExpenseFormProps) {
   const detailsId = useId()
@@ -127,6 +143,14 @@ export function ExpenseForm({
   const [newPeople, setNewPeople] = useState<string[]>([])
   const [note, setNote] = useState(initial?.note ?? "")
   const [mood, setMood] = useState<Mood | undefined>(initial?.mood)
+  const { me, friends } = useSocial()
+  const [splitOpen, setSplitOpen] = useState(false)
+  const [split, setSplit] = useState<SplitState>({
+    friendIds: [],
+    mode: "equal",
+    payerId: me?.id ?? "",
+    custom: {},
+  })
 
   const detailsFilled = [
     place.trim(),
@@ -138,7 +162,13 @@ export function ExpenseForm({
   const [detailsOpen, setDetailsOpen] = useState(detailsFilled > 0)
 
   const amountCents = toCents(amount)
-  const canSave = amountCents > 0 && (dateChoice !== "other" || Boolean(otherDate))
+  const splitting = allowSplit && splitOpen && me !== null && split.friendIds.length > 0
+  const shares = splitting && me ? computeShares(split, me.id, amountCents) : []
+  const sharesValid =
+    !splitting ||
+    (shares.every((share) => share.shareCents > 0) &&
+      shares.reduce((sum, share) => sum + share.shareCents, 0) === amountCents)
+  const canSave = amountCents > 0 && (dateChoice !== "other" || Boolean(otherDate)) && sharesValid
 
   const submit = () => {
     const category = categories.find((c) => c.id === categoryId)
@@ -164,6 +194,16 @@ export function ExpenseForm({
         newPeople,
       },
       category,
+      splitting
+        ? {
+            payerId: split.payerId,
+            shares,
+            names: friends
+              .filter((friend) => split.friendIds.includes(friend.id))
+              .map((friend) => friend.name)
+              .join(", "),
+          }
+        : null,
     )
     if (!initial && accountId) setLastUsedAccountId(accountId)
   }
@@ -181,14 +221,14 @@ export function ExpenseForm({
         return
       }
       const key = keyFromKeyboard(event.key)
-      if (key && !event.metaKey && !event.ctrlKey && !event.altKey) {
+      if (key && !shared && !event.metaKey && !event.ctrlKey && !event.altKey) {
         event.preventDefault()
         setAmount((current) => applyAmountKey(current, key))
       }
     }
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
-  }, [])
+  }, [shared])
 
   return (
     <form
@@ -263,10 +303,57 @@ export function ExpenseForm({
         )}
       </div>
 
-      <AmountKeypad
-        labels={labels.keypad}
-        onKey={(key) => setAmount((current) => applyAmountKey(current, key))}
-      />
+      {shared ? (
+        <p className="rounded-md bg-secondary px-4 py-3 text-[13px] font-semibold">{shared.with}</p>
+      ) : (
+        <AmountKeypad
+          labels={labels.keypad}
+          onKey={(key) => setAmount((current) => applyAmountKey(current, key))}
+        />
+      )}
+
+      {allowSplit && me ? (
+        <div>
+          <button
+            type="button"
+            aria-expanded={splitOpen}
+            aria-controls={`${detailsId}-split`}
+            onClick={() => setSplitOpen((open) => !open)}
+            className="flex h-11 w-full items-center justify-between rounded-sm px-1 text-sm font-bold outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            <span>
+              {labels.splitToggle}
+              {split.friendIds.length > 0 ? (
+                <span className="ml-2 font-semibold text-muted-foreground">
+                  {friends
+                    .filter((friend) => split.friendIds.includes(friend.id))
+                    .map((friend) => friend.name)
+                    .join(", ")}
+                </span>
+              ) : null}
+            </span>
+            <ChevronDown
+              aria-hidden="true"
+              className={cn(
+                "size-5 text-muted-foreground transition-transform motion-reduce:transition-none",
+                splitOpen && "rotate-180",
+              )}
+            />
+          </button>
+          {splitOpen ? (
+            <div id={`${detailsId}-split`} className="pt-2">
+              <SplitWithFriends
+                labels={labels}
+                me={me}
+                friends={friends}
+                totalCents={amountCents}
+                value={split}
+                onChange={setSplit}
+              />
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <div>
         <button

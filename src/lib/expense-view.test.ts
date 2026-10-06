@@ -23,6 +23,9 @@ const row = (overrides: Partial<ExpenseRow>): ExpenseRow => ({
   day: "2026-10-01",
   day_total_cents: 1000,
   account_id: "a1",
+  shared_expense_id: null,
+  shared_mine: false,
+  shared_with: null,
   ...overrides,
 })
 

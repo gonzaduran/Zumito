@@ -17,7 +17,8 @@
     "greetingWithName": "Hola, {name}",
     "profile": "Tu perfil",
     "today": "Hoy",
-    "yesterday": "Ayer"
+    "yesterday": "Ayer",
+    "sharedWith": "Con {names}"
   },
   "home": {
     "periodsLabel": "Periodo",
@@ -143,7 +144,23 @@
     "helpHint": "Guía rápida de Zumito",
     "betaBadge": "Beta",
     "feedback": "Fallos e ideas",
-    "feedbackHint": "Cuéntanos qué mejorar"
+    "feedbackHint": "Cuéntanos qué mejorar",
+    "friends": "Amigos",
+    "friendsHint": "Divide gastos con ellos",
+    "avatarLabel": "Foto de perfil",
+    "avatarAdd": "Poner foto",
+    "avatarChange": "Cambiar foto",
+    "avatarRemove": "Quitar foto",
+    "avatarSaved": "Foto guardada",
+    "avatarRemoved": "Foto quitada",
+    "avatarFailed": "No se ha podido subir la foto. Prueba con otra.",
+    "usernameLabel": "Tu usuario",
+    "usernameHint": "Así te encuentran tus amigos.",
+    "usernamePlaceholder": "tu_usuario",
+    "usernameSave": "Guardar",
+    "usernameSaved": "Usuario guardado",
+    "usernameTaken": "Ese usuario ya está cogido",
+    "usernameFailed": "No se ha podido guardar el usuario"
   },
   "addExpense": {
     "title": "Nuevo gasto",
@@ -191,7 +208,21 @@
     "invalidAmount": "El importe del enlace no es válido: escríbelo tú.",
     "backHome": "Volver al inicio",
     "detailsCountOne": "1 añadido",
-    "accountLabel": "Cuenta"
+    "accountLabel": "Cuenta",
+    "splitToggle": "Dividir con amigos",
+    "splitFriendsLabel": "Con quién",
+    "splitModeLabel": "Cómo se divide",
+    "splitEqual": "A partes iguales",
+    "splitCustom": "Por importes",
+    "splitPayerLabel": "Quién ha pagado",
+    "splitMe": "Yo",
+    "splitEach": "{amount} cada uno",
+    "splitRemaining": "Faltan {amount} por repartir",
+    "splitOver": "Sobran {amount}",
+    "splitShareLabel": "Parte de {name}",
+    "splitNeedFriends": "Añade amigos para dividir gastos",
+    "savedShared": "Gasto compartido con {names}",
+    "sharedFailed": "No se ha podido guardar el gasto compartido"
   },
   "categoryColors": {
     "rose": "Rosa",
@@ -233,7 +264,9 @@
     "splitNameTooLong": "El nombre puede tener hasta 30 caracteres",
     "splitPercentInvalid": "Cada parte necesita un porcentaje del 1 al 100",
     "splitOver": "El reparto pasa del 100 %",
-    "splitCategoryTwice": "Una categoría solo puede estar en una parte"
+    "splitCategoryTwice": "Una categoría solo puede estar en una parte",
+    "usernameInvalid": "Usa de 3 a 20 letras minúsculas, números, punto o guion bajo",
+    "sharesMismatch": "Las partes tienen que sumar el total"
   },
   "auth": {
     "title": "Entra en Zumito",
@@ -305,7 +338,13 @@
     "undo": "Deshacer",
     "saveFailed": "No se han podido guardar los cambios",
     "deleteFailed": "No se ha podido eliminar el gasto",
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "sharedWith": "Compartido con {names}",
+    "sharedAmountLocked": "El importe lo marca el gasto compartido.",
+    "deleteForAll": "Eliminar para todos",
+    "deleteMine": "Quitar de mi lista",
+    "deleteMineHint": "A tus amigos no les afecta y lo que os debéis no cambia.",
+    "sharedDeleted": "Gasto compartido eliminado"
   },
   "budgets": {
     "title": "Presupuestos",
@@ -621,6 +660,7 @@
         "Registro en 5 segundos, también sin conexión",
         "Lugar, con quién, nota y estado de ánimo",
         "Buscador y filtros del historial",
+        "Dividir gastos con tus amigos",
         "Estadísticas del mes y de 6 meses",
         "Presupuesto total del mes",
         "Exporta tus datos cuando quieras"
@@ -631,7 +671,7 @@
       "tagline": "Controla tu dinero a fondo",
       "features": ["Todo lo del plan Gratis", "Presupuestos por categoría con avisos"],
       "upcoming": [
-        "Dividir gastos y grupos con tus amigos",
+        "Grupos con tus amigos (viajes, piso compartido)",
         "Atajos: apunta con el botón de acción del iPhone",
         "Gastos recurrentes y objetivos de ahorro",
         "Estadísticas por lugar, persona y día de la semana"
@@ -866,6 +906,15 @@
         ]
       },
       {
+        "key": "friends",
+        "title": "Dividir gastos con amigos",
+        "steps": [
+          "En Ajustes → Amigos, elige tu usuario y busca a tus amigos por el suyo (o invítalos).",
+          "Al apuntar un gasto, toca «Dividir con amigos»: a partes iguales o por importes, y quién ha pagado.",
+          "A cada uno se le apunta su parte, y en Amigos veréis quién debe a quién. Al pagaros, «Saldar cuentas»."
+        ]
+      },
+      {
         "key": "accounts",
         "title": "Separar tu dinero",
         "steps": [
@@ -1035,5 +1084,52 @@
     "homeSave": "Para apartar: {amount}",
     "homeEdit": "Editar reparto",
     "emptyHint": "Reparte tu nómina (por ejemplo, 50 % necesidades, 30 % caprichos y 20 % ahorro) y mira cómo vas en cada parte."
+  },
+  "friends": {
+    "title": "Amigos",
+    "back": "Volver a Ajustes",
+    "intro": "Añade a tus amigos para dividir gastos. Solo veréis lo que compartáis, nunca el resto.",
+    "needUsername": "Primero elige tu usuario: así te pueden encontrar.",
+    "searchLabel": "Buscar por usuario",
+    "searchPlaceholder": "@usuario",
+    "searchHint": "Escribe al menos 3 letras.",
+    "noResults": "No hay nadie con ese usuario.",
+    "add": "Añadir",
+    "pending": "Pendiente",
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "cancel": "Cancelar",
+    "alreadyFriends": "Amigos",
+    "receivedTitle": "Solicitudes",
+    "sentTitle": "Enviadas",
+    "listTitle": "Tus amigos",
+    "empty": "Aún no tienes amigos en Zumito. Búscalos por su usuario o invítalos.",
+    "inviteTitle": "Invita a tus amigos",
+    "inviteText": "Agrégame en Zumito para dividir gastos: @{username}",
+    "inviteTextNoUser": "Usa Zumito conmigo para dividir gastos:",
+    "invite": "Invitar a un amigo",
+    "owesYou": "Te debe {amount}",
+    "youOwe": "Le debes {amount}",
+    "settled": "Estáis en paz",
+    "added": "Ya sois amigos",
+    "requestSent": "Solicitud enviada",
+    "declined": "Solicitud rechazada",
+    "failed": "No se ha podido completar. Inténtalo de nuevo.",
+    "detailBack": "Volver a Amigos",
+    "settle": "Saldar cuentas",
+    "settleHint": "Márcalo cuando os hayáis pagado lo que os debéis.",
+    "settledToast": "Cuentas saldadas",
+    "sharedTitle": "Lo que habéis compartido",
+    "sharedEmpty": "Aún no habéis compartido ningún gasto.",
+    "paidByYou": "Pagaste tú",
+    "paidBy": "Pagó {name}",
+    "yourShare": "Tu parte: {amount}",
+    "deleteShared": "Borrar {name} para todos",
+    "deleted": "Gasto compartido borrado",
+    "remove": "Dejar de ser amigos",
+    "removed": "Ya no sois amigos",
+    "homeTitle": "Con tus amigos",
+    "homeSeeAll": "Ver amigos",
+    "untitled": "Gasto compartido"
   }
 }

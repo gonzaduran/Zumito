@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import type { Dictionary } from "@/i18n/get-dictionary"
 import { interpolate } from "@/i18n/interpolate"
 import { createExpense, deleteExpense, updateExpense } from "@/lib/actions/expenses"
+import { deleteSharedExpense } from "@/lib/actions/social"
 import { isCategoryColor } from "@/lib/category-colors"
 import type { Category } from "@/lib/data/categories"
 import type { ExpenseGroup, ListedExpense } from "@/lib/expense-view"
@@ -98,6 +99,23 @@ export function ExpenseList({ groups, categories, places, people, labels }: Expe
     })
   }
 
+  // Borrar un gasto compartido que creé yo: desaparece para todos (sin deshacer).
+  const removeShared = (expense: ListedExpense) => {
+    if (!expense.sharedExpenseId) return
+    const sharedId = expense.sharedExpenseId
+    setEditing(null)
+    setHiddenId(expense.id, true)
+    haptics.success()
+    toast(edit.sharedDeleted, { id: expense.id })
+    startTransition(async () => {
+      const { ok } = await settle(deleteSharedExpense(sharedId))
+      if (ok) return
+      haptics.error()
+      setHiddenId(expense.id, false)
+      toast.error(edit.deleteFailed, { id: expense.id })
+    })
+  }
+
   const remove = (expense: ListedExpense) => {
     const draft = toDraft(expense)
     setEditing(null)
@@ -181,11 +199,32 @@ export function ExpenseList({ groups, categories, places, people, labels }: Expe
               initial={toDraft(editing)}
               defaultCategoryId={editing.categoryId}
               onSubmit={save}
+              shared={
+                editing.sharedExpenseId
+                  ? {
+                      with: `${interpolate(edit.sharedWith, { names: editing.sharedWith ?? "" })}. ${edit.sharedAmountLocked}`,
+                    }
+                  : undefined
+              }
               footer={
-                <Button type="button" variant="destructive" onClick={() => remove(editing)}>
-                  <Trash2 />
-                  {edit.delete}
-                </Button>
+                editing.sharedExpenseId && editing.sharedMine ? (
+                  <Button type="button" variant="destructive" onClick={() => removeShared(editing)}>
+                    <Trash2 />
+                    {edit.deleteForAll}
+                  </Button>
+                ) : (
+                  <div className="flex flex-col gap-1.5">
+                    <Button type="button" variant="destructive" onClick={() => remove(editing)}>
+                      <Trash2 />
+                      {editing.sharedExpenseId ? edit.deleteMine : edit.delete}
+                    </Button>
+                    {editing.sharedExpenseId ? (
+                      <p className="text-center text-xs text-muted-foreground">
+                        {edit.deleteMineHint}
+                      </p>
+                    ) : null}
+                  </div>
+                )
               }
             />
           ) : null}

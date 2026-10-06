@@ -17,7 +17,7 @@ export const getCurrentProfile = cache(async () => {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from("profiles")
-    .select("display_name, onboarded_at, timezone, welcome_offer_started_at")
+    .select("display_name, onboarded_at, timezone, welcome_offer_started_at, username, avatar_path")
     .maybeSingle()
   if (error) throw error
   return data

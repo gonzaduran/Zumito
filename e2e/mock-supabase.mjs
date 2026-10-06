@@ -1,6 +1,7 @@
 // Supabase simulado para las pruebas de extremo a extremo: solo las rutas que usa Zumito,
 // con los datos en memoria. Imita lo esencial de Postgres (claves únicas y foráneas).
 import { randomUUID } from "node:crypto"
+import { readFileSync } from "node:fs"
 import { createServer } from "node:http"
 
 const PORT = 54329
@@ -22,7 +23,19 @@ const profile = {
   timezone: "Europe/Madrid",
   premium_comp: false,
   welcome_offer_started_at: null,
+  username: null,
+  avatar_path: null,
 }
+/** Un amigo simulado (Juan) con el que se prueban amistad y gastos compartidos. */
+const JUAN = {
+  id: "22222222-2222-4222-8222-222222222222",
+  username: "juan_perez",
+  display_name: "Juan",
+}
+let friendship = null // null | { status: "pending" | "accepted", requester: "me" | "juan" }
+let shared = [] // { id, payer_id, created_by, description, amount_cents, spent_at, shares: { [userId]: cents } }
+let settledCents = 0 // pagos de Juan a mí (positivo) o míos a Juan (negativo)
+const avatars = new Map()
 let categories = []
 let expenses = []
 let budgets = []
@@ -98,6 +111,14 @@ createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`)
   const logged = (req.headers.authorization ?? "") === `Bearer ${token}`
   log.push(`${req.method} ${url.pathname}${url.search}`)
+  // Como Supabase: el navegador puede llamar directamente (p. ej. subir la foto a Storage).
+  res.setHeader("access-control-allow-origin", req.headers.origin ?? "*")
+  res.setHeader("access-control-allow-headers", "*")
+  res.setHeader("access-control-allow-methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+  if (req.method === "OPTIONS") {
+    res.writeHead(204)
+    return res.end()
+  }
 
   if (url.pathname === "/__log")
     return send(res, 200, {
@@ -113,7 +134,37 @@ createServer(async (req, res) => {
       accounts,
       feedback,
       splitBuckets,
+      friendship,
+      shared,
+      avatars: [...avatars.keys()],
     })
+  if (url.pathname === "/__friend") {
+    // Simula que Juan acepta la solicitud (o que es él quien la envía).
+    if (url.searchParams.get("accept") === "1" && friendship) friendship.status = "accepted"
+    if (url.searchParams.get("incoming") === "1")
+      friendship = { status: "pending", requester: "juan" }
+    return send(res, 200, friendship)
+  }
+  // --- Fotos de perfil (Storage) ---
+  if (url.pathname.startsWith("/storage/v1/object/public/avatars/")) {
+    const key = url.pathname.slice("/storage/v1/object/public/avatars/".length)
+    if (!avatars.has(key)) return send(res, 404, { message: "not found" })
+    // La subida llega como multipart; para enseñarla basta con una imagen de verdad.
+    res.writeHead(200, { "content-type": "image/png" })
+    return res.end(readFileSync(new URL("../public/icons/icon-192.png", import.meta.url)))
+  }
+  if (req.method === "POST" && url.pathname.startsWith("/storage/v1/object/avatars/")) {
+    const key = url.pathname.slice("/storage/v1/object/avatars/".length)
+    const chunks = []
+    for await (const chunk of req) chunks.push(chunk)
+    avatars.set(key, Buffer.concat(chunks))
+    return send(res, 200, { Key: `avatars/${key}`, Id: randomUUID() })
+  }
+  if (req.method === "DELETE" && url.pathname === "/storage/v1/object/avatars") {
+    const body = await readBody(req)
+    for (const prefix of body.prefixes ?? []) avatars.delete(prefix)
+    return send(res, 200, [])
+  }
   if (url.pathname === "/__profile") {
     for (const [key, value] of url.searchParams)
       profile[key] = value === "true" ? true : value === "false" ? false : value
@@ -236,7 +287,10 @@ createServer(async (req, res) => {
     return send(res, 204)
   }
   if (req.method === "PATCH" && url.pathname === "/rest/v1/profiles") {
-    Object.assign(profile, await readBody(req))
+    const body = await readBody(req)
+    if (body.username === JUAN.username)
+      return send(res, 409, { code: "23505", message: "duplicate key" })
+    Object.assign(profile, body)
     return send(res, 204)
   }
   if (req.method === "POST" && url.pathname === "/rest/v1/rpc/delete_my_account") {
@@ -370,6 +424,9 @@ createServer(async (req, res) => {
         people: peopleOf(e),
         day: madridDay(new Date(e.spent_at)),
         account_id: e.account_id,
+        shared_expense_id: e.shared_expense_id ?? null,
+        shared_mine: Boolean(e.shared_expense_id),
+        shared_with: e.shared_expense_id ? JUAN.display_name : null,
       }))
     for (const r of list)
       r.day_total_cents = list
@@ -607,6 +664,118 @@ createServer(async (req, res) => {
             )
             .reduce((sum, e) => sum + e.amount_cents, 0),
           category_ids: b.category_ids,
+        })),
+    )
+  }
+
+  // --- Amigos y gastos compartidos ---
+  const balance = () =>
+    shared.reduce(
+      (sum, e) =>
+        sum + (e.payer_id === user.id ? (e.shares[JUAN.id] ?? 0) : -(e.shares[user.id] ?? 0)),
+      0,
+    ) - settledCents
+  if (req.method === "POST" && url.pathname === "/rest/v1/rpc/search_users") {
+    const body = await readBody(req)
+    const q = (body.p_query ?? "").toLowerCase()
+    const relation = !friendship
+      ? "none"
+      : friendship.status === "accepted"
+        ? "friend"
+        : friendship.requester === "me"
+          ? "sent"
+          : "received"
+    return send(
+      res,
+      200,
+      q.length >= 3 && JUAN.username.startsWith(q)
+        ? [{ ...JUAN, avatar_path: null, relation }]
+        : [],
+    )
+  }
+  if (req.method === "POST" && url.pathname === "/rest/v1/rpc/send_friend_request") {
+    if (friendship?.requester === "juan") friendship.status = "accepted"
+    else friendship ??= { status: "pending", requester: "me" }
+    return send(res, 200, friendship.status === "accepted" ? "friend" : "sent")
+  }
+  if (req.method === "POST" && url.pathname === "/rest/v1/rpc/accept_friend_request") {
+    if (friendship?.requester === "juan") friendship.status = "accepted"
+    return send(res, 204)
+  }
+  if (req.method === "DELETE" && url.pathname === "/rest/v1/friendships") {
+    friendship = null
+    return send(res, 204)
+  }
+  if (req.method === "POST" && url.pathname === "/rest/v1/rpc/my_friends") {
+    if (!friendship) return send(res, 200, [])
+    const relation =
+      friendship.status === "accepted"
+        ? "friend"
+        : friendship.requester === "me"
+          ? "sent"
+          : "received"
+    return send(res, 200, [
+      {
+        ...JUAN,
+        avatar_path: null,
+        relation,
+        balance_cents: relation === "friend" ? balance() : 0,
+      },
+    ])
+  }
+  if (req.method === "POST" && url.pathname === "/rest/v1/rpc/create_shared_expense") {
+    const b = await readBody(req)
+    if (shared.some((e) => e.id === b.p_id)) return send(res, 204)
+    const shares = Object.fromEntries(b.p_shares.map((x) => [x.user_id, x.share_cents]))
+    shared.push({
+      id: b.p_id,
+      payer_id: b.p_payer_id,
+      created_by: user.id,
+      description: b.p_description,
+      amount_cents: b.p_amount_cents,
+      spent_at: b.p_spent_at,
+      shares,
+    })
+    expenses.push({
+      id: randomUUID(),
+      category_id: b.p_category_id,
+      amount_cents: shares[user.id],
+      description: b.p_description,
+      note: null,
+      spent_at: b.p_spent_at,
+      account_id: b.p_account_id ?? defaultAccountId(),
+      shared_expense_id: b.p_id,
+      person_ids: [],
+      created_at: new Date().toISOString(),
+    })
+    return send(res, 204)
+  }
+  if (req.method === "POST" && url.pathname === "/rest/v1/rpc/delete_shared_expense") {
+    const b = await readBody(req)
+    shared = shared.filter((e) => e.id !== b.p_id)
+    expenses = expenses.filter((e) => e.shared_expense_id !== b.p_id)
+    return send(res, 204)
+  }
+  if (req.method === "POST" && url.pathname === "/rest/v1/rpc/settle_up") {
+    const before = balance()
+    settledCents += before
+    return send(res, 200, before)
+  }
+  if (req.method === "POST" && url.pathname === "/rest/v1/rpc/shared_with_friend") {
+    return send(
+      res,
+      200,
+      [...shared]
+        .sort((a, b) => b.spent_at.localeCompare(a.spent_at))
+        .map((e) => ({
+          id: e.id,
+          description: e.description,
+          amount_cents: e.amount_cents,
+          spent_at: e.spent_at,
+          payer_id: e.payer_id,
+          created_by: e.created_by,
+          my_share_cents: e.shares[user.id] ?? 0,
+          friend_share_cents: e.shares[JUAN.id] ?? 0,
         })),
     )
   }

@@ -96,6 +96,114 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 - `src/lib/emoji-catalog.ts`: más de 200 emojis en 12 grupos con palabras clave en español (`searchEmojis`, `suggestEmojis`). `EmojiPicker` (categorías y cuentas): buscador, pestañas por grupo y "Para «nombre»". Al crear una categoría, el emoji sigue al nombre hasta que se elige uno.
 - Ideas de categorías (`categories.ideas` en el diccionario, unas 50) al crear una nueva.
 
+## Perfil, amigos y gastos compartidos
+
+- Migración `20261010090000_friends.sql`. Perfil: `username` (único, `^[a-z0-9_.]{3,20}@AGENTS.md
+
+# Zumito — Contexto del proyecto
+
+PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack y diseñador de producto.
+
+## Objetivo
+
+- Registrar un gasto en **menos de 5 segundos**.
+- Que ver en qué se va el dinero sea un placer, no una obligación.
+
+## Stack (no cambiar nada sin preguntar)
+
+- Next.js (App Router) + TypeScript estricto
+- Tailwind CSS + shadcn/ui + Framer Motion
+- Supabase: Auth, Postgres, Row Level Security, Edge Functions si hacen falta
+- PWA con manifest y service worker (Serwist)
+- Despliegue en Vercel, código en GitHub
+- Interfaz en español (España), moneda EUR, fechas dd/mm/aaaa. Preparado para i18n.
+
+## Identidad de marca
+
+- Logo: un zumo de brick con pajita. Es el **único** elemento relacionado con el zumo.
+- El logo aparece solo en: icono de la app, pantalla de carga, onboarding y ajustes.
+- Resto de la app **sin** temática de zumo, frutas ni bebidas: nada de metáforas, mascotas, colores cítricos ni juegos de palabras.
+- Diseño moderno y premium. Referencias de tono: Revolut, Copilot Money, Monzo, Linear. Limpio, con aire, jerarquía clara, números protagonistas.
+- Los emojis de categorías forman parte de la personalidad de la app.
+- Textos: claros, cercanos, directos, español de España, tuteando, sin humor forzado.
+  - Ejemplos: "Gasto guardado", "Aún no hay gastos hoy", "Vas por el 80% del presupuesto de Ocio".
+- **Claude Design** produce el diseño visual definitivo. Su bundle es la fuente de verdad de colores, tipografía, componentes y pantallas. No cambiarlo sin preguntar.
+
+## Principios
+
+1. Mobile-first, uso con una mano. Zonas táctiles de mínimo 44px.
+2. Rapidez: cero pasos innecesarios, teclado numérico propio, valores por defecto inteligentes.
+3. Modo claro/oscuro automático, microanimaciones sutiles, háptica donde sea posible.
+4. Seguridad: RLS en todas las tablas, nunca exponer la service role key en el cliente, validar todo con Zod.
+5. Accesibilidad: contraste AA, etiquetas ARIA, navegación por teclado.
+6. Código limpio: componentes pequeños, hooks reutilizables, sin código muerto, commits pequeños con mensajes claros.
+
+## Forma de trabajar
+
+- Antes de cada fase: explicar el plan en pocas líneas y **esperar OK**.
+- Al terminar cada fase: indicar qué probar a mano y qué comandos ejecutar.
+- Si algo es ambiguo: preguntar en lugar de suponer.
+- El usuario manda cada fase como un prompt. Al terminar, avisar para recibir el siguiente.
+
+## Diseño
+
+- Pantallas de Claude Design en `design/screens/`. Detalles en `design/README.md`.
+- Fuente de verdad: **sistema v2**, dirección A · Minimal (pantalla 13). De la B (pantalla 14) se usan el botón "+" elevado y la tarjeta destacada con degradado.
+- Efecto cristal solo en la barra inferior y en las hojas flotantes.
+- Las pantallas 01–12 usan la paleta cítrica antigua. No se adaptan: Claude Design enviará sus versiones v2.
+- Iconos: Lucide. El Toast se deriva de los tokens.
+- Tokens en `src/app/globals.css`.
+- Acento: `--primary` (#5457E5) es el relleno de los botones en ambos modos, con texto blanco. `--primary-text` (#5457E5 en claro, #7477FF en oscuro, ajuste mínimo de #7274FF para cumplir AA en todas las superficies) es para texto, iconos y enlaces.
+- Categorías: 12 colores OKLCH con el mismo brillo y croma, todos AA (≥ 4,5:1) sobre las superficies. Se definen en `src/lib/category-colors.ts` y `--cat-*`.
+- El emoji es el identificador principal de cada categoría. En gráficos se muestran las 6 mayores y el resto se agrupa en "Otros" (`groupTopCategories`, color `--cat-other`).
+- `--faint` es solo decorativo: no cumple AA como texto.
+- `--destructive-text` es para texto rojo sobre su propio fondo tenue (botones destructivos). El chip seleccionado usa `--primary-strong` en claro.
+- El contraste se verifica en cada pantalla con axe-core dentro de `npm run test:e2e`. Un cálculo a mano no basta: los fondos reales (cristal sobre velo, fondos tenues sobre la página) cambian el resultado.
+- Clases propias: `num` para cifras (Inter con números tabulares) y `tap` para zonas táctiles de 44px.
+
+## Mi dinero (ingresos)
+
+- Migración `20261003090000_incomes.sql`: `incomes` (a mano o generados) y `recurring_incomes` (la nómina: importe, concepto y día del mes 1-31; si el mes es más corto, el último día).
+- `apply_recurring_incomes()` apunta los meses que ya tocan en la zona del usuario. Es idempotente (`unique (recurring_id, period)`) y guarda `last_period`, así que un ingreso generado que se borra no vuelve. Se llama al leer el Inicio y Mi dinero (`src/lib/data/incomes.ts`).
+- Al reanudar un programado no se apuntan los meses en pausa (`starts_on` = hoy).
+- Gratis: ingresos a mano ilimitados y un ingreso programado. Premium: varios (acción de servidor + trigger en la base de datos).
+- Inicio: tarjeta "Te quedan este mes" (ingresos − gastos del mes) o, sin ingresos, invitación a añadir la nómina. Pantalla en `/ajustes/dinero`.
+
+## Cuentas
+
+- Migración `20261006090000_accounts.sql`: tabla `accounts` (nombre, emoji, orden, archivada) con RLS y sin borrado (se archivan). Todos tienen "💳 Personal", creada por `handle_new_user` (y para los usuarios anteriores, en la propia migración).
+- `expenses`, `incomes` y `recurring_incomes` llevan `account_id` (clave compuesta con `user_id`). Si no se indica, el trigger `fill_account_id` pone la principal (`default_account_id`: la primera activa por orden). Así la cola sin conexión sigue funcionando sin cambios.
+- `save_expense(…, p_account_id)`: nula crea en la principal y, al editar, conserva la cuenta.
+- Filtro opcional por cuenta en `search_expenses`, `spending_by_category`, `spending_by_month` e `income_total`. `account_summary(from, to)` da gastado e ingresado por cuenta.
+- Límite: Gratis 1 cuenta activa, Premium 20 (`ACCOUNT_LIMITS` y trigger `accounts_guard`, que también impide archivar la última).
+- Cliente: `AccountsProvider` en el layout de la app comparte las cuentas y la última usada. `AccountPicker` (formulario del gasto y de ingresos) y `AccountFilter` (`?a=` en Historial y Estadísticas) solo aparecen con más de una cuenta.
+- Inicio: tarjeta "Tus cuentas" con lo gastado y lo que queda en cada una (si tiene ingresos). Gestión en `/ajustes/cuentas`.
+
+## Reparto de la nómina
+
+- Migración `20261009090000_income_split.sql`: `split_buckets` (nombre, emoji, porcentaje 1-100, orden) de un ingreso programado y `split_bucket_categories` (una categoría solo en una parte de cada reparto). RLS en ambas.
+- `save_split(recurring, buckets)` sustituye el reparto entero (todo o nada; máximo 10 partes, suma ≤ 100 %, Premium). `split_status(recurring, from, to)`: lo que toca a cada parte (porcentaje del importe del ingreso) y lo gastado en sus categorías en la cuenta del ingreso.
+- Editor en `/ajustes/dinero/reparto/[id]` con plantillas 50/30/20 y 70/20/10 (diccionario `split.templates`). Una parte sin categorías es "para apartar". Tarjeta en el Inicio con el reparto del primer ingreso que lo tenga.
+
+## Comunidad: compartir y sugerencias
+
+- `CommunityCard` (Inicio y Ajustes): "Zumito está en beta y es gratis", "Compartir Zumito" (`ShareButton`: menú nativo o copiar enlace) y "Enviar un fallo o una idea".
+- `/ajustes/sugerencias`: fallo, idea u otra cosa. Se guarda en la tabla `feedback` (migración `20261008090000_feedback.sql`): solo se puede insertar (máximo 20 al día), no leer; se lee en Supabase → Table Editor → feedback.
+- La pantalla de entrada muestra "Beta · Gratis" (`app_settings` es legible sin sesión).
+
+## Emojis y categorías
+
+- `src/lib/emoji-catalog.ts`: más de 200 emojis en 12 grupos con palabras clave en español (`searchEmojis`, `suggestEmojis`). `EmojiPicker` (categorías y cuentas): buscador, pestañas por grupo y "Para «nombre»". Al crear una categoría, el emoji sigue al nombre hasta que se elige uno.
+- Ideas de categorías (`categories.ideas` en el diccionario, unas 50) al crear una nueva.
+
+) y `avatar_path` (solo en la carpeta propia). Fotos en el bucket público `avatars` de Storage (<id>/<archivo>.webp, máx. 1 MB); se recortan a 256 px en WebP en el navegador (`AvatarUpload`).
+
+- Amigos: `friendships` (pendiente/aceptada, una por pareja). Se buscan por usuario con `search_users` (desde 3 letras, máx. 10, solo usuario, nombre y foto). `send_friend_request` acepta sola si la otra persona ya la había enviado. Rechazar, cancelar o dejar de ser amigos = borrar la fila.
+- Gastos compartidos (gratis para todos, para que corra la voz): `create_shared_expense` crea `shared_expenses` + `shared_expense_shares` y apunta a cada participante su parte como gasto propio (`expenses.shared_expense_id`), en su categoría con el mismo nombre (o la primera) y su cuenta principal. Solo con amigos; quien paga debe ser amigo de todos; las partes suman el total; idempotente por id.
+- Saldos: `friend_balances` (positivo = te debe), `settle_up` registra el pago que deja el saldo a cero (`settlements`), `shared_with_friend` lista lo compartido. `delete_shared_expense`: solo quien lo creó, desaparece para todos.
+- Privacidad: RLS en todo; los demás datos de otros usuarios solo salen por funciones `security definer` que devuelven lo mínimo. Compartir no enseña el resto de tus gastos.
+- App: `SocialProvider` (layout) con tus amigos; "Dividir con amigos" en el formulario del "+" y de /add (a partes iguales con `splitEqually` o por importes, y quién pagó); `useSharedSaver` (necesita conexión, sin cola). Al editar un gasto compartido el importe queda bloqueado; "Eliminar para todos" si lo creaste, "Quitar de mi lista" si no. `/amigos` (buscar, solicitudes, saldos, invitar) y `/amigos/[id]` (saldo, saldar, lo compartido). Tarjeta "Con tus amigos" en el Inicio con los saldos pendientes.
+
 ## Planes y pagos
 
 - **Beta abierta (estado actual, decisión del usuario 2026-10-07):** `public.app_settings.beta_open = true` (migración `20261007090000_beta.sql`). Mientras esté activa, `is_premium()` y `getEntitlement` (`source: "beta"`) dan Premium a todos: sin candados, sin barra de compra, sin cuenta atrás ni prueba. `/planes` muestra `BetaPlans`: todo a 0 €, Premium "Próximamente", FAQ de la beta y botón "Compartir Zumito". Tras el onboarding se va al Inicio.

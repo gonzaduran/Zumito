@@ -883,13 +883,19 @@ await goto("/ajustes/cuentas")
 await waitFor(async () =>
   Boolean(await evaluate("Boolean(document.querySelector('#new-account-name'))")),
 )
-await fill("#new-account-name", "Padres")
-await clickText("Añadir cuenta")
+const hasParents = async () =>
+  (await mock()).accounts.some((a) => a.name === "Padres" && a.emoji === "👨‍👩‍👦")
+// Reintenta hasta que la página esté lista (con el ordenador lento, el primer clic se puede perder).
+await waitFor(async () => {
+  if (await hasParents()) return true
+  await fill("#new-account-name", "Padres")
+  await clickText("Añadir cuenta")
+  await sleep(800)
+  return hasParents()
+}, 12000)
 check(
   "con Premium, crea la cuenta de tus padres",
-  await waitFor(async () =>
-    (await mock()).accounts.some((a) => a.name === "Padres" && a.emoji === "👨‍👩‍👦"),
-  ),
+  await waitFor(hasParents),
   JSON.stringify((await mock()).accounts),
 )
 await waitFor(async () => (await text()).includes("Padres"))
@@ -1670,6 +1676,191 @@ await send("Emulation.setDeviceMetricsOverride", {
   deviceScaleFactor: 2,
   mobile: true,
 })
+
+console.log("Perfil, amigos y gastos compartidos")
+const ME = "11111111-1111-4111-8111-111111111111"
+const JUAN_ID = "22222222-2222-4222-8222-222222222222"
+await goto("/ajustes")
+await waitFor(async () => Boolean(await evaluate("Boolean(document.querySelector('#username'))")))
+await fill("#username", "juan_perez")
+await evaluate("document.querySelector('#username').form.requestSubmit()")
+check(
+  "un usuario cogido avisa",
+  await waitFor(async () => (await text()).includes("Ese usuario ya está cogido")),
+  await text(),
+)
+await fill("#username", "Gonzalo")
+await evaluate("document.querySelector('#username').form.requestSubmit()")
+check(
+  "elige su usuario (en minúsculas)",
+  await waitFor(async () => (await mock()).profile.username === "gonzalo"),
+  JSON.stringify((await mock()).profile),
+)
+// Foto de perfil: un PNG real (el icono de la app) elegido en el selector de archivos.
+const pngPath = join(process.cwd(), "public", "icons", "icon-192.png")
+const documentNode = (await send("DOM.getDocument", {})).result.root.nodeId
+const fileNode = (
+  await send("DOM.querySelector", { nodeId: documentNode, selector: "input[type=file]" })
+).result.nodeId
+await send("DOM.setFileInputFiles", { nodeId: fileNode, files: [pngPath] })
+check(
+  "sube la foto de perfil a su carpeta",
+  await waitFor(async () => {
+    const state = await mock()
+    return state.profile.avatar_path?.startsWith(`${ME}/`) && state.avatars.length === 1
+  }, 10000),
+  JSON.stringify({
+    profile: (await mock()).profile,
+    storage: (await mock()).log.filter((l) => l.includes("storage")).slice(-5),
+    page: (await text()).slice(0, 300),
+  }),
+)
+await shot("24-perfil-foto")
+await audit("perfil con foto")
+
+await goto("/amigos")
+await waitFor(async () => (await text()).includes("Buscar por usuario"))
+await fill("input[type=search]", "jua")
+check(
+  "busca a sus amigos por el usuario",
+  await waitFor(async () => (await text()).includes("@juan_perez")),
+  await text(),
+)
+await clickText("Añadir")
+check(
+  "envía la solicitud y queda pendiente",
+  await waitFor(
+    async () =>
+      (await mock()).friendship?.status === "pending" && (await text()).includes("Pendiente"),
+  ),
+  JSON.stringify((await mock()).friendship),
+)
+await fetch("http://localhost:54329/__friend?accept=1")
+await goto("/amigos")
+check(
+  "cuando acepta, aparece en sus amigos en paz",
+  await waitFor(async () => {
+    const t = await text()
+    return t.includes("Tus amigos") && t.includes("Juan") && t.includes("Estáis en paz")
+  }),
+  await text(),
+)
+await shot("25-amigos")
+await audit("amigos")
+
+await goto("/")
+await clickSel('button[aria-label="Añadir gasto"]')
+await waitFor(async () => (await text()).includes("Guardar gasto"))
+await keypad("5")
+await clickText("Dividir con amigos")
+await waitFor(async () => (await text()).includes("Con quién"))
+await evaluate(
+  "[...document.querySelectorAll('[aria-labelledby=split-friends] button')].find((b) => b.innerText.includes('Juan')).click()",
+)
+check(
+  "a partes iguales dice cuánto pone cada uno",
+  await waitFor(async () => (await text()).includes("2,50 € cada uno")),
+  await text(),
+)
+await shot("26-dividir")
+await audit("dividir un gasto")
+await clickSel("#submit-expense")
+check(
+  "guarda el gasto compartido con la parte de cada uno",
+  await waitFor(async () => {
+    const e = (await mock()).shared[0]
+    return e && e.shares[ME] === 250 && e.shares[JUAN_ID] === 250 && e.payer_id === ME
+  }),
+  JSON.stringify((await mock()).shared),
+)
+check(
+  "y a ti solo se te apunta tu parte",
+  (await mock()).expenses.some((e) => e.shared_expense_id && e.amount_cents === 250),
+  JSON.stringify((await mock()).expenses.slice(-2)),
+)
+await goto("/")
+check(
+  "el inicio dice que Juan te debe su parte",
+  await waitFor(async () => (await text()).includes("Te debe 2,50 €")),
+  await text(),
+)
+
+await clickSel('button[aria-label="Añadir gasto"]')
+await waitFor(async () => (await text()).includes("Guardar gasto"))
+for (const k of ["1", "0"]) await keypad(k)
+await clickText("Dividir con amigos")
+await waitFor(async () => (await text()).includes("Con quién"))
+await evaluate(
+  "[...document.querySelectorAll('[aria-labelledby=split-friends] button')].find((b) => b.innerText.includes('Juan')).click()",
+)
+await clickText("Por importes")
+await waitFor(async () =>
+  Boolean(await evaluate(`Boolean(document.querySelector('#share-${ME}'))`)),
+)
+await fill(`#share-${ME}`, "7")
+await fill(`#share-${JUAN_ID}`, "2")
+check(
+  "por importes avisa de lo que falta por repartir",
+  await waitFor(async () => (await text()).includes("Faltan 1,00 € por repartir")),
+  await text(),
+)
+await fill(`#share-${JUAN_ID}`, "3")
+await evaluate(
+  "[...document.querySelectorAll('[aria-labelledby=split-payer] button')].find((b) => b.innerText.includes('Juan')).click()",
+)
+await clickSel("#submit-expense")
+check(
+  "por importes (7 y 3) y pagando Juan",
+  await waitFor(async () => {
+    const e = (await mock()).shared[1]
+    return e && e.shares[ME] === 700 && e.shares[JUAN_ID] === 300 && e.payer_id === JUAN_ID
+  }),
+  JSON.stringify((await mock()).shared),
+)
+await goto(`/amigos/${JUAN_ID}`)
+check(
+  "el saldo con Juan se compensa: le debes 4,50 €",
+  await waitFor(async () => (await text()).includes("Le debes 4,50 €")),
+  await text(),
+)
+check(
+  "y se ve lo compartido, con quién pagó",
+  (await text()).includes("Pagaste tú") && (await text()).includes("Pagó Juan"),
+  await text(),
+)
+await shot("27-amigo")
+await audit("detalle de un amigo")
+await clickText("Saldar cuentas")
+check(
+  "saldar deja las cuentas en paz",
+  await waitFor(async () => (await text()).includes("Estáis en paz")),
+  await text(),
+)
+
+await goto("/historial")
+check(
+  "en el historial se ve con quién se compartió",
+  await waitFor(async () => (await text()).includes("Con Juan")),
+  await text(),
+)
+await evaluate(
+  "[...document.querySelectorAll('main li button')].find((b) => b.innerText.includes('Con Juan')).click()",
+)
+check(
+  "al abrirlo dice que es compartido y no deja cambiar el importe",
+  await waitFor(async () => {
+    const t = await text()
+    return t.includes("Compartido con Juan") && t.includes("Eliminar para todos")
+  }),
+  await text(),
+)
+await clickText("Eliminar para todos")
+check(
+  "y se puede eliminar para todos",
+  await waitFor(async () => (await mock()).shared.length === 1),
+  JSON.stringify((await mock()).shared.length),
+)
+await keyboard("Escape")
 
 await goto("/login")
 check("con sesión, /login lleva al inicio", (await path()) === "/", await path())

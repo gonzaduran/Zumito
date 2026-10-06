@@ -5,6 +5,7 @@ import { useState } from "react"
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useExpenseSaver } from "@/hooks/use-expense-saver"
+import { useSharedSaver } from "@/hooks/use-shared-saver"
 import type { Dictionary } from "@/i18n/get-dictionary"
 import type { Category } from "@/lib/data/categories"
 import type { NamedOption } from "@/lib/suggestions"
@@ -40,6 +41,7 @@ export function AddExpenseSheet({
   const [open, setOpen] = useState(false)
   const [lastCategoryId, setLastCategoryId] = useState(lastUsedCategoryId)
   const save = useExpenseSaver(labels, offlineLabels)
+  const saveShared = useSharedSaver(labels)
 
   const defaultCategoryId =
     categories.find((c) => c.id === lastCategoryId)?.id ?? categories[0]?.id ?? ""
@@ -63,10 +65,12 @@ export function AddExpenseSheet({
           places={places}
           people={people}
           defaultCategoryId={defaultCategoryId}
-          onSubmit={(expense, category) => {
+          allowSplit
+          onSubmit={(expense, category, split) => {
             setOpen(false)
             setLastCategoryId(category.id)
-            save(expense, category.name)
+            if (split) saveShared(expense, split)
+            else save(expense, category.name)
           }}
         />
       </SheetContent>

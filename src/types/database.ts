@@ -19,6 +19,8 @@ export type Database = {
           onboarded_at: string | null
           premium_comp: boolean
           welcome_offer_started_at: string | null
+          username: string | null
+          avatar_path: string | null
           created_at: string
           updated_at: string
         }
@@ -29,11 +31,15 @@ export type Database = {
           locale?: string
           timezone?: string
           onboarded_at?: string | null
+          username?: string | null
+          avatar_path?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
+          username?: string | null
+          avatar_path?: string | null
           display_name?: string | null
           currency?: string
           locale?: string
@@ -92,6 +98,7 @@ export type Database = {
           place_id: string | null
           mood: string | null
           account_id: string
+          shared_expense_id: string | null
           created_at: string
           updated_at: string
         }
@@ -107,10 +114,12 @@ export type Database = {
           mood?: string | null
           created_at?: string
           account_id?: string
+          shared_expense_id?: string | null
           updated_at?: string
         }
         Update: {
           account_id?: string
+          shared_expense_id?: string | null
           id?: string
           user_id?: string
           category_id?: string
@@ -345,6 +354,33 @@ export type Database = {
           },
         ]
       }
+      friendships: {
+        Row: {
+          id: string
+          requester_id: string
+          addressee_id: string
+          status: string
+          created_at: string
+          accepted_at: string | null
+        }
+        Insert: {
+          id?: string
+          requester_id: string
+          addressee_id: string
+          status?: string
+          created_at?: string
+          accepted_at?: string | null
+        }
+        Update: {
+          id?: string
+          requester_id?: string
+          addressee_id?: string
+          status?: string
+          created_at?: string
+          accepted_at?: string | null
+        }
+        Relationships: []
+      }
       split_buckets: {
         Row: {
           id: string
@@ -447,6 +483,73 @@ export type Database = {
     }
     Views: { [_ in never]: never }
     Functions: {
+      search_users: {
+        Args: { p_query: string }
+        Returns: {
+          id: string
+          username: string
+          display_name: string | null
+          avatar_path: string | null
+          relation: "friend" | "sent" | "received" | "none"
+        }[]
+      }
+      send_friend_request: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
+      accept_friend_request: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      my_friends: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          username: string | null
+          display_name: string | null
+          avatar_path: string | null
+          relation: "friend" | "sent" | "received"
+          balance_cents: number
+        }[]
+      }
+      friend_balances: {
+        Args: Record<PropertyKey, never>
+        Returns: { friend_id: string; balance_cents: number }[]
+      }
+      create_shared_expense: {
+        Args: {
+          p_id: string
+          p_description: string | null
+          p_amount_cents: number
+          p_spent_at: string
+          p_category_id: string
+          p_account_id: string | null
+          p_payer_id: string
+          p_shares: Json
+        }
+        Returns: undefined
+      }
+      delete_shared_expense: {
+        Args: { p_id: string }
+        Returns: undefined
+      }
+      settle_up: {
+        Args: { p_friend_id: string }
+        Returns: number
+      }
+      shared_with_friend: {
+        Args: { p_friend_id: string; p_limit?: number }
+        Returns: {
+          id: string
+          description: string | null
+          amount_cents: number
+          spent_at: string
+          payer_id: string
+          created_by: string
+          my_share_cents: number
+          friend_share_cents: number
+        }[]
+      }
       save_split: {
         Args: { p_recurring_id: string; p_buckets: Json }
         Returns: undefined
@@ -517,6 +620,9 @@ export type Database = {
           day: string
           day_total_cents: number
           account_id: string
+          shared_expense_id: string | null
+          shared_mine: boolean
+          shared_with: string | null
         }[]
       }
       is_premium: {
