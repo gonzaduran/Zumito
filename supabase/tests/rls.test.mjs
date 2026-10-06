@@ -33,6 +33,8 @@ for (const file of readdirSync(migrationsDir)
   await db.exec(readFileSync(new URL(file, migrationsDir), "utf8"))
   console.log("migración aplicada:", file)
 }
+// Las pruebas de límites de Premium se hacen con la beta cerrada (se prueba aparte al final).
+await db.exec("update public.app_settings set beta_open = false")
 
 // --- Ayudantes ---------------------------------------------------------------
 let passed = 0
@@ -1362,6 +1364,43 @@ await expectError(
   "select * from public.accounts",
   /permission denied/,
 )
+
+console.log("\nBeta abierta")
+const premiumOf = async (userId) =>
+  (await as("authenticated", userId, () => db.query("select public.is_premium() as p"))).rows[0].p
+assert((await premiumOf(B)) === false, "con la beta cerrada, B no es Premium", "")
+await db.exec("update public.app_settings set beta_open = true")
+assert((await premiumOf(B)) === true, "con la beta abierta, todos son Premium", "")
+await expectAffected(
+  "en beta se pueden crear varias cuentas sin pagar",
+  "authenticated",
+  B,
+  "insert into public.accounts (name, emoji) values ('Ahorro', '🐷')",
+  1,
+)
+await expectRows(
+  "todos pueden leer si la beta está abierta",
+  "authenticated",
+  B,
+  "select beta_open from public.app_settings",
+  1,
+)
+await expectError(
+  "nadie puede abrir o cerrar la beta desde la app",
+  "authenticated",
+  B,
+  "update public.app_settings set beta_open = false",
+  /permission denied/,
+)
+await expectError(
+  "anon no ve los ajustes",
+  "anon",
+  null,
+  "select * from public.app_settings",
+  /permission denied/,
+)
+await db.exec("update public.app_settings set beta_open = false")
+assert((await premiumOf(B)) === false, "al cerrar la beta vuelve a ser Gratis", "")
 
 console.log("\nBorrado de cuenta")
 await db.exec(`delete from auth.users where id = '${A}'`)

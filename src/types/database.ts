@@ -345,6 +345,12 @@ export type Database = {
           },
         ]
       }
+      app_settings: {
+        Row: { id: boolean; beta_open: boolean; updated_at: string }
+        Insert: { id?: boolean; beta_open?: boolean; updated_at?: string }
+        Update: { id?: boolean; beta_open?: boolean; updated_at?: string }
+        Relationships: []
+      }
       accounts: {
         Row: {
           id: string
