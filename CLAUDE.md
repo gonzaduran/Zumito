@@ -192,7 +192,8 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
 
 ## Ajustes
 
-- `/ajustes`: instalar la app, Categorías, Presupuestos, nombre, exportar CSV, cerrar sesión y borrar la cuenta.
+- `/ajustes`: Cómo funciona, Tu plan, Mi dinero, Cuentas, Categorías, Presupuestos, instalar la app, nombre, exportar CSV, cerrar sesión y borrar la cuenta.
+- `/ajustes/ayuda`: guía rápida (textos en `help` del diccionario) con botón de compartir. Hay que actualizarla cuando cambie una función visible.
 - `/ajustes/categorias`: crear, editar (nombre, emoji y color), ordenar (subir y bajar), archivar y restaurar. El orden se guarda con la función SQL `reorder_categories`. Un nombre repetido (índice único) avisa "Ya tienes una categoría con ese nombre".
 - Un gasto de una categoría archivada se puede editar: el formulario añade su categoría (`categoriesFor` en `expense-list.tsx`).
 - `/ajustes/exportar`: CSV con `;`, BOM e importes "12,50"; neutraliza fórmulas (`src/lib/csv.ts`).

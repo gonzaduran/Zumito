@@ -138,7 +138,9 @@
     "moneyHint": "Nómina e ingresos del mes",
     "accounts": "Cuentas",
     "accountsHint": "Personal, la de tus padres…",
-    "planBeta": "Beta · Todo gratis"
+    "planBeta": "Beta · Todo gratis",
+    "help": "Cómo funciona",
+    "helpHint": "Guía rápida de Zumito"
   },
   "addExpense": {
     "title": "Nuevo gasto",
@@ -593,5 +595,88 @@
       "lastAccount": "Necesitas al menos una cuenta",
       "failed": "No se ha podido guardar. Inténtalo de nuevo."
     }
+  },
+  "help": {
+    "title": "Cómo funciona",
+    "back": "Volver a Ajustes",
+    "intro": "Todo lo que puedes hacer con Zumito, en un minuto.",
+    "sections": [
+      {
+        "key": "add",
+        "title": "Apuntar un gasto",
+        "steps": [
+          "Toca el + de la barra de abajo.",
+          "Escribe el importe: 5 son 5 € y 12,5 son 12,50 €.",
+          "Elige la categoría. Ya viene marcada la última que usaste.",
+          "Toca «Guardar gasto». Si te equivocas, toca «Deshacer»."
+        ]
+      },
+      {
+        "key": "edit",
+        "title": "Editar o borrar",
+        "steps": [
+          "Toca cualquier gasto de la lista para cambiarlo o borrarlo.",
+          "En «Más detalles» puedes añadir el lugar, con quién, la hora, una nota y cómo te sentiste."
+        ]
+      },
+      {
+        "key": "offline",
+        "title": "Sin conexión",
+        "steps": ["Puedes apuntar gastos sin internet: se guardan solos cuando vuelve la conexión."]
+      },
+      {
+        "key": "stats",
+        "title": "Ver en qué se va el dinero",
+        "steps": [
+          "Inicio: lo que llevas hoy, esta semana y este mes.",
+          "Historial: busca y filtra por categoría, cuenta, lugar, persona o importe.",
+          "Estadísticas: el mes por categorías y cómo evoluciona mes a mes."
+        ]
+      },
+      {
+        "key": "money",
+        "title": "Saber cuánto te queda",
+        "steps": [
+          "En Ajustes → Mi dinero, programa tu nómina o tu paga el día que la cobras. Se apunta sola cada mes.",
+          "También puedes añadir ingresos a mano, como un Bizum.",
+          "El Inicio te dirá cuánto te queda este mes."
+        ]
+      },
+      {
+        "key": "accounts",
+        "title": "Separar tu dinero",
+        "steps": [
+          "En Ajustes → Cuentas, crea otra cuenta, por ejemplo «Padres».",
+          "Al apuntar un gasto o un ingreso, elige de qué cuenta es.",
+          "En el Inicio verás cuánto llevas gastado y cuánto te queda en cada una."
+        ]
+      },
+      {
+        "key": "budgets",
+        "title": "Presupuestos",
+        "steps": [
+          "En Ajustes → Presupuestos, pon un límite al mes, total o por categoría.",
+          "Te avisamos cuando vas por el 80 % y si te pasas."
+        ]
+      },
+      {
+        "key": "install",
+        "title": "Tenerla como una app",
+        "steps": [
+          "iPhone: ábrela en Safari → botón Compartir → «Añadir a pantalla de inicio».",
+          "Android: menú ⋮ → «Instalar aplicación»."
+        ]
+      },
+      {
+        "key": "data",
+        "title": "Tus datos",
+        "steps": [
+          "Solo tú ves tus gastos.",
+          "En Ajustes puedes exportarlos a un archivo o borrar tu cuenta cuando quieras."
+        ]
+      }
+    ],
+    "shareTitle": "¿Te gusta?",
+    "shareText": "Pásasela a quien le pueda venir bien."
   }
 }

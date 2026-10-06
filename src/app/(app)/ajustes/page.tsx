@@ -1,4 +1,4 @@
-import { CreditCard, Crown, Download, PiggyBank, Tags, Wallet } from "lucide-react"
+import { CircleHelp, CreditCard, Crown, Download, PiggyBank, Tags, Wallet } from "lucide-react"
 
 import { Logo } from "@/components/brand/logo"
 import { AppHeader } from "@/components/layout/app-header"
@@ -62,6 +62,12 @@ export default async function SettingsPage() {
         <InstallAppCard labels={dict.install} />
 
         <Card className="p-0">
+          <SettingsLink
+            href="/ajustes/ayuda"
+            icon={CircleHelp}
+            title={labels.help}
+            hint={labels.helpHint}
+          />
           <SettingsLink href="/planes" icon={Crown} title={labels.plan} hint={planHint} />
           <SettingsLink
             href="/ajustes/dinero"

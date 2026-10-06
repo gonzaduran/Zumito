@@ -1045,6 +1045,31 @@ check(
 )
 await fetch("http://localhost:54329/__profile?beta_open=false&premium_comp=true")
 
+console.log("Cómo funciona")
+await goto("/ajustes")
+await evaluate(
+  "[...document.querySelectorAll('a')].find((a) => a.innerText.includes('Cómo funciona')).click()",
+)
+check(
+  "Ajustes lleva a la guía",
+  await waitFor(async () => (await path()) === "/ajustes/ayuda"),
+  await path(),
+)
+check(
+  "la guía explica cómo apuntar, separar el dinero e instalarla",
+  await waitFor(async () => {
+    const t = await text()
+    return (
+      t.includes("Apuntar un gasto") &&
+      t.includes("Separar tu dinero") &&
+      t.includes("Añadir a pantalla de inicio")
+    )
+  }),
+  await text(),
+)
+await shot("16f-ayuda")
+await audit("cómo funciona")
+
 console.log("Categorías")
 await goto("/ajustes")
 await evaluate(
