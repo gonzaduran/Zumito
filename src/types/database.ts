@@ -345,6 +345,66 @@ export type Database = {
           },
         ]
       }
+      split_buckets: {
+        Row: {
+          id: string
+          user_id: string
+          recurring_id: string
+          name: string
+          emoji: string
+          percent: number
+          position: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string
+          recurring_id: string
+          name: string
+          emoji: string
+          percent: number
+          position?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          recurring_id?: string
+          name?: string
+          emoji?: string
+          percent?: number
+          position?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      feedback: {
+        Row: {
+          id: string
+          user_id: string | null
+          kind: string
+          message: string
+          user_agent: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          kind: string
+          message: string
+          user_agent?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          kind?: string
+          message?: string
+          user_agent?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: { id: boolean; beta_open: boolean; updated_at: string }
         Insert: { id?: boolean; beta_open?: boolean; updated_at?: string }
@@ -387,6 +447,22 @@ export type Database = {
     }
     Views: { [_ in never]: never }
     Functions: {
+      save_split: {
+        Args: { p_recurring_id: string; p_buckets: Json }
+        Returns: undefined
+      }
+      split_status: {
+        Args: { p_recurring_id: string; p_from: string; p_to: string }
+        Returns: {
+          id: string
+          name: string
+          emoji: string
+          percent: number
+          target_cents: number
+          spent_cents: number
+          category_ids: string[]
+        }[]
+      }
       apply_recurring_incomes: {
         Args: Record<PropertyKey, never>
         Returns: number

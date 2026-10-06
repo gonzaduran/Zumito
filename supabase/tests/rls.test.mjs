@@ -1392,15 +1392,201 @@ await expectError(
   "update public.app_settings set beta_open = false",
   /permission denied/,
 )
-await expectError(
-  "anon no ve los ajustes",
+await expectRows(
+  "sin sesión se puede ver si la beta está abierta (para la pantalla de entrada)",
   "anon",
   null,
-  "select * from public.app_settings",
+  "select beta_open from public.app_settings",
+  1,
+)
+await expectError(
+  "pero no cambiarla",
+  "anon",
+  null,
+  "update public.app_settings set beta_open = false",
   /permission denied/,
 )
 await db.exec("update public.app_settings set beta_open = false")
 assert((await premiumOf(B)) === false, "al cerrar la beta vuelve a ser Gratis", "")
+
+console.log("\nFallos e ideas")
+await expectAffected(
+  "cualquiera con sesión puede enviar un fallo o una idea",
+  "authenticated",
+  B,
+  "insert into public.feedback (kind, message, user_agent) values ('bug', 'No se guarda el gasto', 'Safari')",
+  1,
+)
+await expectError(
+  "nadie puede leer los mensajes desde la app",
+  "authenticated",
+  B,
+  "select * from public.feedback",
+  /permission denied/,
+)
+await expectError(
+  "no se puede enviar en nombre de otro",
+  "authenticated",
+  B,
+  `insert into public.feedback (user_id, kind, message) values ('${D}', 'idea', 'Hola hola')`,
+  /row-level security/,
+)
+await expectError(
+  "solo fallo, idea u otra cosa",
+  "authenticated",
+  B,
+  "insert into public.feedback (kind, message) values ('spam', 'Hola hola')",
+  /check/,
+)
+await expectError(
+  "el mensaje no puede estar vacío",
+  "authenticated",
+  B,
+  "insert into public.feedback (kind, message) values ('idea', '  ')",
+  /check/,
+)
+await expectError(
+  "anon no puede enviar mensajes",
+  "anon",
+  null,
+  "insert into public.feedback (kind, message) values ('idea', 'Hola hola')",
+  /permission denied/,
+)
+await db.exec(
+  `insert into public.feedback (user_id, kind, message) select '${B}', 'idea', 'Idea ' || g from generate_series(1, 19) as g`,
+)
+await expectError(
+  "como mucho 20 mensajes al día por persona",
+  "authenticated",
+  B,
+  "insert into public.feedback (kind, message) values ('idea', 'Una más')",
+  /Demasiados mensajes/,
+)
+
+console.log("\nReparto de la nómina")
+const S = "99999999-9999-9999-9999-999999999999"
+await db.exec(`insert into auth.users (id, email) values ('${S}', 's@test.es')`)
+const asS = (sql) => as("authenticated", S, () => db.query(sql))
+await asS(
+  "insert into public.categories (id, name, emoji, color, position) values ('99999999-0000-0000-0000-0000000000c1', 'Ocio', '🎉', 'rose', 0), ('99999999-0000-0000-0000-0000000000c2', 'Súper', '🛒', 'teal', 1)",
+)
+const sRecurring = (
+  await asS(
+    "insert into public.recurring_incomes (description, amount_cents, day_of_month) values ('Nómina', 140000, 1) returning id",
+  )
+).rows[0].id
+const split = (buckets, recurring = sRecurring) =>
+  `select public.save_split('${recurring}', '${JSON.stringify(buckets)}'::jsonb)`
+const fiftyThirtyTwenty = [
+  {
+    name: "Necesidades",
+    emoji: "🏠",
+    percent: 50,
+    category_ids: ["99999999-0000-0000-0000-0000000000c2"],
+  },
+  {
+    name: "Caprichos",
+    emoji: "🎉",
+    percent: 30,
+    category_ids: ["99999999-0000-0000-0000-0000000000c1"],
+  },
+  { name: "Ahorro", emoji: "🐷", percent: 20, category_ids: [] },
+]
+await expectError(
+  "sin Premium no se puede repartir la nómina",
+  "authenticated",
+  S,
+  split(fiftyThirtyTwenty),
+  /Premium/,
+)
+await db.exec(`update public.profiles set premium_comp = true where id = '${S}'`)
+await asS(split(fiftyThirtyTwenty))
+await asS(
+  "insert into public.expenses (category_id, amount_cents) values ('99999999-0000-0000-0000-0000000000c1', 4200), ('99999999-0000-0000-0000-0000000000c2', 10000)",
+)
+const splitRows = (
+  await asS(
+    `select * from public.split_status('${sRecurring}', date_trunc('month', current_date)::date, (date_trunc('month', current_date) + interval '1 month')::date)`,
+  )
+).rows
+assert(
+  splitRows.length === 3 &&
+    Number(splitRows[0].target_cents) === 70000 &&
+    Number(splitRows[1].target_cents) === 42000 &&
+    Number(splitRows[2].target_cents) === 28000,
+  "cada parte recibe su porcentaje de la nómina (1.400 € → 700, 420 y 280)",
+  JSON.stringify(splitRows),
+)
+assert(
+  Number(splitRows[0].spent_cents) === 10000 &&
+    Number(splitRows[1].spent_cents) === 4200 &&
+    Number(splitRows[2].spent_cents) === 0,
+  "y cuenta lo gastado en sus categorías este mes",
+  JSON.stringify(splitRows.map((r) => r.spent_cents)),
+)
+await expectError(
+  "el reparto no puede pasar del 100 %",
+  "authenticated",
+  S,
+  split([
+    { name: "Una", emoji: "🏠", percent: 60, category_ids: [] },
+    { name: "Otra", emoji: "🎉", percent: 50, category_ids: [] },
+  ]),
+  /100/,
+)
+await expectError(
+  "una categoría solo cuenta en una parte",
+  "authenticated",
+  S,
+  split([
+    {
+      name: "Una",
+      emoji: "🏠",
+      percent: 50,
+      category_ids: ["99999999-0000-0000-0000-0000000000c1"],
+    },
+    {
+      name: "Otra",
+      emoji: "🎉",
+      percent: 50,
+      category_ids: ["99999999-0000-0000-0000-0000000000c1"],
+    },
+  ]),
+  /duplicate key/,
+)
+const afterErrors = (await asS("select count(*) as n from public.split_buckets")).rows[0].n
+assert(
+  Number(afterErrors) === 3,
+  "tras un error se conserva el reparto de antes",
+  String(afterErrors),
+)
+await expectError(
+  "no se puede repartir el ingreso de otro",
+  "authenticated",
+  B,
+  split(fiftyThirtyTwenty),
+  /no encontrado/,
+)
+await expectRows(
+  "B no ve el reparto de S",
+  "authenticated",
+  B,
+  "select * from public.split_buckets",
+  0,
+)
+await asS(split([]))
+assert(
+  Number((await asS("select count(*) as n from public.split_buckets")).rows[0].n) === 0,
+  "una lista vacía quita el reparto",
+  "",
+)
+await asS(split(fiftyThirtyTwenty))
+await asS(`delete from public.recurring_incomes where id = '${sRecurring}'`)
+assert(
+  Number((await asS("select count(*) as n from public.split_buckets")).rows[0].n) === 0,
+  "al borrar el ingreso programado se borra su reparto",
+  "",
+)
 
 console.log("\nBorrado de cuenta")
 await db.exec(`delete from auth.users where id = '${A}'`)
