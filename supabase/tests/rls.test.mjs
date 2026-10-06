@@ -25,6 +25,20 @@ await db.exec(`
   grant usage on schema public to anon, authenticated, service_role;
   alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
   alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
+  -- Lo mínimo de Supabase Storage para las fotos de perfil.
+  create schema storage;
+  create table storage.buckets (
+    id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]
+  );
+  create table storage.objects (
+    id uuid primary key default gen_random_uuid(), bucket_id text, name text, owner uuid
+  );
+  alter table storage.objects enable row level security;
+  create function storage.foldername(name text) returns text[] language sql immutable as $$
+    select string_to_array(name, '/')
+  $$;
+  grant usage on schema storage to anon, authenticated;
+  grant all on storage.objects to authenticated;
 `)
 
 for (const file of readdirSync(migrationsDir)
@@ -1586,6 +1600,336 @@ assert(
   Number((await asS("select count(*) as n from public.split_buckets")).rows[0].n) === 0,
   "al borrar el ingreso programado se borra su reparto",
   "",
+)
+
+console.log("\nPerfil público, amigos y gastos compartidos")
+const K = "aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa"
+const J = "bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb"
+const L = "cccccccc-3333-4333-8333-cccccccccccc"
+await db.exec(`insert into auth.users (id, email, raw_user_meta_data) values
+  ('${K}', 'k@test.es', '{"display_name":"Gonzalo"}'),
+  ('${J}', 'j@test.es', '{"display_name":"Juan"}'),
+  ('${L}', 'l@test.es', '{}')`)
+const asK = (sql) => as("authenticated", K, () => db.query(sql))
+const asJ = (sql) => as("authenticated", J, () => db.query(sql))
+await expectAffected(
+  "cada uno elige su nombre de usuario",
+  "authenticated",
+  K,
+  "update public.profiles set username = 'gonzalo'",
+  1,
+)
+await asJ("update public.profiles set username = 'juan_perez'")
+await expectError(
+  "el usuario tiene de 3 a 20 letras minúsculas, números, punto o guion bajo",
+  "authenticated",
+  L,
+  "update public.profiles set username = 'Ju'",
+  /check/,
+)
+await expectError(
+  "no se puede repetir un usuario",
+  "authenticated",
+  L,
+  "update public.profiles set username = 'gonzalo'",
+  /duplicate key/,
+)
+await expectError(
+  "la foto solo puede estar en tu propia carpeta",
+  "authenticated",
+  K,
+  `update public.profiles set avatar_path = '${J}/foto.webp'`,
+  /check/,
+)
+await expectAffected(
+  "y en tu carpeta sí",
+  "authenticated",
+  K,
+  `update public.profiles set avatar_path = '${K}/foto.webp'`,
+  1,
+)
+const foundUsers = (await asK("select * from public.search_users('jua')")).rows
+assert(
+  foundUsers.length === 1 &&
+    foundUsers[0].username === "juan_perez" &&
+    foundUsers[0].relation === "none",
+  "se busca a la gente por su usuario (desde 3 letras)",
+  JSON.stringify(foundUsers),
+)
+assert(
+  foundUsers[0].display_name === "Juan" && !("email" in foundUsers[0]),
+  "y solo se ve el usuario, el nombre y la foto (nunca el email)",
+  JSON.stringify(foundUsers),
+)
+assert(
+  (await asK("select * from public.search_users('ju')")).rows.length === 0,
+  "con menos de 3 letras no se busca",
+  "",
+)
+assert(
+  (await asK("select * from public.search_users('gonza')")).rows.length === 0,
+  "uno no se encuentra a sí mismo",
+  "",
+)
+await expectError(
+  "anon no puede buscar gente",
+  "anon",
+  null,
+  "select * from public.search_users('jua')",
+  /permission denied/,
+)
+
+const sentRequest = (await asK(`select public.send_friend_request('${J}') as r`)).rows[0].r
+assert(sentRequest === "sent", "envía una solicitud de amistad", String(sentRequest))
+assert(
+  (await asJ("select relation from public.search_users('gonz')")).rows[0]?.relation === "received",
+  "quien la recibe la ve como pendiente",
+  "",
+)
+await expectError(
+  "no puedes aceptar tu propia solicitud",
+  "authenticated",
+  K,
+  `select public.accept_friend_request('${J}')`,
+  /no encontrada/,
+)
+await expectRows(
+  "nadie más ve la solicitud",
+  "authenticated",
+  L,
+  "select * from public.friendships",
+  0,
+)
+await asJ(`select public.accept_friend_request('${K}')`)
+const kFriends = (await asK("select * from public.my_friends()")).rows
+assert(
+  kFriends.length === 1 &&
+    kFriends[0].relation === "friend" &&
+    Number(kFriends[0].balance_cents) === 0,
+  "al aceptar ya sois amigos, con saldo 0",
+  JSON.stringify(kFriends),
+)
+
+// Categorías: Juan tiene "Cervezas" pero no es la primera; debe caer en esa.
+await asK(
+  "insert into public.categories (id, name, emoji, color, position) values ('aaaaaaaa-0000-4000-8000-0000000000c1', 'Cervezas', '🍺', 'amber', 0)",
+)
+await asJ(
+  "insert into public.categories (id, name, emoji, color, position) values ('bbbbbbbb-0000-4000-8000-0000000000c1', 'Comida', '🍽️', 'teal', 0), ('bbbbbbbb-0000-4000-8000-0000000000c2', 'cervezas', '🍻', 'rose', 1)",
+)
+const shareSql = (id, amount, payer, shares, category = "aaaaaaaa-0000-4000-8000-0000000000c1") =>
+  `select public.create_shared_expense('${id}', 'Cañas', ${amount}, now(), '${category}', null, '${payer}', '${JSON.stringify(
+    shares.map(([user_id, share_cents]) => ({ user_id, share_cents })),
+  )}'::jsonb)`
+const SE1 = "dddddddd-0000-4000-8000-000000000001"
+const SE2 = "dddddddd-0000-4000-8000-000000000002"
+await asK(
+  shareSql(SE1, 500, K, [
+    [K, 250],
+    [J, 250],
+  ]),
+)
+const kShared = (
+  await asK(
+    `select amount_cents, category_id from public.expenses where shared_expense_id = '${SE1}'`,
+  )
+).rows
+const jShared = (
+  await asJ(
+    `select amount_cents, category_id from public.expenses where shared_expense_id = '${SE1}'`,
+  )
+).rows
+assert(
+  kShared.length === 1 &&
+    Number(kShared[0].amount_cents) === 250 &&
+    jShared.length === 1 &&
+    Number(jShared[0].amount_cents) === 250,
+  "a partes iguales: a cada uno se le apunta su parte como gasto propio",
+  JSON.stringify({ kShared, jShared }),
+)
+assert(
+  jShared[0].category_id === "bbbbbbbb-0000-4000-8000-0000000000c2",
+  "al amigo se le apunta en su categoría con el mismo nombre",
+  JSON.stringify(jShared),
+)
+const balanceOf = async (asUser, friend) =>
+  Number(
+    (
+      await asUser(
+        `select balance_cents from public.friend_balances() where friend_id = '${friend}'`,
+      )
+    ).rows[0]?.balance_cents ?? 0,
+  )
+assert(
+  (await balanceOf(asK, J)) === 250 && (await balanceOf(asJ, K)) === -250,
+  "si pagaste tú, tu amigo te debe su parte",
+  "",
+)
+await asK(
+  shareSql(SE2, 1000, J, [
+    [K, 700],
+    [J, 300],
+  ]),
+)
+assert(
+  (await balanceOf(asK, J)) === -450 && (await balanceOf(asJ, K)) === 450,
+  "por importes (7 y 3) y pagando él: el saldo se compensa",
+  String(await balanceOf(asK, J)),
+)
+await asK(
+  shareSql(SE2, 1000, J, [
+    [K, 700],
+    [J, 300],
+  ]),
+)
+assert(
+  Number((await asK("select count(*) as n from public.shared_expenses")).rows[0].n) === 2,
+  "reenviar el mismo gasto compartido no lo duplica",
+  "",
+)
+await expectError(
+  "las partes tienen que sumar el total",
+  "authenticated",
+  K,
+  shareSql("dddddddd-0000-4000-8000-000000000003", 1000, K, [
+    [K, 500],
+    [J, 400],
+  ]),
+  /no suman/,
+)
+await expectError(
+  "solo se comparte con amigos",
+  "authenticated",
+  K,
+  shareSql("dddddddd-0000-4000-8000-000000000004", 1000, K, [
+    [K, 500],
+    [L, 500],
+  ]),
+  /amigos/,
+)
+await expectError(
+  "quien paga tiene que participar",
+  "authenticated",
+  K,
+  shareSql("dddddddd-0000-4000-8000-000000000005", 1000, L, [
+    [K, 500],
+    [J, 500],
+  ]),
+  /participar/,
+)
+await expectError(
+  "tienes que participar en lo que compartes",
+  "authenticated",
+  K,
+  shareSql("dddddddd-0000-4000-8000-000000000006", 1000, J, [
+    [J, 1000],
+    [J, 0],
+  ]),
+  /participar|repetida|Entre 2/,
+)
+await expectError(
+  "no se puede usar la categoría de otro",
+  "authenticated",
+  K,
+  shareSql(
+    "dddddddd-0000-4000-8000-000000000007",
+    1000,
+    K,
+    [
+      [K, 500],
+      [J, 500],
+    ],
+    "bbbbbbbb-0000-4000-8000-0000000000c1",
+  ),
+  /Categoría no válida/,
+)
+await expectRows(
+  "quien no participa no ve el gasto compartido",
+  "authenticated",
+  L,
+  "select * from public.shared_expenses",
+  0,
+)
+await expectRows(
+  "los participantes sí",
+  "authenticated",
+  J,
+  "select * from public.shared_expenses",
+  2,
+)
+await expectRows(
+  "compartir no enseña el resto de tus gastos",
+  "authenticated",
+  J,
+  `select * from public.expenses where user_id = '${K}'`,
+  0,
+)
+await expectError(
+  "nadie crea gastos compartidos sin la función",
+  "authenticated",
+  K,
+  `insert into public.shared_expenses (id, created_by, payer_id, amount_cents) values (gen_random_uuid(), '${K}', '${K}', 100)`,
+  /permission denied/,
+)
+const history = (await asK(`select * from public.shared_with_friend('${J}')`)).rows
+assert(
+  history.length === 2 &&
+    Number(history[0].my_share_cents) + Number(history[0].friend_share_cents) > 0,
+  "se ve la lista de lo compartido con cada amigo",
+  JSON.stringify(history),
+)
+await asJ(`select public.settle_up('${K}')`)
+assert(
+  (await balanceOf(asK, J)) === 0 && (await balanceOf(asJ, K)) === 0,
+  "saldar deja la cuenta a cero para los dos",
+  String(await balanceOf(asK, J)),
+)
+await expectError(
+  "no se salda con quien no es tu amigo",
+  "authenticated",
+  K,
+  `select public.settle_up('${L}')`,
+  /amigos/,
+)
+await expectError(
+  "solo quien creó el gasto compartido puede borrarlo para todos",
+  "authenticated",
+  J,
+  `select public.delete_shared_expense('${SE1}')`,
+  /quien lo creó/,
+)
+await asK(`select public.delete_shared_expense('${SE1}')`)
+assert(
+  (await asJ(`select * from public.expenses where shared_expense_id = '${SE1}'`)).rows.length === 0,
+  "al borrarlo desaparece también la parte del amigo",
+  "",
+)
+const kRows = (
+  await asK(
+    "select shared_with, shared_mine from public.search_expenses() where shared_expense_id is not null",
+  )
+).rows
+const jRows = (
+  await asJ(
+    "select shared_with, shared_mine from public.search_expenses() where shared_expense_id is not null",
+  )
+).rows
+assert(
+  kRows.length === 1 &&
+    kRows[0].shared_with === "Juan" &&
+    kRows[0].shared_mine === true &&
+    jRows.length === 1 &&
+    jRows[0].shared_with === "Gonzalo" &&
+    jRows[0].shared_mine === false,
+  "el historial dice con quién se compartió y quién lo creó",
+  JSON.stringify({ kRows, jRows }),
+)
+await expectAffected(
+  "cualquiera de los dos puede dejar de ser amigo",
+  "authenticated",
+  J,
+  "delete from public.friendships",
+  1,
 )
 
 console.log("\nBorrado de cuenta")
