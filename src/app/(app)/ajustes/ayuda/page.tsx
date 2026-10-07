@@ -10,6 +10,7 @@ import {
   Users,
   Wallet,
   WifiOff,
+  Zap,
   type LucideIcon,
 } from "lucide-react"
 
@@ -32,6 +33,7 @@ const icons: Record<string, LucideIcon> = {
   friends: Users,
   budgets: PiggyBank,
   install: Smartphone,
+  shortcuts: Zap,
   data: ShieldCheck,
 }
 
@@ -64,6 +66,14 @@ export default async function HelpPage() {
                     </li>
                   ))}
                 </ol>
+                {section.href ? (
+                  <Link
+                    href={section.href}
+                    className="mt-1 inline-flex min-h-11 items-center text-sm font-bold text-primary-text outline-none focus-visible:rounded-md focus-visible:ring-3 focus-visible:ring-ring/50"
+                  >
+                    {section.linkLabel}
+                  </Link>
+                ) : null}
               </section>
             </Card>
           )

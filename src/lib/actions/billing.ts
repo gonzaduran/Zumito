@@ -1,9 +1,9 @@
 "use server"
 
-import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 
+import { appOrigin } from "@/lib/app-origin"
 import { getBillingConfig, getStripe } from "@/lib/billing/config"
 import { TRIAL_DAYS, welcomeOfferRemainingMs } from "@/lib/billing/plans"
 import { getCurrentUser, getEntitlement } from "@/lib/data/profile"
@@ -12,14 +12,6 @@ import { createClient } from "@/lib/supabase/server"
 
 export type BillingActionResult =
   { url: string } | { error: "notConfigured" | "failed" | "alreadyPremium" }
-
-async function appOrigin() {
-  const list = await headers()
-  const host = list.get("x-forwarded-host") ?? list.get("host")
-  const protocol =
-    list.get("x-forwarded-proto") ?? (host?.startsWith("localhost") ? "http" : "https")
-  return `${protocol}://${host}`
-}
 
 /**
  * Abre Stripe Checkout para Premium. La primera vez incluye 7 días gratis; al terminar la
@@ -71,7 +63,7 @@ export async function startCheckout(interval: "month" | "year"): Promise<Billing
       parsedInterval.data === "year" &&
       welcomeOfferRemainingMs(profile?.welcome_offer_started_at ?? null) > 0
 
-    const origin = await appOrigin()
+    const { origin } = await appOrigin()
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
@@ -124,7 +116,7 @@ export async function openBillingPortal(): Promise<BillingActionResult> {
     if (!data) return { error: "failed" }
     const session = await getStripe(config).billingPortal.sessions.create({
       customer: data.stripe_customer_id,
-      return_url: `${await appOrigin()}/planes`,
+      return_url: `${(await appOrigin()).origin}/planes`,
       locale: "es",
       ...(config.STRIPE_PORTAL_CONFIGURATION
         ? { configuration: config.STRIPE_PORTAL_CONFIGURATION }

@@ -3,11 +3,13 @@ import {
   CreditCard,
   Crown,
   Download,
+  Smartphone,
   MessageSquareHeart,
   PiggyBank,
   Tags,
   Users,
   Wallet,
+  Zap,
 } from "lucide-react"
 
 import { Logo } from "@/components/brand/logo"
@@ -87,6 +89,21 @@ export default async function SettingsPage() {
         />
 
         <InstallAppCard labels={dict.install} />
+
+        <Card className="p-0">
+          <SettingsLink
+            href="/ajustes/instalar"
+            icon={Smartphone}
+            title={labels.installGuide}
+            hint={labels.installGuideHint}
+          />
+          <SettingsLink
+            href="/ajustes/atajos"
+            icon={Zap}
+            title={labels.shortcuts}
+            hint={labels.shortcutsHint}
+          />
+        </Card>
 
         <Card className="p-0">
           <SettingsLink

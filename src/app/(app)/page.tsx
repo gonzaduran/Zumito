@@ -3,6 +3,7 @@ import { AccountsCard } from "@/components/home/accounts-card"
 import { SplitCard } from "@/components/home/split-card"
 import { BalanceCard } from "@/components/home/balance-card"
 import { FriendsCard } from "@/components/home/friends-card"
+import { InstallBanner } from "@/components/install/install-banner"
 import { BudgetNotice } from "@/components/home/budget-notice"
 import { CategoryBreakdown } from "@/components/home/category-breakdown"
 import { RecentExpenses } from "@/components/home/recent-expenses"
@@ -128,6 +129,7 @@ export default async function HomePage() {
           }}
           budget={totalBudgetRing(budgets, dict.home.budgetUsed)}
         />
+        <InstallBanner labels={dict.install} />
         {monthIncome > 0 || recurringIncomes.length > 0 ? (
           <BalanceCard
             kind="balance"

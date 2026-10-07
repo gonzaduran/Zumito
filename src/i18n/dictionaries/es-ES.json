@@ -160,7 +160,11 @@
     "usernameSave": "Guardar",
     "usernameSaved": "Usuario guardado",
     "usernameTaken": "Ese usuario ya está cogido",
-    "usernameFailed": "No se ha podido guardar el usuario"
+    "usernameFailed": "No se ha podido guardar el usuario",
+    "installGuide": "Instalar en el móvil",
+    "installGuideHint": "Paso a paso para iPhone y Android",
+    "shortcuts": "Atajos para apuntar rápido",
+    "shortcutsHint": "Botón de Acción, Tocar atrás e iconos"
   },
   "addExpense": {
     "title": "Nuevo gasto",
@@ -380,7 +384,12 @@
     "title": "Instala Zumito",
     "description": "Tenla en tu pantalla de inicio y ábrela como una app.",
     "button": "Instalar",
-    "ios": "En Safari, pulsa Compartir y luego «Añadir a pantalla de inicio»."
+    "ios": "En Safari, pulsa Compartir y luego «Añadir a pantalla de inicio».",
+    "howTo": "Ver cómo se hace (10 segundos)",
+    "bannerTitle": "Instala Zumito en tu móvil",
+    "bannerText": "Tenla en tu pantalla de inicio y ábrela como una app.",
+    "bannerLink": "Ver cómo",
+    "dismiss": "Ahora no"
   },
   "categories": {
     "title": "Categorías",
@@ -863,7 +872,9 @@
           "Escribe el importe: 5 son 5 € y 12,5 son 12,50 €.",
           "Elige la categoría. Ya viene marcada la última que usaste.",
           "Toca «Guardar gasto». Si te equivocas, toca «Deshacer»."
-        ]
+        ],
+        "href": "",
+        "linkLabel": ""
       },
       {
         "key": "edit",
@@ -871,12 +882,18 @@
         "steps": [
           "Toca cualquier gasto de la lista para cambiarlo o borrarlo.",
           "En «Más detalles» puedes añadir el lugar, con quién, la hora, una nota y cómo te sentiste."
-        ]
+        ],
+        "href": "",
+        "linkLabel": ""
       },
       {
         "key": "offline",
         "title": "Sin conexión",
-        "steps": ["Puedes apuntar gastos sin internet: se guardan solos cuando vuelve la conexión."]
+        "steps": [
+          "Puedes apuntar gastos sin internet: se guardan solos cuando vuelve la conexión."
+        ],
+        "href": "",
+        "linkLabel": ""
       },
       {
         "key": "stats",
@@ -885,7 +902,9 @@
           "Inicio: lo que llevas hoy, esta semana y este mes.",
           "Historial: busca y filtra por categoría, cuenta, lugar, persona o importe.",
           "Estadísticas: el mes por categorías y cómo evoluciona mes a mes."
-        ]
+        ],
+        "href": "",
+        "linkLabel": ""
       },
       {
         "key": "money",
@@ -894,7 +913,9 @@
           "En Ajustes → Mi dinero, programa tu nómina o tu paga el día que la cobras. Se apunta sola cada mes.",
           "También puedes añadir ingresos a mano, como un Bizum.",
           "El Inicio te dirá cuánto te queda este mes."
-        ]
+        ],
+        "href": "",
+        "linkLabel": ""
       },
       {
         "key": "split",
@@ -903,7 +924,9 @@
           "En Mi dinero, toca «Repartir» en tu nómina.",
           "Elige una plantilla (por ejemplo 50/30/20) o crea tus partes con su porcentaje.",
           "Asigna categorías a cada parte: verás cuánto llevas gastado de cada una este mes."
-        ]
+        ],
+        "href": "",
+        "linkLabel": ""
       },
       {
         "key": "friends",
@@ -912,7 +935,9 @@
           "En Ajustes → Amigos, elige tu usuario y busca a tus amigos por el suyo (o invítalos).",
           "Al apuntar un gasto, toca «Dividir con amigos»: a partes iguales o por importes, y quién ha pagado.",
           "A cada uno se le apunta su parte, y en Amigos veréis quién debe a quién. Al pagaros, «Saldar cuentas»."
-        ]
+        ],
+        "href": "",
+        "linkLabel": ""
       },
       {
         "key": "accounts",
@@ -921,7 +946,9 @@
           "En Ajustes → Cuentas, crea otra cuenta, por ejemplo «Padres».",
           "Al apuntar un gasto o un ingreso, elige de qué cuenta es.",
           "En el Inicio verás cuánto llevas gastado y cuánto te queda en cada una."
-        ]
+        ],
+        "href": "",
+        "linkLabel": ""
       },
       {
         "key": "budgets",
@@ -929,7 +956,9 @@
         "steps": [
           "En Ajustes → Presupuestos, pon un límite al mes, total o por categoría.",
           "Te avisamos cuando vas por el 80 % y si te pasas."
-        ]
+        ],
+        "href": "",
+        "linkLabel": ""
       },
       {
         "key": "install",
@@ -937,7 +966,19 @@
         "steps": [
           "iPhone: ábrela en Safari → botón Compartir → «Añadir a pantalla de inicio».",
           "Android: menú ⋮ → «Instalar aplicación»."
-        ]
+        ],
+        "href": "/ajustes/instalar",
+        "linkLabel": "Ver el tutorial paso a paso"
+      },
+      {
+        "key": "shortcuts",
+        "title": "Atajos para apuntar rápido",
+        "steps": [
+          "iPhone: crea un atajo en la app Atajos y ponlo en el botón de Acción o en Tocar atrás.",
+          "Android: mantén pulsado el icono de Zumito y toca «Añadir gasto»."
+        ],
+        "href": "/ajustes/atajos",
+        "linkLabel": "Ver cómo crearlos"
       },
       {
         "key": "data",
@@ -945,7 +986,9 @@
         "steps": [
           "Solo tú ves tus gastos.",
           "En Ajustes puedes exportarlos a un archivo o borrar tu cuenta cuando quieras."
-        ]
+        ],
+        "href": "",
+        "linkLabel": ""
       }
     ],
     "shareTitle": "¿Te gusta?",
@@ -1131,5 +1174,169 @@
     "homeTitle": "Con tus amigos",
     "homeSeeAll": "Ver amigos",
     "untitled": "Gasto compartido"
+  },
+  "installGuide": {
+    "title": "Instala Zumito",
+    "back": "Volver a Ajustes",
+    "intro": "Así la tendrás en tu pantalla de inicio, a pantalla completa y como una app más. Tarda 10 segundos.",
+    "installed": "Ya la tienes instalada. ¡Perfecto!",
+    "tabsLabel": "Tu móvil",
+    "ios": "iPhone",
+    "android": "Android",
+    "installNow": "Instalar ahora",
+    "stepLabel": "Paso {number}",
+    "iosNote": "En iPhone tiene que ser desde Safari: en otros navegadores no sale la opción.",
+    "androidNote": "Si no ves «Instalar aplicación», busca «Añadir a pantalla de inicio»: es lo mismo.",
+    "steps": {
+      "ios": [
+        {
+          "art": "safari",
+          "title": "Abre Zumito en Safari",
+          "text": "Escribe la dirección o abre el enlace que te han pasado."
+        },
+        {
+          "art": "share",
+          "title": "Toca el botón Compartir",
+          "text": "Es el cuadrado con una flecha hacia arriba, en la barra de abajo (en iPad, arriba a la derecha)."
+        },
+        {
+          "art": "addHome",
+          "title": "Toca «Añadir a pantalla de inicio»",
+          "text": "Si no lo ves, desliza la lista hacia arriba."
+        },
+        {
+          "art": "confirmIos",
+          "title": "Toca «Añadir»",
+          "text": "Arriba a la derecha. Puedes dejarle el nombre «Zumito»."
+        },
+        {
+          "art": "done",
+          "title": "¡Listo!",
+          "text": "Ábrela desde su icono. La primera vez entra con tu email y tu contraseña."
+        }
+      ],
+      "android": [
+        {
+          "art": "chrome",
+          "title": "Abre Zumito en Chrome",
+          "text": "Escribe la dirección o abre el enlace que te han pasado."
+        },
+        {
+          "art": "menu",
+          "title": "Toca el menú ⋮",
+          "text": "Los tres puntos de arriba a la derecha."
+        },
+        {
+          "art": "install",
+          "title": "Toca «Instalar aplicación»",
+          "text": "En algunos móviles pone «Añadir a pantalla de inicio»."
+        },
+        {
+          "art": "confirmAndroid",
+          "title": "Toca «Instalar»",
+          "text": "Se añadirá a tu pantalla de inicio y a tus aplicaciones."
+        },
+        {
+          "art": "done",
+          "title": "¡Listo!",
+          "text": "Ábrela desde su icono. La primera vez entra con tu email y tu contraseña."
+        }
+      ]
+    },
+    "art": {
+      "share": "Compartir",
+      "addHome": "Añadir a pantalla de inicio",
+      "copy": "Copiar",
+      "addFavorite": "Añadir a favoritos",
+      "add": "Añadir",
+      "cancel": "Cancelar",
+      "newTab": "Nueva pestaña",
+      "install": "Instalar aplicación",
+      "history": "Historial",
+      "installButton": "Instalar"
+    },
+    "nextTitle": "¿Y ahora?",
+    "nextText": "Crea un atajo para apuntar gastos todavía más rápido.",
+    "nextLink": "Atajos para apuntar rápido"
+  },
+  "shortcuts": {
+    "title": "Atajos para apuntar rápido",
+    "back": "Volver a Ajustes",
+    "intro": "Apunta un gasto sin buscar la app: con un icono, el botón de Acción del iPhone o dos toques en la parte de atrás.",
+    "tabsLabel": "Tu móvil",
+    "ios": "iPhone",
+    "android": "Android",
+    "readyMade": "Instalar el atajo ya hecho",
+    "readyMadeHint": "Se abre la app Atajos con todo listo: toca «Añadir atajo».",
+    "createTitle": "Créalo en 1 minuto",
+    "iosSteps": [
+      {
+        "title": "Abre la app Atajos",
+        "text": "Viene instalada en el iPhone (si no, es gratis en la App Store)."
+      },
+      {
+        "title": "Toca + para crear un atajo nuevo",
+        "text": "Arriba a la derecha."
+      },
+      {
+        "title": "Añade la acción «Solicitar entrada»",
+        "text": "Búscala abajo. Elige el tipo «Número» y pon como pregunta «¿Cuánto has gastado?»."
+      },
+      {
+        "title": "Añade la acción «Abrir URL»",
+        "text": "Pega el enlace «Con el importe que digas» de abajo. Justo al final, después de «importe=», toca y elige la variable «Entrada proporcionada»."
+      },
+      {
+        "title": "Ponle nombre",
+        "text": "Toca el nombre de arriba y escribe «Apuntar gasto». Puedes elegir icono y color."
+      },
+      {
+        "title": "Pruébalo",
+        "text": "Toca el atajo: te pregunta el importe y abre Zumito con el formulario listo. Elige la categoría y guarda."
+      }
+    ],
+    "linksTitle": "Enlaces para el atajo",
+    "linkAmount": "Con el importe que digas",
+    "linkPlain": "Solo abrir el formulario",
+    "linkCategory": "Con una categoría ya elegida",
+    "copy": "Copiar",
+    "copyLabel": "Copiar el enlace «{name}»",
+    "copied": "Enlace copiado",
+    "tryIt": "Probar",
+    "iosNote": "Los atajos abren Zumito en Safari, no en la app instalada (cosas de iOS). La primera vez, entra con tu cuenta en Safari.",
+    "whereTitle": "¿Dónde ponerlo?",
+    "where": [
+      {
+        "title": "Botón de Acción",
+        "text": "iPhone 15 Pro y posteriores: Ajustes → Botón de Acción → Atajo → «Apuntar gasto»."
+      },
+      {
+        "title": "Tocar atrás",
+        "text": "Dos toques en la parte trasera del iPhone: Ajustes → Accesibilidad → Tocar → Tocar atrás → Doble toque → «Apuntar gasto»."
+      },
+      {
+        "title": "Icono en la pantalla de inicio",
+        "text": "En Atajos, mantén pulsado el atajo → Compartir → «Añadir a pantalla de inicio»."
+      },
+      {
+        "title": "Siri",
+        "text": "Di «Oye Siri, apuntar gasto»."
+      }
+    ],
+    "androidSteps": [
+      {
+        "title": "Instala Zumito",
+        "text": "Si aún no la tienes en la pantalla de inicio, sigue el tutorial de instalación."
+      },
+      {
+        "title": "Mantén pulsado el icono de Zumito",
+        "text": "Sale «Añadir gasto»: tócalo y se abre el formulario directamente."
+      },
+      {
+        "title": "Si quieres, arrástralo",
+        "text": "Mantén pulsado «Añadir gasto» y arrástralo a la pantalla de inicio: tendrás un icono que abre el formulario."
+      }
+    ],
+    "installLink": "Ver cómo instalarla"
   }
 }

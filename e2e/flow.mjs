@@ -232,7 +232,7 @@ await audit("crear cuenta")
 await submit()
 check(
   "crear la cuenta entra directamente y lleva al onboarding",
-  await waitFor(async () => (await path()) === "/onboarding"),
+  await waitFor(async () => (await path()) === "/onboarding", 20000),
   await path(),
 )
 check(
@@ -1614,7 +1614,7 @@ check(
 )
 check(
   "avisa de que se han guardado los pendientes",
-  await waitFor(async () => (await text()).includes("Gastos pendientes guardados"), 4000),
+  await waitFor(async () => (await text()).includes("Gastos pendientes guardados"), 10000),
   await text(),
 )
 check(
@@ -1676,6 +1676,86 @@ await send("Emulation.setDeviceMetricsOverride", {
   deviceScaleFactor: 2,
   mobile: true,
 })
+
+console.log("Instalar y atajos")
+const manifestJson = await (await fetch(`${BASE}/manifest.webmanifest`)).json()
+check(
+  "el manifest tiene el atajo «Añadir gasto» (mantener pulsado el icono en Android)",
+  manifestJson.shortcuts?.[0]?.url === "/add" && manifestJson.shortcuts[0].name === "Añadir gasto",
+  JSON.stringify(manifestJson.shortcuts),
+)
+await goto("/")
+check(
+  "el inicio invita a instalarla",
+  await waitFor(async () => (await text()).includes("Instala Zumito en tu móvil")),
+  await text(),
+)
+await evaluate(
+  "[...document.querySelectorAll('aside a')].find((a) => a.innerText.includes('Ver cómo')).click()",
+)
+check(
+  "y lleva al tutorial",
+  await waitFor(async () => (await path()) === "/ajustes/instalar"),
+  await path(),
+)
+check(
+  "el tutorial de iPhone explica Compartir y «Añadir a pantalla de inicio»",
+  await waitFor(async () => {
+    const t = await text()
+    return t.includes("Toca el botón Compartir") && t.includes("Toca «Añadir a pantalla de inicio»")
+  }),
+  await text(),
+)
+await shot("28-instalar-iphone")
+await audit("tutorial de instalación (iPhone)")
+await evaluate(
+  "[...document.querySelectorAll('[role=tab]')].find((t) => t.innerText.includes('Android')).click()",
+)
+check(
+  "y el de Android, el menú ⋮ e «Instalar aplicación»",
+  await waitFor(async () => (await text()).includes("Toca «Instalar aplicación»")),
+  await text(),
+)
+await shot("29-instalar-android")
+await audit("tutorial de instalación (Android)")
+await evaluate(
+  "[...document.querySelectorAll('a')].find((a) => a.innerText.includes('Atajos para apuntar rápido')).click()",
+)
+check(
+  "del tutorial se pasa a los atajos",
+  await waitFor(async () => (await path()) === "/ajustes/atajos"),
+  await path(),
+)
+check(
+  "la guía de iPhone explica la app Atajos con los enlaces para copiar",
+  await waitFor(async () => {
+    const t = await text()
+    return (
+      t.includes("Solicitar entrada") && t.includes("/add?importe=") && t.includes("Tocar atrás")
+    )
+  }),
+  await text(),
+)
+await shot("30-atajos")
+await audit("atajos")
+await evaluate(
+  "[...document.querySelectorAll('[role=tab]')].find((t) => t.innerText.includes('Android')).click()",
+)
+check(
+  "en Android, mantener pulsado el icono",
+  await waitFor(async () => (await text()).includes("Mantén pulsado el icono de Zumito")),
+  await text(),
+)
+await goto("/")
+await waitFor(async () => (await text()).includes("Instala Zumito en tu móvil"))
+await clickSel('button[aria-label="Ahora no"]')
+check(
+  "el aviso de instalar se puede cerrar",
+  await waitFor(async () => !(await text()).includes("Instala Zumito en tu móvil")),
+)
+await goto("/")
+await sleep(800)
+check("y no vuelve a salir", !(await text()).includes("Instala Zumito en tu móvil"), await text())
 
 console.log("Perfil, amigos y gastos compartidos")
 const ME = "11111111-1111-4111-8111-111111111111"

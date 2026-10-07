@@ -312,7 +312,9 @@ PWA de control de gastos personales. Rol de Claude: ingeniero senior full-stack 
   - solo salen de la cola cuando el servidor confirma, y el id generado en el cliente evita duplicados si se reenvían.
 - Las acciones de servidor en componentes cliente se esperan con `settle()` (`src/lib/settle.ts`): un fallo de red se trata como error, sin excepciones sin capturar.
 - Al cerrar sesión o borrar la cuenta, `clearLocalData()` (`src/lib/local-data.ts`) vacía la cola sin conexión y las cachés de ejecución del service worker (pantallas con datos). La precaché se conserva porque no tiene datos personales y mantiene la app funcionando sin red.
-- Ajustes muestra "Instala Zumito": el botón nativo en Android y Chrome, e instrucciones en iOS. No aparece si ya está instalada.
+- Ajustes muestra "Instala Zumito": el botón nativo en Android y Chrome, e instrucciones en iOS, con enlace al tutorial. No aparece si ya está instalada. `usePlatform` y `useInstallPrompt` (`src/hooks/use-platform.ts`) detectan el móvil y el botón nativo.
+- Tutorial `/ajustes/instalar`: pestañas iPhone/Android (se abre con la del móvil) y pasos ilustrados con `StepArt` (botones dibujados con iconos Lucide, sin capturas, para que no se queden viejos con cada versión de iOS o Android). `InstallBanner` en el Inicio hasta instalarla o cerrarlo (`localStorage`).
+- Atajos: el manifest tiene `shortcuts` (Android: mantener pulsado el icono → "Añadir gasto", Historial, Amigos). En iPhone no se pueden crear desde la web: `/ajustes/atajos` explica cómo crearlo en la app Atajos (Solicitar entrada + Abrir URL a `/add?importe=`), dónde ponerlo (botón de Acción, Tocar atrás, icono, Siri) y deja copiar los enlaces (`shortcutLinks`). Los atajos abren Safari, no la app instalada. Si se crea el atajo y se comparte por iCloud, pegar el enlace en `IOS_SHORTCUT_ICLOUD_URL` (`src/lib/shortcuts.ts`) y aparece "Instalar el atajo ya hecho".
 - `src/app/(app)/loading.tsx`: esqueleto mientras carga cada pantalla.
 
 ## Ajustes
