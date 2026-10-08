@@ -99,7 +99,7 @@ export function ShortcutsGuide({ labels, links, readyMadeUrl }: ShortcutsGuidePr
           <CopyLink labels={labels} name={labels.linkCategory} url={links.category} />
         ) : null}
       </Card>
-      <Link href="/add?importe=5" className={buttonVariants({ variant: "outline" })}>
+      <Link href="/apuntar?importe=5" className={buttonVariants({ variant: "outline" })}>
         <ExternalLink aria-hidden="true" />
         {labels.tryIt}
       </Link>

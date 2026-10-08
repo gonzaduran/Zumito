@@ -6,11 +6,14 @@
  */
 export const IOS_SHORTCUT_ICLOUD_URL: string | null = null
 
-/** Enlaces de /add para los atajos: con importe, solo el formulario y con una categoría. */
+/**
+ * Enlaces para los atajos. /apuntar enseña las categorías de quien lo abre (con importe,
+ * tocar una guarda el gasto); el de categoría fija va directo al formulario.
+ */
 export function shortcutLinks(origin: string, categoryName?: string) {
   return {
-    amount: `${origin}/add?importe=`,
-    plain: `${origin}/add`,
+    amount: `${origin}/apuntar?importe=`,
+    plain: `${origin}/apuntar`,
     category: categoryName
       ? `${origin}/add?categoria=${encodeURIComponent(categoryName)}&importe=`
       : null,

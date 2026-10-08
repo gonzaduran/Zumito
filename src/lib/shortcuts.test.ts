@@ -6,9 +6,9 @@ import { shortcutLinks } from "./shortcuts"
 describe("enlaces de los atajos", () => {
   const links = shortcutLinks("https://zumito.app", "Cafés")
 
-  it("apuntan a /add con el importe al final para la variable del atajo", () => {
-    expect(links.amount).toBe("https://zumito.app/add?importe=")
-    expect(links.plain).toBe("https://zumito.app/add")
+  it("apuntan a /apuntar con el importe al final para la variable del atajo", () => {
+    expect(links.amount).toBe("https://zumito.app/apuntar?importe=")
+    expect(links.plain).toBe("https://zumito.app/apuntar")
     expect(links.category).toBe("https://zumito.app/add?categoria=Caf%C3%A9s&importe=")
   })
 

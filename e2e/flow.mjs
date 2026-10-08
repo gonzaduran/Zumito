@@ -1731,7 +1731,9 @@ check(
   await waitFor(async () => {
     const t = await text()
     return (
-      t.includes("Solicitar entrada") && t.includes("/add?importe=") && t.includes("Tocar atrás")
+      t.includes("Solicitar entrada") &&
+      t.includes("/apuntar?importe=") &&
+      t.includes("Tocar atrás")
     )
   }),
   await text(),
@@ -1745,6 +1747,40 @@ check(
   "en Android, mantener pulsado el icono",
   await waitFor(async () => (await text()).includes("Mantén pulsado el icono de Zumito")),
   await text(),
+)
+await goto("/apuntar?importe=3")
+check(
+  "el atajo enseña el importe y tus propias categorías",
+  await waitFor(async () => {
+    const t = await text()
+    return t.includes("3,00 €") && t.includes("¿En qué ha sido?") && t.includes("Comida")
+  }),
+  await text(),
+)
+await shot("31-apuntar")
+await audit("pantalla del atajo")
+const beforeQuick = (await mock()).expenses.length
+await evaluate(
+  "[...document.querySelectorAll('main li button')].find((b) => b.innerText.includes('Comida')).click()",
+)
+check(
+  "tocar una categoría guarda el gasto y vuelve al inicio",
+  await waitFor(
+    async () =>
+      (await mock()).expenses.length === beforeQuick + 1 &&
+      (await mock()).expenses.at(-1)?.amount_cents === 300 &&
+      (await path()) === "/",
+  ),
+  JSON.stringify((await mock()).expenses.at(-1)),
+)
+await goto("/apuntar")
+await evaluate(
+  "[...document.querySelectorAll('main li button')].find((b) => b.innerText.includes('Comida')).click()",
+)
+check(
+  "sin importe, abre el formulario con la categoría elegida",
+  await waitFor(async () => decodeURIComponent(await path()) === "/add?categoria=Comida"),
+  await path(),
 )
 await goto("/")
 await waitFor(async () => (await text()).includes("Instala Zumito en tu móvil"))

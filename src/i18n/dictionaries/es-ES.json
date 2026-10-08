@@ -1262,21 +1262,17 @@
   "shortcuts": {
     "title": "Atajos para apuntar rápido",
     "back": "Volver a Ajustes",
-    "intro": "Apunta un gasto sin buscar la app: con un icono, el botón de Acción del iPhone o dos toques en la parte de atrás.",
+    "intro": "Apunta un gasto en 2 toques sin buscar la app: el atajo te pregunta el importe y te enseña tus categorías. A cada persona le salen las suyas.",
     "tabsLabel": "Tu móvil",
     "ios": "iPhone",
     "android": "Android",
     "readyMade": "Instalar el atajo ya hecho",
     "readyMadeHint": "Se abre la app Atajos con todo listo: toca «Añadir atajo».",
-    "createTitle": "Créalo en 1 minuto",
+    "createTitle": "Créalo en 1 minuto (solo 2 acciones)",
     "iosSteps": [
       {
-        "title": "Abre la app Atajos",
-        "text": "Viene instalada en el iPhone (si no, es gratis en la App Store)."
-      },
-      {
-        "title": "Toca + para crear un atajo nuevo",
-        "text": "Arriba a la derecha."
+        "title": "Abre la app Atajos y toca +",
+        "text": "Viene instalada en el iPhone (si no, es gratis en la App Store). El + está arriba a la derecha."
       },
       {
         "title": "Añade la acción «Solicitar entrada»",
@@ -1287,18 +1283,18 @@
         "text": "Pega el enlace «Con el importe que digas» de abajo. Justo al final, después de «importe=», toca y elige la variable «Entrada proporcionada»."
       },
       {
-        "title": "Ponle nombre",
-        "text": "Toca el nombre de arriba y escribe «Apuntar gasto». Puedes elegir icono y color."
+        "title": "Ponle de nombre «Apuntar gasto»",
+        "text": "Toca el nombre de arriba. Si quieres, elige icono y color."
       },
       {
         "title": "Pruébalo",
-        "text": "Toca el atajo: te pregunta el importe y abre Zumito con el formulario listo. Elige la categoría y guarda."
+        "text": "Te pregunta el importe y abre Zumito con tus categorías: toca una y el gasto queda guardado."
       }
     ],
     "linksTitle": "Enlaces para el atajo",
-    "linkAmount": "Con el importe que digas",
-    "linkPlain": "Solo abrir el formulario",
-    "linkCategory": "Con una categoría ya elegida",
+    "linkAmount": "Con el importe que digas (recomendado)",
+    "linkPlain": "Sin importe: elegir categoría y luego el importe",
+    "linkCategory": "Siempre la misma categoría",
     "copy": "Copiar",
     "copyLabel": "Copiar el enlace «{name}»",
     "copied": "Enlace copiado",
@@ -1338,5 +1334,11 @@
       }
     ],
     "installLink": "Ver cómo instalarla"
+  },
+  "quickPick": {
+    "header": "Apuntar gasto",
+    "title": "¿En qué vas a gastar?",
+    "titleWithAmount": "¿En qué ha sido?",
+    "fullForm": "Abrir el formulario completo"
   }
 }
